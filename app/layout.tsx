@@ -177,12 +177,21 @@ export const metadata: Metadata = {
     locale: "en_US",
     alternateLocale: ["ar_SA", "de_DE", "fr_FR", "es_ES", "tr_TR"],
     siteName: "MovieVault",
+    images: [
+      {
+        url: "https://movie-vault-eosin.vercel.app/og-image.png",
+        width: 1024,
+        height: 536,
+        alt: "MovieVault — Watch Movies, Series & Anime Free in HD",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "MovieVault — Watch Movies, Series & Anime Free HD | أفلام مترجمة",
     description:
       "Stream thousands of movies, series & anime in HD free. شاهد أحدث الأفلام والمسلسلات والأنمي مجاناً.",
+    images: ["https://movie-vault-eosin.vercel.app/og-image.png"],
   },
   robots: {
     index: true,
