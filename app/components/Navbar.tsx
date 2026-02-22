@@ -80,18 +80,20 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/95 via-black/80 to-transparent backdrop-blur-md">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-[68px] items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="text-primary">
-              <rect x="2" y="6" width="28" height="20" rx="3" stroke="currentColor" strokeWidth="2.5" />
-              <path d="M2 10h28M2 22h28" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M8 6v20M14 6v20M20 6v20M26 6v20" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
-              <polygon points="13,13 13,19 18,16" fill="currentColor" />
-            </svg>
-            <span className="text-xl font-bold tracking-tight">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <Image
+              src="/favicon.png"
+              alt="MovieVault"
+              width={40}
+              height={40}
+              className="h-9 w-9 rounded-lg sm:h-10 sm:w-10"
+              priority
+            />
+            <span className="text-2xl font-extrabold tracking-tight sm:text-[26px]">
               <span className="text-primary">Movie</span>
               <span className="text-white">Vault</span>
             </span>
@@ -103,7 +105,7 @@ export default function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg px-4 py-2 text-[15px] font-semibold transition-colors ${
                   i === 0 ? "text-primary" : "text-text-secondary hover:text-white"
                 }`}
               >
