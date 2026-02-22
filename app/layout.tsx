@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  verification: {
+    google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
+  },
   title: "MovieVault — أفلام مترجمة ومسلسلات حصرية بجودة عالية",
   description:
     "MovieVault — شاهد أحدث الأفلام المترجمة والمسلسلات الحصرية والأنمي بجودة عالية HD مجاناً. أكبر مكتبة عربية للأفلام والمسلسلات مع ترجمة كاملة. Watch the latest movies, exclusive series and anime in HD for free.",
