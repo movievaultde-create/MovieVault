@@ -1,0 +1,13 @@
+{
+  "name": "MovieVault",
+  "short_name": "MovieVault",
+  "description": "Watch Movies, Series & Anime Free in HD",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#E50914",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

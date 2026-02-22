@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   verification: {
     google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
   },
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
   title: "MovieVault — Watch Movies, Series & Anime Free HD | أفلام مترجمة ومسلسلات حصرية",
   description:
     "MovieVault — Watch the latest movies, TV series and anime in HD for free. Stream thousands of titles with subtitles in Arabic, English, German, French, Spanish & Turkish. شاهد أحدث الأفلام المترجمة والمسلسلات الحصرية والأنمي بجودة عالية HD مجاناً. Kostenlos Filme und Serien in HD ansehen. Regardez des films gratuits en HD. Películas gratis en línea. Ücretsiz film izle.",
