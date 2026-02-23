@@ -186,10 +186,11 @@ export const metadata: Metadata = {
     siteName: "MovieVault",
     images: [
       {
-        url: "https://movie-vault-eosin.vercel.app/og-image.png",
-        width: 1024,
-        height: 536,
+        url: "https://movie-vault-eosin.vercel.app/og-image.jpg",
+        width: 1200,
+        height: 630,
         alt: "MovieVault — Watch Movies, Series & Anime Free in HD",
+        type: "image/jpeg",
       },
     ],
   },
@@ -198,7 +199,7 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD | أفلام مترجمة",
     description:
       "Stream thousands of movies, series & anime in HD free. شاهد أحدث الأفلام والمسلسلات والأنمي مجاناً.",
-    images: ["https://movie-vault-eosin.vercel.app/og-image.png"],
+    images: ["https://movie-vault-eosin.vercel.app/og-image.jpg"],
   },
   robots: {
     index: true,
