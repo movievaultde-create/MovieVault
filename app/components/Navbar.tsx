@@ -79,6 +79,8 @@ export default function Navbar() {
     { label: t("navMovies"), href: "/movies" },
     { label: t("navSeries"), href: "/tv-series" },
     { label: t("navAnime"), href: "/anime" },
+    { label: t("navArabMovies"), href: "/arab-movies" },
+    { label: t("navArabSeries"), href: "/arab-series" },
   ];
 
   return (
