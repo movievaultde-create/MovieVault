@@ -3,8 +3,15 @@ const AD_URL =
 
 let lastTrigger = 0;
 const COOLDOWN_MS = 3_000;
+let vipMode = false;
+
+export function setVipMode(v: boolean) {
+  vipMode = v;
+}
 
 export function triggerPopunder() {
+  if (vipMode) return;
+
   const now = Date.now();
   if (now - lastTrigger < COOLDOWN_MS) return;
   lastTrigger = now;

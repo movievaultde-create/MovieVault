@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
+import { useVip } from "../context/VipContext";
 import { triggerPopunder } from "../lib/ads";
 
 interface SearchResult {
@@ -17,6 +18,7 @@ interface SearchResult {
 
 export default function Navbar() {
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
+  const { isVip } = useVip();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -213,6 +215,21 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {/* VIP Button */}
+            <Link
+              href="/vip"
+              className={`flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold tracking-wide transition-all ${
+                isVip
+                  ? "border border-amber-400/50 bg-amber-500/10 text-amber-400"
+                  : "border border-surface-border bg-surface text-text-secondary hover:border-amber-400/40 hover:text-amber-400"
+              }`}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
+              </svg>
+              <span className="hidden sm:inline">{isVip ? "VIP ✓" : "VIP"}</span>
+            </Link>
 
             {/* Language Selector */}
             <div className="relative" ref={langRef}>

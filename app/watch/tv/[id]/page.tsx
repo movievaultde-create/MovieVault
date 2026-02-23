@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
+import { useVip } from "../../../context/VipContext";
 import { triggerPopunder } from "../../../lib/ads";
 
 interface Season {
@@ -81,6 +82,7 @@ export default function WatchTVPage({
 }) {
   const { id } = use(params);
   const { t, isAr, isRtl, tmdbLang } = useLang();
+  const { isVip } = useVip();
 
   const [show, setShow] = useState<ShowData | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -127,7 +129,10 @@ export default function WatchTVPage({
   const servers = buildServers(id, selectedSeason, selectedEpisode);
 
   const handleOverlayClick = () => {
-    window.open(AD_URL, "_blank", "noopener,noreferrer");
+    if (!isVip) {
+      window.open(AD_URL, "_blank");
+      try { window.focus(); } catch {}
+    }
     setAdDismissed(true);
   };
 

@@ -105,6 +105,17 @@ const translations = {
 
   // Footer
   allRights: { EN: "All rights reserved", AR: "جميع الحقوق محفوظة", DE: "Alle Rechte vorbehalten", FR: "Tous droits réservés", ES: "Todos los derechos reservados", TR: "Tüm hakları saklıdır" },
+
+  // VIP
+  vipLogin: { EN: "VIP Access", AR: "دخول VIP", DE: "VIP-Zugang", FR: "Accès VIP", ES: "Acceso VIP", TR: "VIP Giriş" },
+  vipDesc: { EN: "Enter your VIP email to enjoy ad-free experience", AR: "أدخل بريدك الإلكتروني VIP للتمتع بتجربة بدون إعلانات", DE: "VIP-E-Mail eingeben für werbefreies Erlebnis", FR: "Entrez votre email VIP pour une expérience sans pub", ES: "Ingresa tu email VIP para disfrutar sin anuncios", TR: "Reklamsız deneyim için VIP e-postanızı girin" },
+  vipEmailPlaceholder: { EN: "Enter your email", AR: "أدخل بريدك الإلكتروني", DE: "E-Mail eingeben", FR: "Entrez votre email", ES: "Ingresa tu email", TR: "E-postanızı girin" },
+  vipSubmit: { EN: "Login", AR: "دخول", DE: "Anmelden", FR: "Connexion", ES: "Ingresar", TR: "Giriş" },
+  vipError: { EN: "This email is not authorized for VIP access", AR: "هذا البريد غير مصرح له بالدخول VIP", DE: "Diese E-Mail ist nicht für VIP autorisiert", FR: "Cet email n'est pas autorisé VIP", ES: "Este email no tiene acceso VIP", TR: "Bu e-posta VIP erişimi için yetkili değil" },
+  vipActive: { EN: "VIP Active ✓", AR: "VIP مفعّل ✓", DE: "VIP Aktiv ✓", FR: "VIP Actif ✓", ES: "VIP Activo ✓", TR: "VIP Aktif ✓" },
+  vipNoAds: { EN: "You are browsing without ads", AR: "أنت تتصفح بدون إعلانات", DE: "Werbefrei browsen", FR: "Navigation sans publicité", ES: "Navegando sin anuncios", TR: "Reklamsız geziniyorsunuz" },
+  vipLogout: { EN: "Logout", AR: "تسجيل خروج", DE: "Abmelden", FR: "Déconnexion", ES: "Cerrar sesión", TR: "Çıkış" },
+  vipBadge: { EN: "VIP", AR: "VIP", DE: "VIP", FR: "VIP", ES: "VIP", TR: "VIP" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

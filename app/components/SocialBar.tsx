@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Lang } from "../context/LanguageContext";
+import { useVip } from "../context/VipContext";
 
 const AD_LINK =
   "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
@@ -51,6 +52,7 @@ const CTA_TEXT: Record<Lang, string> = {
 };
 
 export default function SocialBar() {
+  const { isVip } = useVip();
   const [visible, setVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lang, setLang] = useState<Lang>("EN");
@@ -101,6 +103,8 @@ export default function SocialBar() {
       clearInterval(interval);
     };
   }, [showNext]);
+
+  if (isVip) return null;
 
   const notif = notifications[currentIndex % notifications.length];
   const isRtl = lang === "AR";

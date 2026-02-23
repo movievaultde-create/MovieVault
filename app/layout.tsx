@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "./context/LanguageContext";
+import { VipProvider } from "./context/VipContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Popunder from "./components/Popunder";
@@ -222,11 +223,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background text-foreground antialiased`}
       >
         <LanguageProvider>
-          <Popunder />
-          <SocialBar />
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <VipProvider>
+            <Popunder />
+            <SocialBar />
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </VipProvider>
         </LanguageProvider>
       </body>
     </html>

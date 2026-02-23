@@ -3,8 +3,10 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { triggerPopunder } from "../lib/ads";
+import { useVip } from "../context/VipContext";
 
 export default function Popunder() {
+  const { isVip } = useVip();
   const firedRef = useRef(false);
   const pathname = usePathname();
   const isFirstMount = useRef(true);
@@ -19,6 +21,8 @@ export default function Popunder() {
   }, [pathname]);
 
   useEffect(() => {
+    if (isVip) return;
+
     const trigger = () => {
       if (firedRef.current) return;
       firedRef.current = true;
@@ -36,7 +40,7 @@ export default function Popunder() {
     }
 
     return cleanup;
-  }, [pathname]);
+  }, [pathname, isVip]);
 
   return null;
 }
