@@ -17,31 +17,33 @@ export function triggerPopunder() {
   lastTrigger = now;
 
   try {
-    // Open as a small popup window (not tab) - browsers handle focus differently for popups
-    const screenW = window.screen.availWidth;
-    const screenH = window.screen.availHeight;
-    const w = window.open(
-      AD_URL,
-      "ad_" + now,
-      `width=${screenW},height=${screenH},left=0,top=0,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no`
-    );
+    // Technique: open blank first, grab focus back, then navigate the background window
+    const adWin = window.open("about:blank", "_blank");
 
-    if (w) {
-      // Aggressively return focus to MovieVault
-      w.blur();
-      window.focus();
+    // Immediately reclaim focus before anything loads
+    window.focus();
+    document.body.focus();
 
-      // Multiple delayed focus attempts
-      const delays = [0, 50, 100, 200, 400, 800];
-      delays.forEach((d) => {
+    if (adWin) {
+      // Small delay then navigate the background window to the ad
+      setTimeout(() => {
+        try {
+          adWin.location.href = AD_URL;
+        } catch {
+          // cross-origin block - the window is already open, just redirect
+          try { adWin.location.replace(AD_URL); } catch {}
+        }
+      }, 50);
+
+      // Keep reclaiming focus aggressively
+      for (let i = 0; i < 8; i++) {
         setTimeout(() => {
-          try { w.blur(); } catch {}
           try { window.focus(); } catch {}
-          try { document.body.focus(); } catch {}
-        }, d);
-      });
+        }, i * 100);
+      }
     }
   } catch {
+    // Fallback: plain link click
     try {
       const a = document.createElement("a");
       a.href = AD_URL;
@@ -53,7 +55,7 @@ export function triggerPopunder() {
       document.body.removeChild(a);
       setTimeout(() => { try { window.focus(); } catch {} }, 100);
     } catch {
-      // blocked entirely
+      // blocked
     }
   }
 }
