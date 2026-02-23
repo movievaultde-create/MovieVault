@@ -60,6 +60,15 @@ export async function GET(req: NextRequest) {
       case "turkish-series":
         url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_original_language=tr&sort_by=popularity.desc&page=${page}`;
         break;
+      case "korean-series":
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_original_language=ko&sort_by=popularity.desc&page=${page}`;
+        break;
+      case "indian-series":
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_original_language=hi&sort_by=popularity.desc&page=${page}`;
+        break;
+      case "indian-movies":
+        url = `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&with_original_language=hi&sort_by=popularity.desc&page=${page}`;
+        break;
       case "trending":
         url = `${BASE}/trending/all/week?api_key=${TMDB_KEY}&language=${lang}&page=${page}`;
         break;
@@ -73,7 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await res.json();
-    const type = (category === "movies" || category === "arab-movies") ? "movie" : category === "trending" ? "movie" : "tv";
+    const type = (category === "movies" || category === "arab-movies" || category === "indian-movies") ? "movie" : category === "trending" ? "movie" : "tv";
 
     const results = (data.results ?? []).map((item: TmdbItem & { media_type?: string }) => {
       const itemType = item.media_type

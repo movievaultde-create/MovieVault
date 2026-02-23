@@ -73,8 +73,9 @@ export default function SocialBar() {
     fetch("/api/browse?lang=en-US")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!d?.addedToday?.length) return;
-        const newNotifs: Notif[] = d.addedToday.slice(0, 3).map((item: { title: string }) => {
+        const releases = d?.newReleases ?? d?.addedToday ?? [];
+        if (!releases.length) return;
+        const newNotifs: Notif[] = releases.slice(0, 3).map((item: { title: string }) => {
           const allLangs = Object.fromEntries(
             (["EN", "AR", "DE", "FR", "ES", "TR"] as Lang[]).map((l) => [l, `${item.title} ${NEW_ADDED_BODY[l]}`])
           ) as Record<Lang, string>;

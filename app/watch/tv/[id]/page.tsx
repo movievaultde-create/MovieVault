@@ -40,37 +40,53 @@ interface ShowData {
 const AD_URL =
   "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
 
-function buildServers(id: string, season: number, episode: number) {
+const SUB_LANG_MAP: Record<string, string> = {
+  EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
+};
+
+function buildServers(id: string, season: number, episode: number, subLang: string) {
   return [
     {
       name: "MovieVault Server",
       label: "Fast 4K",
       premium: true,
-      url: `https://player.videasy.net/tv/${id}/${season}/${episode}`,
+      url: `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}?sub=${subLang}`,
     },
     {
       name: "Server 1",
       label: "VidSrc",
       premium: false,
-      url: `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`,
+      url: `https://vidsrc.to/embed/tv/${id}/${season}/${episode}?ds_lang=${subLang}`,
     },
     {
       name: "Server 2",
-      label: "Fast",
+      label: "VidSrc Pro",
       premium: false,
-      url: `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`,
+      url: `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?sub_lang=${subLang}`,
     },
     {
       name: "Server 3",
-      label: "Backup",
+      label: "Embed",
       premium: false,
-      url: `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`,
+      url: `https://embed.su/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
     },
     {
       name: "Server 4",
-      label: "VIP",
+      label: "Multi",
       premium: false,
-      url: `https://embed.su/embed/tv/${id}/${season}/${episode}`,
+      url: `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}&sub_id=${subLang}`,
+    },
+    {
+      name: "Server 5",
+      label: "Videasy",
+      premium: false,
+      url: `https://player.videasy.net/tv/${id}/${season}/${episode}?sub=${subLang}`,
+    },
+    {
+      name: "Server 6",
+      label: "NonTongo",
+      premium: false,
+      url: `https://nontongo.win/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
     },
   ];
 }
@@ -81,8 +97,9 @@ export default function WatchTVPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { t, isAr, isRtl, tmdbLang } = useLang();
+  const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const { isVip } = useVip();
+  const subLang = SUB_LANG_MAP[lang] ?? "en";
 
   const [show, setShow] = useState<ShowData | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -126,7 +143,7 @@ export default function WatchTVPage({
       .finally(() => setEpLoading(false));
   }, [id, show, selectedSeason, tmdbLang]);
 
-  const servers = buildServers(id, selectedSeason, selectedEpisode);
+  const servers = buildServers(id, selectedSeason, selectedEpisode, subLang);
 
   const handleOverlayClick = () => {
     if (!isVip) {

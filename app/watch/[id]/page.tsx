@@ -30,38 +30,56 @@ interface MovieData {
   cast: CastMember[];
 }
 
-const SERVERS = [
-  {
-    name: "MovieVault Server",
-    label: "Fast 4K",
-    premium: true,
-    url: (id: string) => `https://player.videasy.net/movie/${id}`,
-  },
-  {
-    name: "Server 1",
-    label: "VidSrc",
-    premium: false,
-    url: (id: string) => `https://vidsrc.to/embed/movie/${id}`,
-  },
-  {
-    name: "Server 2",
-    label: "Fast",
-    premium: false,
-    url: (id: string) => `https://vidsrc.cc/v2/embed/movie/${id}`,
-  },
-  {
-    name: "Server 3",
-    label: "Backup",
-    premium: false,
-    url: (id: string) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
-  },
-  {
-    name: "Server 4",
-    label: "VIP",
-    premium: false,
-    url: (id: string) => `https://embed.su/embed/movie/${id}`,
-  },
-];
+const SUB_LANG_MAP: Record<string, string> = {
+  EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
+};
+
+function buildMovieServers(id: string, subLang: string) {
+  return [
+    {
+      name: "MovieVault Server",
+      label: "Fast 4K",
+      premium: true,
+      url: `https://autoembed.co/movie/tmdb/${id}?sub=${subLang}`,
+    },
+    {
+      name: "Server 1",
+      label: "VidSrc",
+      premium: false,
+      url: `https://vidsrc.to/embed/movie/${id}?ds_lang=${subLang}`,
+    },
+    {
+      name: "Server 2",
+      label: "VidSrc Pro",
+      premium: false,
+      url: `https://vidsrc.cc/v2/embed/movie/${id}?sub_lang=${subLang}`,
+    },
+    {
+      name: "Server 3",
+      label: "Embed",
+      premium: false,
+      url: `https://embed.su/embed/movie/${id}?sub=${subLang}`,
+    },
+    {
+      name: "Server 4",
+      label: "Multi",
+      premium: false,
+      url: `https://multiembed.mov/?video_id=${id}&tmdb=1&sub_id=${subLang}`,
+    },
+    {
+      name: "Server 5",
+      label: "Videasy",
+      premium: false,
+      url: `https://player.videasy.net/movie/${id}?sub=${subLang}`,
+    },
+    {
+      name: "Server 6",
+      label: "NonTongo",
+      premium: false,
+      url: `https://nontongo.win/embed/movie/${id}?sub=${subLang}`,
+    },
+  ];
+}
 
 const AD_URL =
   "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
@@ -72,8 +90,10 @@ export default function WatchPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { t, isAr, isRtl, tmdbLang } = useLang();
+  const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const { isVip } = useVip();
+  const subLang = SUB_LANG_MAP[lang] ?? "en";
+  const SERVERS = buildMovieServers(id, subLang);
   const [activeServer, setActiveServer] = useState(0);
   const [adDismissed, setAdDismissed] = useState(false);
   const [movie, setMovie] = useState<MovieData | null>(null);
@@ -136,7 +156,7 @@ export default function WatchPage({
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
             <iframe
-              src={SERVERS[activeServer].url(id)}
+              src={SERVERS[activeServer].url}
               className="absolute inset-0 h-full w-full"
               allowFullScreen
               allow="autoplay; encrypted-media; picture-in-picture"
