@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
 import { useVip } from "../../../context/VipContext";
-import { triggerPopunder } from "../../../lib/ads";
+import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 
 interface Season {
   season_number: number;
@@ -37,13 +37,6 @@ interface ShowData {
   cast: { name: string; character: string; photo: string | null }[];
 }
 
-const AD_URLS = [
-  "https://shiny-fortune.com/d.m/Fvz0dLG/N_vqZYGYUx/yeCm/9lucZMU_L/kcPmTsY/4DMVj/Ewz_00DBk/trNbjvgNyMoT/Ma5xM/wv",
-  "https://amazing-population.com/b/3DVJ0oP.3vpovTbMm/V/J_Z/Du0e2QOEDUI/x/NqDBAI1/LHTeYp4UMdj/E/0pMfDnkJ",
-  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff",
-];
-let adIdx = 0;
-function getAdUrl() { return AD_URLS[adIdx++ % AD_URLS.length]; }
 
 const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
