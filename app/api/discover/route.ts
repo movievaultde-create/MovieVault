@@ -57,6 +57,9 @@ export async function GET(req: NextRequest) {
       case "arab-series":
         url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=ar-SA&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
         break;
+      case "turkish-series":
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_original_language=tr&sort_by=popularity.desc&page=${page}`;
+        break;
       case "trending":
         url = `${BASE}/trending/all/week?api_key=${TMDB_KEY}&language=${lang}&page=${page}`;
         break;

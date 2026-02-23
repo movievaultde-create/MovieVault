@@ -34,6 +34,8 @@ const translations = {
   navArabSeries: { EN: "Arab Series", AR: "مسلسلات عربية", DE: "Arabische Serien", FR: "Séries arabes", ES: "Series árabes", TR: "Arap Dizileri" },
   allArabMovies: { EN: "Arab Movies", AR: "أفلام عربية", DE: "Arabische Filme", FR: "Films arabes", ES: "Películas árabes", TR: "Arap Filmleri" },
   allArabSeries: { EN: "Arab Series", AR: "مسلسلات عربية", DE: "Arabische Serien", FR: "Séries arabes", ES: "Series árabes", TR: "Arap Dizileri" },
+  navTurkishSeries: { EN: "Turkish Series", AR: "مسلسلات تركية", DE: "Türkische Serien", FR: "Séries turques", ES: "Series turcas", TR: "Türk Dizileri" },
+  allTurkishSeries: { EN: "Turkish Series", AR: "مسلسلات تركية", DE: "Türkische Serien", FR: "Séries turques", ES: "Series turcas", TR: "Türk Dizileri" },
   searchPlaceholder: { EN: "Search movies, series...", AR: "ابحث عن فيلم أو مسلسل...", DE: "Filme, Serien suchen...", FR: "Rechercher films, séries...", ES: "Buscar películas, series...", TR: "Film, dizi ara..." },
   searchNoResults: { EN: "No results found", AR: "لا توجد نتائج", DE: "Keine Ergebnisse", FR: "Aucun résultat", ES: "Sin resultados", TR: "Sonuç bulunamadı" },
   searchTyping: { EN: "Type to search...", AR: "اكتب للبحث...", DE: "Tippen zum Suchen...", FR: "Tapez pour chercher...", ES: "Escribe para buscar...", TR: "Aramak için yazın..." },

@@ -81,6 +81,7 @@ export default function Navbar() {
     { label: t("navAnime"), href: "/anime" },
     { label: t("navArabMovies"), href: "/arab-movies" },
     { label: t("navArabSeries"), href: "/arab-series" },
+    { label: t("navTurkishSeries"), href: "/turkish-series" },
   ];
 
   return (

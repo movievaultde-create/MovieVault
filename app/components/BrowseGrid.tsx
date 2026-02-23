@@ -18,7 +18,7 @@ export default function BrowseGrid({
   category,
   titleKey,
 }: {
-  category: "movies" | "series" | "anime" | "arab-movies" | "arab-series";
+  category: "movies" | "series" | "anime" | "arab-movies" | "arab-series" | "turkish-series";
   titleKey: TranslationKey;
 }) {
   const { t, tmdbLang } = useLang();
