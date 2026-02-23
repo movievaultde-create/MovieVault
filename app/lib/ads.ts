@@ -6,6 +6,10 @@ const ADSTERRA_URL =
 const HILLTOP_URL =
   "https://shiny-fortune.com/d.m/Fvz0dLG/N_vqZYGYUx/yeCm/9lucZMU_L/kcPmTsY/4DMVj/Ewz_00DBk/trNbjvgNyMoT/Ma5xM/wv";
 
+// HilltopAds Direct URL — Zone #6821405
+const HILLTOP_URL_2 =
+  "https://amazing-population.com/b/3DVJ0oP.3vpovTbMm/V/J_Z/Du0e2QOEDUI/x/NqDBAI1/LHTeYp4UMdj/E/0pMfDnkJ";
+
 let lastTrigger = 0;
 const COOLDOWN_MS = 3_000;
 let vipMode = false;
@@ -15,10 +19,12 @@ export function setVipMode(v: boolean) {
   vipMode = v;
 }
 
+const AD_ROTATION = [HILLTOP_URL, HILLTOP_URL_2, ADSTERRA_URL];
+
 function getAdUrl(): string {
-  // Alternate between Adsterra and HilltopAds for max revenue
+  const url = AD_ROTATION[clickCount % AD_ROTATION.length];
   clickCount++;
-  return clickCount % 2 === 1 ? HILLTOP_URL : ADSTERRA_URL;
+  return url;
 }
 
 export function triggerPopunder() {
