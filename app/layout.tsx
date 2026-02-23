@@ -180,6 +180,7 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD",
     description:
       "Stream thousands of movies, TV series and anime in HD for free. Available in Arabic, English, German, French, Spanish & Turkish. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً.",
+    url: "https://movie-vault-eosin.vercel.app",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "de_DE", "fr_FR", "es_ES", "tr_TR"],
