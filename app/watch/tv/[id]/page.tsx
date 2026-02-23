@@ -109,6 +109,12 @@ export default function WatchTVPage({
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
 
+  // Always require start-ad when opening another show.
+  useEffect(() => {
+    setActiveServer(0);
+    setAdActive(true);
+  }, [id]);
+
   useEffect(() => {
     setLoading(true);
     fetch(`/api/tv/${id}?lang=${tmdbLang}`)
@@ -206,7 +212,7 @@ export default function WatchTVPage({
               />
             )}
             <VideoAdOverlay
-              key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
+              key={`${id}-${activeServer}-${selectedSeason}-${selectedEpisode}`}
               onPhaseChange={(isAd) => setAdActive(isAd)}
             />
           </div>

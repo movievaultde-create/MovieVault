@@ -99,6 +99,12 @@ export default function WatchPage({
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
 
+  // Always require start-ad when opening a movie page.
+  useEffect(() => {
+    setActiveServer(0);
+    setAdActive(true);
+  }, [id]);
+
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -153,7 +159,7 @@ export default function WatchPage({
                 referrerPolicy="origin"
               />
             )}
-            <VideoAdOverlay key={activeServer} onPhaseChange={(isAd) => setAdActive(isAd)} />
+            <VideoAdOverlay key={`${id}-${activeServer}`} onPhaseChange={(isAd) => setAdActive(isAd)} />
           </div>
         </div>
 
