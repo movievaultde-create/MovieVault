@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import Popunder from "./components/Popunder";
 import SocialBar from "./components/SocialBar";
 import VipCelebration from "./components/VipCelebration";
+import AdsContainer from "./components/AdsContainer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -242,6 +243,7 @@ export default function RootLayout({
             <SocialBar />
             <VipCelebration />
             <Navbar />
+            <AdsContainer />
             <main>{children}</main>
             <Footer />
           </VipProvider>

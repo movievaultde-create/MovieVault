@@ -1,0 +1,20 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /vip/
+
+User-Agent: Googlebot
+Allow: /
+Disallow: /api/
+
+User-Agent: Bingbot
+Allow: /
+Disallow: /api/
+
+User-Agent: Yandex
+Allow: /
+Disallow: /api/
+
+Sitemap: https://movie-vault-eosin.vercel.app/sitemap.xml
+
+Host: https://movie-vault-eosin.vercel.app

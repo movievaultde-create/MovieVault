@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useLang } from "../context/LanguageContext";
 
 export default function Footer() {
@@ -15,9 +16,18 @@ export default function Footer() {
               <span className="text-white">Vault</span>
             </span>
           </div>
-          <p className="text-xs text-text-muted">
-            © 2024 MovieVault. {t("allRights")}
-          </p>
+
+          <div className="flex items-center gap-4 text-xs text-text-muted">
+            <Link href="/impressum" className="transition-colors hover:text-white">
+              Impressum
+            </Link>
+            <span className="text-surface-border">|</span>
+            <Link href="/datenschutz" className="transition-colors hover:text-white">
+              Datenschutz
+            </Link>
+            <span className="text-surface-border">|</span>
+            <span>© {new Date().getFullYear()} MovieVault. {t("allRights")}</span>
+          </div>
         </div>
       </div>
     </footer>
