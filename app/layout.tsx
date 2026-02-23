@@ -20,8 +20,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://movie-vault-eosin.vercel.app"),
   verification: {
     google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
+  },
+  other: {
+    "fb:app_id": "movievault2026",
   },
   manifest: "/manifest.json",
   icons: {
