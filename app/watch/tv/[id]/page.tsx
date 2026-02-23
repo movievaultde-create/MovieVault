@@ -104,6 +104,7 @@ export default function WatchTVPage({
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
   const [adActive, setAdActive] = useState(true);
+  const [adSession, setAdSession] = useState(0);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);
@@ -113,7 +114,19 @@ export default function WatchTVPage({
   useEffect(() => {
     setActiveServer(0);
     setAdActive(true);
+    setAdSession((v) => v + 1);
   }, [id]);
+
+  // Handle bfcache restore so start-ad appears again after returning.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      setAdActive(true);
+      setAdSession((v) => v + 1);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -212,7 +225,7 @@ export default function WatchTVPage({
               />
             )}
             <VideoAdOverlay
-              key={`${id}-${activeServer}-${selectedSeason}-${selectedEpisode}`}
+              key={`${id}-${activeServer}-${selectedSeason}-${selectedEpisode}-${adSession}`}
               onPhaseChange={(isAd) => setAdActive(isAd)}
             />
           </div>

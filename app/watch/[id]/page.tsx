@@ -93,6 +93,7 @@ export default function WatchPage({
   const SERVERS = buildMovieServers(id, subLang);
   const [activeServer, setActiveServer] = useState(0);
   const [adActive, setAdActive] = useState(true);
+  const [adSession, setAdSession] = useState(0);
   const [movie, setMovie] = useState<MovieData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +104,20 @@ export default function WatchPage({
   useEffect(() => {
     setActiveServer(0);
     setAdActive(true);
+    setAdSession((v) => v + 1);
   }, [id]);
+
+  // Firefox/Chromium may restore pages from bfcache (same component state).
+  // Force a fresh ad gate when coming back to this page.
+  useEffect(() => {
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      setAdActive(true);
+      setAdSession((v) => v + 1);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -159,7 +173,10 @@ export default function WatchPage({
                 referrerPolicy="origin"
               />
             )}
-            <VideoAdOverlay key={`${id}-${activeServer}`} onPhaseChange={(isAd) => setAdActive(isAd)} />
+            <VideoAdOverlay
+              key={`${id}-${activeServer}-${adSession}`}
+              onPhaseChange={(isAd) => setAdActive(isAd)}
+            />
           </div>
         </div>
 
