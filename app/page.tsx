@@ -141,39 +141,43 @@ function TrendingSection({
 }) {
   const skeletons = Array.from({ length: 6 });
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    if (isRtl) {
-      setCanScrollLeft(el.scrollLeft < -4);
-      setCanScrollRight(el.scrollLeft > -(el.scrollWidth - el.clientWidth - 4));
-    } else {
-      setCanScrollLeft(el.scrollLeft > 4);
-      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-    }
-  }, [isRtl]);
+    const overflow = el.scrollWidth > el.clientWidth + 8;
+    setHasOverflow(overflow);
+    if (!overflow) return;
+    const sl = Math.abs(el.scrollLeft);
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setAtStart(sl < 8);
+    setAtEnd(sl >= maxScroll - 8);
+  }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    checkScroll();
+    const raf = requestAnimationFrame(() => checkScroll());
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll);
     return () => {
+      cancelAnimationFrame(raf);
       el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
     };
-  }, [checkScroll, items]);
+  }, [checkScroll, items.length]);
 
-  const scroll = (dir: "left" | "right") => {
+  const scrollBy = (dir: number) => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = el.clientWidth * 0.75;
-    el.scrollBy({ left: dir === "right" ? amount : -amount, behavior: "smooth" });
+    el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: "smooth" });
   };
+
+  const scrollPrev = () => scrollBy(isRtl ? 1 : -1);
+  const scrollNext = () => scrollBy(isRtl ? -1 : 1);
 
   return (
     <section className="mx-auto max-w-[1400px] scroll-mt-20 px-4 py-8 sm:px-6">
@@ -182,26 +186,28 @@ function TrendingSection({
           <div className="h-7 w-1 rounded-full bg-gradient-to-b from-orange-400 to-red-600" />
           <h2 className="text-xl font-bold text-white sm:text-2xl">{title}</h2>
         </div>
-        <div className="hidden items-center gap-2 sm:flex">
-          <button
-            onClick={() => scroll(isRtl ? "right" : "left")}
-            disabled={!canScrollLeft}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button
-            onClick={() => scroll(isRtl ? "left" : "right")}
-            disabled={!canScrollRight}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30"
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        </div>
+        {hasOverflow && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={scrollPrev}
+              disabled={atStart}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:border-white/20 hover:bg-white/10 disabled:pointer-events-none disabled:opacity-25"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button
+              onClick={scrollNext}
+              disabled={atEnd}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition-all hover:bg-primary/20 disabled:pointer-events-none disabled:opacity-25"
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -217,29 +223,29 @@ function TrendingSection({
           ))}
         </div>
       ) : (
-        <div className="group/carousel relative">
-          {/* Left fade arrow (mobile + desktop overlay) */}
-          {canScrollLeft && (
+        <div className="relative">
+          {/* Left gradient overlay with arrow */}
+          {!atStart && (
             <button
-              onClick={() => scroll(isRtl ? "right" : "left")}
-              className="absolute start-0 top-0 z-10 hidden h-[calc(100%-16px)] w-12 items-center justify-center bg-gradient-to-r from-background/90 to-transparent sm:flex"
+              onClick={scrollPrev}
+              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} from-background via-background/70 to-transparent`}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-110">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-black/80">
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </div>
             </button>
           )}
 
-          {/* Right fade arrow */}
-          {canScrollRight && (
+          {/* Right gradient overlay with arrow */}
+          {!atEnd && hasOverflow && (
             <button
-              onClick={() => scroll(isRtl ? "left" : "right")}
-              className="absolute end-0 top-0 z-10 hidden h-[calc(100%-16px)] w-12 items-center justify-center bg-gradient-to-l from-background/90 to-transparent sm:flex"
+              onClick={scrollNext}
+              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "left-0 bg-gradient-to-r" : "right-0 bg-gradient-to-l"} from-background via-background/70 to-transparent`}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-110">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-white shadow-lg shadow-primary/10 backdrop-blur-sm transition-all hover:scale-110 hover:bg-primary/30">
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </div>
