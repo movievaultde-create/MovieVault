@@ -14,7 +14,7 @@ const AD_ROTATION = [HILLTOP_URL, HILLTOP_URL_2, ADSTERRA_URL];
 const STORAGE_KEY = "mv_ad_idx";
 
 let lastTrigger = 0;
-const COOLDOWN_MS = 3_000;
+const COOLDOWN_MS = 5_000;
 let vipMode = false;
 
 function getStoredIndex(): number {

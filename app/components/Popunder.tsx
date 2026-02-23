@@ -10,8 +10,8 @@ export default function Popunder() {
   const firedRef = useRef(false);
   const pathname = usePathname();
   const isFirstMount = useRef(true);
+  const isWatchPage = pathname.startsWith("/watch");
 
-  // Reset on every page change so next interaction triggers again
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
@@ -21,6 +21,7 @@ export default function Popunder() {
     firedRef.current = false;
   }, [pathname]);
 
+  // Click-based popunder on all pages — re-arms every 20s
   useEffect(() => {
     if (isVip) return;
 
@@ -28,22 +29,38 @@ export default function Popunder() {
       if (firedRef.current) return;
       firedRef.current = true;
       triggerPopunder();
-      // Re-arm after 30 seconds so user gets another ad on prolonged interaction
-      setTimeout(() => { firedRef.current = false; }, 30000);
+      setTimeout(() => { firedRef.current = false; }, 20000);
     };
 
     const events = ["click", "touchstart"] as const;
-    const addListeners = () => {
-      events.forEach((e) =>
-        document.addEventListener(e, trigger, { passive: true })
-      );
-    };
-    addListeners();
+    events.forEach((e) =>
+      document.addEventListener(e, trigger, { passive: true })
+    );
 
     return () => {
       events.forEach((e) => document.removeEventListener(e, trigger));
     };
   }, [pathname, isVip]);
+
+  // Auto popunder on watch pages — every 2 minutes, no click needed
+  useEffect(() => {
+    if (isVip || !isWatchPage) return;
+
+    // First auto-popunder after 30 seconds of watching
+    const firstTimer = setTimeout(() => {
+      triggerPopunder();
+    }, 30000);
+
+    // Then every 2 minutes
+    const interval = setInterval(() => {
+      triggerPopunder();
+    }, 120000);
+
+    return () => {
+      clearTimeout(firstTimer);
+      clearInterval(interval);
+    };
+  }, [isVip, isWatchPage]);
 
   return null;
 }
