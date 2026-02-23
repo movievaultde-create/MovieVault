@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 import VideoAdOverlay from "../../../components/VideoAdOverlay";
+import VideoPlayer from "../../../components/VideoPlayer";
 
 interface Season {
   season_number: number;
@@ -42,48 +43,75 @@ const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
 };
 
-function buildServers(id: string, season: number, episode: number, subLang: string) {
+type WatchServer = {
+  name: string;
+  label: string;
+  premium: boolean;
+  url: string;
+  playerType: "iframe" | "direct";
+  directUrl?: string;
+};
+
+function buildDirectTvUrl(id: string, season: number, episode: number): string | undefined {
+  const template = process.env.NEXT_PUBLIC_DIRECT_TV_URL_TEMPLATE?.trim();
+  if (!template) return undefined;
+  return template
+    .replaceAll("{id}", id)
+    .replaceAll("{season}", String(season))
+    .replaceAll("{episode}", String(episode));
+}
+
+function buildServers(id: string, season: number, episode: number, subLang: string): WatchServer[] {
+  const directUrl = buildDirectTvUrl(id, season, episode);
   return [
     {
       name: "MovieVault Server",
       label: "Fast 4K",
       premium: true,
+      playerType: directUrl ? "direct" : "iframe",
+      directUrl,
       url: `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}?sub=${subLang}`,
     },
     {
       name: "Server 1",
       label: "VidSrc",
       premium: false,
+      playerType: "iframe",
       url: `https://vidsrc.to/embed/tv/${id}/${season}/${episode}?ds_lang=${subLang}`,
     },
     {
       name: "Server 2",
       label: "VidSrc Pro",
       premium: false,
+      playerType: "iframe",
       url: `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?sub_lang=${subLang}`,
     },
     {
       name: "Server 3",
       label: "Embed",
       premium: false,
+      playerType: "iframe",
       url: `https://embed.su/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
     },
     {
       name: "Server 4",
       label: "Multi",
       premium: false,
+      playerType: "iframe",
       url: `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}&sub_id=${subLang}`,
     },
     {
       name: "Server 5",
       label: "Videasy",
       premium: false,
+      playerType: "iframe",
       url: `https://player.videasy.net/tv/${id}/${season}/${episode}?sub=${subLang}`,
     },
     {
       name: "Server 6",
       label: "NonTongo",
       premium: false,
+      playerType: "iframe",
       url: `https://nontongo.win/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
     },
   ];
@@ -158,6 +186,7 @@ export default function WatchTVPage({
   }, [id, show, selectedSeason, tmdbLang]);
 
   const servers = buildServers(id, selectedSeason, selectedEpisode, subLang);
+  const currentServer = servers[activeServer];
 
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
@@ -215,14 +244,18 @@ export default function WatchTVPage({
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
             {!adActive && (
-              <iframe
-                key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
-                src={servers[activeServer].url}
-                className="absolute inset-0 h-full w-full"
-                allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture"
-                referrerPolicy="origin"
-              />
+              currentServer.playerType === "direct" && currentServer.directUrl ? (
+                <VideoPlayer src={currentServer.directUrl} />
+              ) : (
+                <iframe
+                  key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
+                  src={currentServer.url}
+                  className="absolute inset-0 h-full w-full"
+                  allowFullScreen
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  referrerPolicy="origin"
+                />
+              )
             )}
             <VideoAdOverlay
               key={`${id}-${activeServer}-${selectedSeason}-${selectedEpisode}-${adSession}`}

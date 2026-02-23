@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLang, type TranslationKey } from "../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../lib/ads";
 import VideoAdOverlay from "../../components/VideoAdOverlay";
+import VideoPlayer from "../../components/VideoPlayer";
 
 interface CastMember {
   name: string;
@@ -34,48 +35,72 @@ const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
 };
 
-function buildMovieServers(id: string, subLang: string) {
+type WatchServer = {
+  name: string;
+  label: string;
+  premium: boolean;
+  url: string;
+  playerType: "iframe" | "direct";
+  directUrl?: string;
+};
+
+function buildDirectMovieUrl(id: string): string | undefined {
+  const template = process.env.NEXT_PUBLIC_DIRECT_MOVIE_URL_TEMPLATE?.trim();
+  if (!template) return undefined;
+  return template.replaceAll("{id}", id);
+}
+
+function buildMovieServers(id: string, subLang: string): WatchServer[] {
+  const directUrl = buildDirectMovieUrl(id);
   return [
     {
       name: "MovieVault Server",
       label: "Fast 4K",
       premium: true,
+      playerType: directUrl ? "direct" : "iframe",
+      directUrl,
       url: `https://autoembed.co/movie/tmdb/${id}?sub=${subLang}`,
     },
     {
       name: "Server 1",
       label: "VidSrc",
       premium: false,
+      playerType: "iframe",
       url: `https://vidsrc.to/embed/movie/${id}?ds_lang=${subLang}`,
     },
     {
       name: "Server 2",
       label: "VidSrc Pro",
       premium: false,
+      playerType: "iframe",
       url: `https://vidsrc.cc/v2/embed/movie/${id}?sub_lang=${subLang}`,
     },
     {
       name: "Server 3",
       label: "Embed",
       premium: false,
+      playerType: "iframe",
       url: `https://embed.su/embed/movie/${id}?sub=${subLang}`,
     },
     {
       name: "Server 4",
       label: "Multi",
       premium: false,
+      playerType: "iframe",
       url: `https://multiembed.mov/?video_id=${id}&tmdb=1&sub_id=${subLang}`,
     },
     {
       name: "Server 5",
       label: "Videasy",
       premium: false,
+      playerType: "iframe",
       url: `https://player.videasy.net/movie/${id}?sub=${subLang}`,
     },
     {
       name: "Server 6",
       label: "NonTongo",
       premium: false,
+      playerType: "iframe",
       url: `https://nontongo.win/embed/movie/${id}?sub=${subLang}`,
     },
   ];
@@ -92,6 +117,7 @@ export default function WatchPage({
   const subLang = SUB_LANG_MAP[lang] ?? "en";
   const SERVERS = buildMovieServers(id, subLang);
   const [activeServer, setActiveServer] = useState(0);
+  const currentServer = SERVERS[activeServer];
   const [adActive, setAdActive] = useState(true);
   const [adSession, setAdSession] = useState(0);
   const [movie, setMovie] = useState<MovieData | null>(null);
@@ -165,13 +191,17 @@ export default function WatchPage({
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
             {!adActive && (
-              <iframe
-                src={SERVERS[activeServer].url}
-                className="absolute inset-0 h-full w-full"
-                allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture"
-                referrerPolicy="origin"
-              />
+              currentServer.playerType === "direct" && currentServer.directUrl ? (
+                <VideoPlayer src={currentServer.directUrl} />
+              ) : (
+                <iframe
+                  src={currentServer.url}
+                  className="absolute inset-0 h-full w-full"
+                  allowFullScreen
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  referrerPolicy="origin"
+                />
+              )
             )}
             <VideoAdOverlay
               key={`${id}-${activeServer}-${adSession}`}

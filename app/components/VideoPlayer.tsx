@@ -12,6 +12,13 @@ interface VideoPlayerProps {
   vastUrl?: string;
 }
 
+function getSourceType(src: string): string {
+  const normalized = src.split("?")[0].toLowerCase();
+  if (normalized.endsWith(".m3u8")) return "application/x-mpegURL";
+  if (normalized.endsWith(".mpd")) return "application/dash+xml";
+  return "video/mp4";
+}
+
 export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<ReturnType<typeof import("video.js")["default"]> | null>(null);
@@ -79,7 +86,7 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
           playsInline
           poster={poster}
         >
-          <source src={src} type="video/mp4" />
+          <source src={src} type={getSourceType(src)} />
         </video>
       </div>
       {!ready && (
