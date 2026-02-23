@@ -4,7 +4,6 @@ import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
-import { useVip } from "../../../context/VipContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 import VideoAdOverlay from "../../../components/VideoAdOverlay";
 
@@ -97,7 +96,6 @@ export default function WatchTVPage({
 }) {
   const { id } = use(params);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
-  const { isVip } = useVip();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
 
   const [show, setShow] = useState<ShowData | null>(null);
@@ -105,7 +103,7 @@ export default function WatchTVPage({
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
-  const [adActive, setAdActive] = useState(!isVip);
+  const [adActive, setAdActive] = useState(true);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);

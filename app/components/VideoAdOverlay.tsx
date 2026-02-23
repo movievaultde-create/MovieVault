@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { triggerPopunder } from "../lib/ads";
-import { useVip } from "../context/VipContext";
 
 const PRE_ROLL_WAIT = 7;
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
@@ -13,7 +12,6 @@ interface Props {
 }
 
 export default function VideoAdOverlay({ onPhaseChange }: Props) {
-  const { isVip } = useVip();
   const [phase, setPhase] = useState<"preroll" | "playing" | "midroll">("preroll");
   const [countdown, setCountdown] = useState(PRE_ROLL_WAIT);
   const [adOpened, setAdOpened] = useState(false);
@@ -26,14 +24,6 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
     []
   );
 
-  // VIP: skip everything
-  useEffect(() => {
-    if (isVip) {
-      setPhase("playing");
-      notifyParent(false);
-    }
-  }, [isVip, notifyParent]);
-
   // Notify parent on phase change
   useEffect(() => {
     notifyParent(phase !== "playing");
@@ -41,7 +31,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
 
   // Pre-roll countdown
   useEffect(() => {
-    if (isVip || phase !== "preroll") return;
+    if (phase !== "preroll") return;
 
     setCountdown(PRE_ROLL_WAIT);
     setAdOpened(false);
@@ -59,11 +49,11 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
     return () => {
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
-  }, [isVip, phase]);
+  }, [phase]);
 
   // Mid-roll timer
   useEffect(() => {
-    if (isVip || phase !== "playing") return;
+    if (phase !== "playing") return;
 
     midrollTimer.current = setTimeout(() => {
       setPhase("midroll");
@@ -72,7 +62,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
     return () => {
       if (midrollTimer.current) clearTimeout(midrollTimer.current);
     };
-  }, [isVip, phase]);
+  }, [phase]);
 
   // Mid-roll countdown
   useEffect(() => {
@@ -113,7 +103,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
     setPhase("playing");
   };
 
-  if (isVip || phase === "playing") return null;
+  if (phase === "playing") return null;
 
   const isPreroll = phase === "preroll";
   const canSkip = countdown === 0;

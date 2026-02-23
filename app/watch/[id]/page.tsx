@@ -4,7 +4,6 @@ import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../context/LanguageContext";
-import { useVip } from "../../context/VipContext";
 import { triggerPopunder, getAdUrl } from "../../lib/ads";
 import VideoAdOverlay from "../../components/VideoAdOverlay";
 
@@ -90,11 +89,10 @@ export default function WatchPage({
 }) {
   const { id } = use(params);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
-  const { isVip } = useVip();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
   const SERVERS = buildMovieServers(id, subLang);
   const [activeServer, setActiveServer] = useState(0);
-  const [adActive, setAdActive] = useState(!isVip);
+  const [adActive, setAdActive] = useState(true);
   const [movie, setMovie] = useState<MovieData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
