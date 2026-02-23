@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
 import { useVip } from "../../../context/VipContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
+import VideoAdOverlay from "../../../components/VideoAdOverlay";
 
 interface Season {
   season_number: number;
@@ -215,6 +216,8 @@ export default function WatchTVPage({
               referrerPolicy="origin"
               
             />
+
+            <VideoAdOverlay onReady={() => setAdDismissed(true)} />
 
             {!adDismissed && (
               <div onClick={handleOverlayClick} className="absolute inset-0 z-10 cursor-pointer" title={t("clickToPlay")}>

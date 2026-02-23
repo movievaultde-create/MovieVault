@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLang, type TranslationKey } from "../../context/LanguageContext";
 import { useVip } from "../../context/VipContext";
 import { triggerPopunder, getAdUrl } from "../../lib/ads";
+import VideoAdOverlay from "../../components/VideoAdOverlay";
 
 interface CastMember {
   name: string;
@@ -161,6 +162,9 @@ export default function WatchPage({
               referrerPolicy="origin"
               
             />
+
+            {/* Pre-roll / Mid-roll ad overlay */}
+            <VideoAdOverlay onReady={() => setAdDismissed(true)} />
 
             {!adDismissed && (
               <div
