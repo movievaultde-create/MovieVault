@@ -11,6 +11,7 @@ interface Props {
 
 export default function VideoAdOverlay({ onPhaseChange }: Props) {
   const [started, setStarted] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   const notifyParent = useCallback(
     (isAd: boolean) => {
@@ -35,7 +36,12 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   }, [started]);
 
   const handleStart = () => {
-    triggerPopunder();
+    const opened = triggerPopunder({ force: true });
+    if (!opened) {
+      setBlocked(true);
+      return;
+    }
+    setBlocked(false);
     setStarted(true);
   };
 
@@ -69,6 +75,20 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
       >
         ▶ Start
       </button>
+      {blocked && (
+        <p
+          style={{
+            position: "absolute",
+            bottom: 22,
+            margin: 0,
+            color: "#fbbf24",
+            fontSize: 12,
+            textAlign: "center",
+          }}
+        >
+          Popup was blocked. Disable popup blocker and press Start again.
+        </p>
+      )}
     </div>
   );
 }

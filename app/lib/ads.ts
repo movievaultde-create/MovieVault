@@ -42,14 +42,16 @@ export function getAdUrl(): string {
   return url;
 }
 
-export function triggerPopunder() {
-  if (vipMode) return;
+export function triggerPopunder(options?: { force?: boolean }): boolean {
+  if (vipMode) return false;
 
+  const force = options?.force ?? false;
   const now = Date.now();
-  if (now - lastTrigger < COOLDOWN_MS) return;
+  if (!force && now - lastTrigger < COOLDOWN_MS) return false;
   lastTrigger = now;
 
   const adUrl = getAdUrl();
+  let opened = false;
 
   try {
     const adWin = window.open("about:blank", "_blank");
@@ -58,6 +60,7 @@ export function triggerPopunder() {
     document.body.focus();
 
     if (adWin) {
+      opened = true;
       setTimeout(() => {
         try {
           adWin.location.href = adUrl;
@@ -73,20 +76,22 @@ export function triggerPopunder() {
       }
     }
   } catch {
+    // fallback below
+  }
+
+  if (!opened) {
     try {
-      const a = document.createElement("a");
-      a.href = adUrl;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const fallback = window.open(adUrl, "_blank", "noopener,noreferrer");
+      if (fallback) {
+        opened = true;
+      }
       setTimeout(() => { try { window.focus(); } catch {} }, 100);
     } catch {
       // blocked
     }
   }
+
+  return opened;
 }
 
 export { HILLTOP_URL, HILLTOP_URL_2, EFFECTIVEGATE_ID, EFFECTIVEGATE_URL };
