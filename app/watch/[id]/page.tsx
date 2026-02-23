@@ -94,6 +94,7 @@ export default function WatchPage({
   const subLang = SUB_LANG_MAP[lang] ?? "en";
   const SERVERS = buildMovieServers(id, subLang);
   const [activeServer, setActiveServer] = useState(0);
+  const [adActive, setAdActive] = useState(!isVip);
   const [movie, setMovie] = useState<MovieData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,17 +146,16 @@ export default function WatchPage({
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
-            <iframe
-              src={SERVERS[activeServer].url}
-              className="absolute inset-0 h-full w-full"
-              allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture"
-              referrerPolicy="origin"
-              
-            />
-
-            {/* Pre-roll / Mid-roll ad overlay */}
-            <VideoAdOverlay />
+            {!adActive && (
+              <iframe
+                src={SERVERS[activeServer].url}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture"
+                referrerPolicy="origin"
+              />
+            )}
+            <VideoAdOverlay onPhaseChange={(isAd) => setAdActive(isAd)} />
           </div>
         </div>
 

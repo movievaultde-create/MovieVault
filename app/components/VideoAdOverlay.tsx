@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getAdUrl } from "../lib/ads";
 import { useVip } from "../context/VipContext";
 
@@ -8,19 +8,36 @@ const PRE_ROLL_WAIT = 7;
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
 const MID_ROLL_WAIT = 5;
 
-export default function VideoAdOverlay() {
+interface Props {
+  onPhaseChange?: (isAd: boolean) => void;
+}
+
+export default function VideoAdOverlay({ onPhaseChange }: Props) {
   const { isVip } = useVip();
-  const [phase, setPhase] = useState<"preroll" | "playing" | "midroll">(isVip ? "playing" : "preroll");
+  const [phase, setPhase] = useState<"preroll" | "playing" | "midroll">("preroll");
   const [countdown, setCountdown] = useState(PRE_ROLL_WAIT);
   const [adOpened, setAdOpened] = useState(false);
   const midrollTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval>>(null);
-  const mounted = useRef(false);
 
+  const notifyParent = useCallback(
+    (isAd: boolean) => { onPhaseChange?.(isAd); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  // VIP: skip everything
   useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
+    if (isVip) {
+      setPhase("playing");
+      notifyParent(false);
+    }
+  }, [isVip, notifyParent]);
+
+  // Notify parent on phase change
+  useEffect(() => {
+    notifyParent(phase !== "playing");
+  }, [phase, notifyParent]);
 
   // Pre-roll countdown
   useEffect(() => {
@@ -44,12 +61,12 @@ export default function VideoAdOverlay() {
     };
   }, [isVip, phase]);
 
-  // Start mid-roll timer when playing
+  // Mid-roll timer
   useEffect(() => {
     if (isVip || phase !== "playing") return;
 
     midrollTimer.current = setTimeout(() => {
-      if (mounted.current) setPhase("midroll");
+      setPhase("midroll");
     }, MID_ROLL_INTERVAL);
 
     return () => {
@@ -99,57 +116,103 @@ export default function VideoAdOverlay() {
   const progress = (1 - countdown / totalTime) * 100;
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/95">
-      {/* AD badge + countdown */}
-      <div className="absolute top-3 left-3 flex items-center gap-2 sm:top-4 sm:left-4">
-        <span className="rounded bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-black uppercase tracking-wider">
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0,0,0,0.97)",
+      }}
+    >
+      {/* AD badge */}
+      <div style={{ position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 8 }}>
+        <span
+          style={{
+            background: "#f59e0b",
+            color: "#000",
+            fontWeight: 700,
+            fontSize: 10,
+            padding: "2px 8px",
+            borderRadius: 4,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
           AD
         </span>
         {!canSkip && (
-          <span className="text-xs text-gray-400">{countdown}s</span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>{countdown}s</span>
         )}
       </div>
 
-      {/* Skip button top-right when ready */}
+      {/* Skip button (top-right) */}
       {canSkip && (
         <button
           onClick={handleSkip}
-          className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:top-4 sm:right-4 sm:text-sm"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#fff",
+            background: "rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: 8,
+            cursor: "pointer",
+            backdropFilter: "blur(4px)",
+          }}
         >
           {isPreroll ? "▶ Start" : "▶ Continue"}
         </button>
       )}
 
       {/* Center content */}
-      <div className="flex flex-col items-center gap-5 px-6 text-center">
-        {/* Animated circle */}
-        <div className="relative h-20 w-20 sm:h-24 sm:w-24">
-          <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, padding: "0 24px", textAlign: "center" }}>
+        {/* Countdown circle */}
+        <div style={{ position: "relative", width: 88, height: 88 }}>
+          <svg viewBox="0 0 36 36" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
             <circle cx="18" cy="18" r="16" fill="none" stroke="#222" strokeWidth="2" />
             <circle
               cx="18" cy="18" r="16" fill="none" stroke="#e50914" strokeWidth="2.5"
               strokeDasharray={`${progress * 1.005} 100.5`}
               strokeLinecap="round"
-              className="transition-all duration-1000 ease-linear"
+              style={{ transition: "stroke-dasharray 1s linear" }}
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             {canSkip ? (
               <svg width="28" height="28" viewBox="0 0 24 24" fill="#e50914">
                 <polygon points="5,3 19,12 5,21" />
               </svg>
             ) : (
-              <span className="text-2xl font-extrabold text-white sm:text-3xl">{countdown}</span>
+              <span style={{ fontSize: 28, fontWeight: 800, color: "#fff" }}>{countdown}</span>
             )}
           </div>
         </div>
 
         {/* Text */}
         <div>
-          <h3 className="text-base font-bold text-white sm:text-lg">
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#fff" }}>
             {isPreroll ? "Your movie starts in a moment" : "Short ad break"}
           </h3>
-          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: "#6b7280" }}>
             Support free streaming
           </p>
         </div>
@@ -157,21 +220,33 @@ export default function VideoAdOverlay() {
         {/* Ad button */}
         <button
           onClick={handleAdClick}
-          className={`rounded-xl px-6 py-3 text-sm font-bold transition-all sm:px-8 ${
-            adOpened
-              ? "border border-green-500/30 bg-green-500/10 text-green-400"
-              : "bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/25 hover:shadow-xl"
-          }`}
+          style={{
+            padding: "12px 28px",
+            fontSize: 14,
+            fontWeight: 700,
+            border: adOpened ? "1px solid rgba(34,197,94,0.3)" : "none",
+            borderRadius: 12,
+            cursor: "pointer",
+            background: adOpened
+              ? "rgba(34,197,94,0.1)"
+              : "linear-gradient(135deg, #e50914, #b91c1c)",
+            color: adOpened ? "#4ade80" : "#fff",
+            boxShadow: adOpened ? "none" : "0 4px 20px rgba(229,9,20,0.25)",
+          }}
         >
           {adOpened ? "✓ Ad Viewed — Thank you!" : "Watch Ad"}
         </button>
       </div>
 
       {/* Bottom progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.05)" }}>
         <div
-          className="h-full bg-primary transition-all duration-1000 ease-linear"
-          style={{ width: `${progress}%` }}
+          style={{
+            height: "100%",
+            background: "#e50914",
+            width: `${progress}%`,
+            transition: "width 1s linear",
+          }}
         />
       </div>
     </div>

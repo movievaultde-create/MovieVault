@@ -105,6 +105,7 @@ export default function WatchTVPage({
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
+  const [adActive, setAdActive] = useState(!isVip);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);
@@ -195,17 +196,17 @@ export default function WatchTVPage({
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
-            <iframe
-              key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
-              src={servers[activeServer].url}
-              className="absolute inset-0 h-full w-full"
-              allowFullScreen
-              allow="autoplay; encrypted-media; picture-in-picture"
-              referrerPolicy="origin"
-              
-            />
-
-            <VideoAdOverlay />
+            {!adActive && (
+              <iframe
+                key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
+                src={servers[activeServer].url}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture"
+                referrerPolicy="origin"
+              />
+            )}
+            <VideoAdOverlay onPhaseChange={(isAd) => setAdActive(isAd)} />
           </div>
         </div>
 
