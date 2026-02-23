@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Placeholder — paste your HilltopAds VAST tag URL here
-export const HILLTOP_VAST_URL = "YOUR_HILLTOP_VAST_TAG_URL_HERE";
+// HilltopAds VAST tag URL
+export const HILLTOP_VAST_URL =
+  "https://shiny-fortune.com/d.mHF/zHdDGqNDvrZYGNUk/beXmD9EuDZeUelRkwPjTjY_4JMojhEnzZOUDgkytWNCjjgDyBMoTzMS5wMEy/Z/siaWWC1Wp/doDc0cxy";
 
 interface VideoPlayerProps {
   src: string;

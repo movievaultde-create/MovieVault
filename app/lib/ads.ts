@@ -1,16 +1,17 @@
-// Adsterra Smartlink
-const ADSTERRA_URL =
-  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
-
 // HilltopAds Direct Link — Zone #6821389
 const HILLTOP_URL =
-  "https://shiny-fortune.com/d.m/Fvz0dLG/N_vqZYGYUx/yeCm/9lucZMU_L/kcPmTsY/4DMVj/Ewz_00DBk/trNbjvgNyMoT/Ma5xM/wv";
+  "https://shiny-fortune.com/dim.FRzldWG/Npv/ZOGlUg/jeemU9rudZfUWl/kWPFTyY-4sMajXEHziO/D/kstFNvjvgtySMmTMMV5-Mfwv";
 
 // HilltopAds Direct URL — Zone #6821405
 const HILLTOP_URL_2 =
-  "https://amazing-population.com/b/3DVJ0oP.3vpovTbMm/V/J_Z/Du0e2QOEDUI/x/NqDBAI1/LHTeYp4UMdj/E/0pMfDnkJ";
+  "https://amazing-population.com/bv3WV.0APR3-pcvEb-m/VyJVZ_DE0g2nOzDhI/xUNLDTAa1jLrTWY/4AMAjNEy0IMZDXkE";
 
-const AD_ROTATION = [HILLTOP_URL, HILLTOP_URL_2, ADSTERRA_URL];
+// EffectiveGate Smartlink — ID: 28679894
+const EFFECTIVEGATE_ID = "28679894";
+const EFFECTIVEGATE_URL =
+  "https://www.effectivegatecpm.com/fxi219fn?key=394514b812e454d18ab09bc6b9eba0f6";
+
+const AD_ROTATION = [HILLTOP_URL, HILLTOP_URL_2, EFFECTIVEGATE_URL];
 const STORAGE_KEY = "mv_ad_idx";
 
 let lastTrigger = 0;
@@ -88,4 +89,4 @@ export function triggerPopunder() {
   }
 }
 
-export { ADSTERRA_URL, HILLTOP_URL, HILLTOP_URL_2 };
+export { HILLTOP_URL, HILLTOP_URL_2, EFFECTIVEGATE_ID, EFFECTIVEGATE_URL };

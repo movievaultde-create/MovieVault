@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getAdUrl } from "../lib/ads";
+import { triggerPopunder } from "../lib/ads";
 import { useVip } from "../context/VipContext";
 
 const PRE_ROLL_WAIT = 7;
@@ -98,13 +98,18 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
 
   const handleAdClick = () => {
     if (!adOpened) {
-      window.open(getAdUrl(), "_blank");
-      try { window.focus(); } catch {}
+      triggerPopunder();
       setAdOpened(true);
     }
   };
 
   const handleSkip = () => {
+    // Require ad interaction before continuing.
+    if (!adOpened) {
+      triggerPopunder();
+      setAdOpened(true);
+      return;
+    }
     setPhase("playing");
   };
 
@@ -112,6 +117,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
 
   const isPreroll = phase === "preroll";
   const canSkip = countdown === 0;
+  const canContinue = canSkip && adOpened;
   const totalTime = isPreroll ? PRE_ROLL_WAIT : MID_ROLL_WAIT;
   const progress = (1 - countdown / totalTime) * 100;
 
@@ -163,15 +169,15 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
             padding: "8px 16px",
             fontSize: 13,
             fontWeight: 700,
-            color: "#fff",
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.2)",
+            color: canContinue ? "#fff" : "#d1d5db",
+            background: canContinue ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
+            border: canContinue ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.12)",
             borderRadius: 8,
             cursor: "pointer",
             backdropFilter: "blur(4px)",
           }}
         >
-          {isPreroll ? "▶ Start" : "▶ Continue"}
+          {canContinue ? (isPreroll ? "▶ Start" : "▶ Continue") : "Watch ad first"}
         </button>
       )}
 
@@ -236,6 +242,11 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
         >
           {adOpened ? "✓ Ad Viewed — Thank you!" : "Watch Ad"}
         </button>
+        {canSkip && !adOpened && (
+          <p style={{ margin: 0, fontSize: 12, color: "#f59e0b" }}>
+            Please open ad once to continue playback
+          </p>
+        )}
       </div>
 
       {/* Bottom progress bar */}
