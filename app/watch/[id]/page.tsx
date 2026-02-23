@@ -81,8 +81,12 @@ function buildMovieServers(id: string, subLang: string) {
   ];
 }
 
-const AD_URL =
-  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
+const AD_URLS = [
+  "https://shiny-fortune.com/d.m/Fvz0dLG/N_vqZYGYUx/yeCm/9lucZMU_L/kcPmTsY/4DMVj/Ewz_00DBk/trNbjvgNyMoT/Ma5xM/wv",
+  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff",
+];
+let adIdx = 0;
+function getAdUrl() { return AD_URLS[adIdx++ % AD_URLS.length]; }
 
 export default function WatchPage({
   params,
@@ -124,7 +128,7 @@ export default function WatchPage({
 
   const handleOverlayClick = () => {
     if (!isVip) {
-      window.open(AD_URL, "_blank");
+      window.open(getAdUrl(), "_blank");
       try { window.focus(); } catch {}
     }
     setAdDismissed(true);
@@ -318,7 +322,7 @@ function DownloadSection({
   }, [state, countdown]);
 
   const handleStart = () => {
-    window.open(AD_URL, "_blank", "noopener,noreferrer");
+    window.open(getAdUrl(), "_blank", "noopener,noreferrer");
     setState("counting");
     setCountdown(15);
   };

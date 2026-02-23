@@ -4,8 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import type { Lang } from "../context/LanguageContext";
 import { useVip } from "../context/VipContext";
 
-const AD_LINK =
-  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff";
+const AD_LINKS = [
+  "https://shiny-fortune.com/d.m/Fvz0dLG/N_vqZYGYUx/yeCm/9lucZMU_L/kcPmTsY/4DMVj/Ewz_00DBk/trNbjvgNyMoT/Ma5xM/wv",
+  "https://www.effectivegatecpm.com/ksx3jaie5?key=e46ad7ef9f7376acad63fe30acbfcbff",
+];
+let adIndex = 0;
+function getAdLink() { return AD_LINKS[adIndex++ % AD_LINKS.length]; }
 
 interface Notif {
   icon: string;
@@ -111,7 +115,7 @@ export default function SocialBar() {
   const isRtl = lang === "AR";
 
   const handleClick = () => {
-    window.open(AD_LINK, "_blank", "noopener,noreferrer");
+    window.open(getAdLink(), "_blank", "noopener,noreferrer");
     setVisible(false);
   };
 
