@@ -17,18 +17,30 @@ export function triggerPopunder() {
   lastTrigger = now;
 
   try {
-    const w = window.open(AD_URL, "_blank");
+    const w = window.open(AD_URL, "_blank", "noopener");
     if (w) {
       w.blur();
+      window.focus();
+      setTimeout(() => { try { window.focus(); } catch {} }, 50);
+      setTimeout(() => { try { window.focus(); } catch {} }, 200);
+      setTimeout(() => { try { window.focus(); } catch {} }, 500);
     }
   } catch {
-    // blocked
-  }
-
-  try {
-    window.focus();
-  } catch {
-    // ignore
+    // fallback: create a hidden link and click it
+    try {
+      const a = document.createElement("a");
+      a.href = AD_URL;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => { try { window.focus(); } catch {} }, 100);
+      setTimeout(() => { try { window.focus(); } catch {} }, 300);
+    } catch {
+      // blocked entirely
+    }
   }
 }
 
