@@ -16,6 +16,9 @@ interface BrowseItem {
 
 interface BrowseData {
   addedToday: BrowseItem[];
+  nowPlaying: BrowseItem[];
+  newSeries: BrowseItem[];
+  newAnime: BrowseItem[];
   trending: BrowseItem[];
   movies: BrowseItem[];
   series: BrowseItem[];
@@ -41,6 +44,36 @@ export default function Home() {
         <TrendingSection
           items={data!.addedToday}
           title={t("addedToday")}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {/* Now in Cinemas */}
+      {(data?.nowPlaying?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.nowPlaying}
+          title={t("nowPlaying")}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {/* New Series Episodes */}
+      {(data?.newSeries?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.newSeries}
+          title={t("newSeries")}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {/* New Anime Episodes */}
+      {(data?.newAnime?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.newAnime}
+          title={t("newAnime")}
           isRtl={isRtl}
           tvLabel={t("tvShow")}
         />

@@ -59,7 +59,10 @@ export async function GET(req: NextRequest) {
   const weekAgo = weekAgoStr();
 
   try {
-    const [addedTodayRes, trendingRes, moviesRes, seriesRes, animeRes] = await Promise.all([
+    const [
+      addedTodayRes, trendingRes, moviesRes, seriesRes, animeRes,
+      nowPlayingRes, newSeriesRes, newAnimeRes,
+    ] = await Promise.all([
       fetch(
         `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&primary_release_date.gte=${weekAgo}&primary_release_date.lte=${today}&page=1`,
         fetchOpts
@@ -80,18 +83,36 @@ export async function GET(req: NextRequest) {
         `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16&with_keywords=210024&with_original_language=ja&sort_by=popularity.desc&page=1`,
         fetchOpts
       ),
+      fetch(
+        `${BASE}/movie/now_playing?api_key=${TMDB_KEY}&language=${lang}&page=1`,
+        fetchOpts
+      ),
+      fetch(
+        `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&sort_by=first_air_date.desc&first_air_date.lte=${today}&first_air_date.gte=${weekAgo}&vote_count.gte=5&without_genres=16&page=1`,
+        fetchOpts
+      ),
+      fetch(
+        `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16&with_keywords=210024&with_original_language=ja&sort_by=first_air_date.desc&first_air_date.lte=${today}&first_air_date.gte=${weekAgo}&page=1`,
+        fetchOpts
+      ),
     ]);
 
-    const [addedToday, trending, movies, series, anime] = await Promise.all([
+    const [addedToday, trending, movies, series, anime, nowPlaying, newSeries, newAnime] = await Promise.all([
       addedTodayRes.ok ? addedTodayRes.json() : { results: [] },
       trendingRes.ok ? trendingRes.json() : { results: [] },
       moviesRes.ok ? moviesRes.json() : { results: [] },
       seriesRes.ok ? seriesRes.json() : { results: [] },
       animeRes.ok ? animeRes.json() : { results: [] },
+      nowPlayingRes.ok ? nowPlayingRes.json() : { results: [] },
+      newSeriesRes.ok ? newSeriesRes.json() : { results: [] },
+      newAnimeRes.ok ? newAnimeRes.json() : { results: [] },
     ]);
 
     return NextResponse.json({
       addedToday: addedToday.results?.slice(0, 12).map((m: TmdbItem) => mapItem(m, "movie")) ?? [],
+      nowPlaying: nowPlaying.results?.slice(0, 12).map((m: TmdbItem) => mapItem(m, "movie")) ?? [],
+      newSeries: newSeries.results?.slice(0, 12).map((s: TmdbItem) => mapItem(s, "tv")) ?? [],
+      newAnime: newAnime.results?.slice(0, 12).map((a: TmdbItem) => mapItem(a, "tv")) ?? [],
       trending: trending.results
         ?.filter((t: TmdbItem) => t.media_type === "movie" || t.media_type === "tv")
         .slice(0, 12)
