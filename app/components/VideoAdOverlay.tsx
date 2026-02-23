@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { triggerPopunder } from "../lib/ads";
+import { triggerPopunder, triggerStartAd } from "../lib/ads";
 
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
 
@@ -36,7 +36,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   }, [started]);
 
   const handleStart = () => {
-    const opened = triggerPopunder({ force: true });
+    const opened = triggerStartAd();
     if (!opened) {
       setBlocked(true);
       return;

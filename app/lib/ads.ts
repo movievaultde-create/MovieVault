@@ -42,6 +42,39 @@ export function getAdUrl(): string {
   return url;
 }
 
+// Hard open for Start button to maximize reliability.
+export function triggerStartAd(): boolean {
+  if (vipMode) return false;
+
+  const adUrl = getAdUrl();
+  let opened = false;
+
+  try {
+    const win = window.open(adUrl, "_blank", "noopener,noreferrer");
+    if (win) opened = true;
+  } catch {
+    // try fallback below
+  }
+
+  if (!opened) {
+    try {
+      const a = document.createElement("a");
+      a.href = adUrl;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      opened = true;
+    } catch {
+      // blocked
+    }
+  }
+
+  return opened;
+}
+
 export function triggerPopunder(options?: { force?: boolean }): boolean {
   if (vipMode) return false;
 
