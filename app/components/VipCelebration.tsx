@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Lang } from "../context/LanguageContext";
 
 const FAKE_NAMES = [
@@ -58,67 +58,81 @@ const TIME_AGO: Record<Lang, string[]> = {
 };
 
 const LANG_MAP: Record<string, Lang> = { en: "EN", ar: "AR", de: "DE", fr: "FR", es: "ES", tr: "TR" };
+const EMOJIS = ["🎉", "⭐", "✨", "🌟", "👑", "💎"];
 
-function randomItem<T>(arr: T[]): T {
+function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export default function VipCelebration() {
   const [visible, setVisible] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState("Ahmed K.");
   const [country, setCountry] = useState(COUNTRIES[0]);
   const [timeAgo, setTimeAgo] = useState("");
   const [lang, setLang] = useState<Lang>("EN");
-  const [particles, setParticles] = useState<{ id: number; x: number; emoji: string }[]>([]);
+  const [particles, setParticles] = useState<{ id: number; x: number; emoji: string; dur: number; delay: number }[]>([]);
+  const hideRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    const detectLang = () => {
-      const htmlLang = document.documentElement.lang;
-      setLang(LANG_MAP[htmlLang] ?? "EN");
+    const detect = () => {
+      const l = document.documentElement.lang;
+      setLang(LANG_MAP[l] ?? "EN");
     };
-    detectLang();
-    const observer = new MutationObserver(detectLang);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
-    return () => observer.disconnect();
+    detect();
+    const obs = new MutationObserver(detect);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+    return () => obs.disconnect();
   }, []);
 
-  const showCelebration = useCallback(() => {
-    setName(randomItem(FAKE_NAMES));
-    setCountry(randomItem(COUNTRIES));
-    setTimeAgo(randomItem(TIME_AGO[lang]));
-    setParticles(
-      Array.from({ length: 8 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        emoji: randomItem(["🎉", "⭐", "✨", "🌟", "👑", "💎"]),
-      }))
-    );
-    setVisible(true);
-    const hide = setTimeout(() => setVisible(false), 6000);
-    return () => clearTimeout(hide);
-  }, [lang]);
-
   useEffect(() => {
-    const initialDelay = setTimeout(() => showCelebration(), 20000);
-    const interval = setInterval(() => showCelebration(), 60000);
-    return () => {
-      clearTimeout(initialDelay);
-      clearInterval(interval);
+    const show = () => {
+      const currentLang = LANG_MAP[document.documentElement.lang] ?? "EN";
+      setName(pick(FAKE_NAMES));
+      setCountry(pick(COUNTRIES));
+      setTimeAgo(pick(TIME_AGO[currentLang]));
+      setParticles(
+        Array.from({ length: 8 }, (_, i) => ({
+          id: Date.now() + i,
+          x: Math.random() * 100,
+          emoji: pick(EMOJIS),
+          dur: 2 + Math.random() * 2,
+          delay: Math.random() * 0.5,
+        }))
+      );
+      setVisible(true);
+      if (hideRef.current) clearTimeout(hideRef.current);
+      hideRef.current = setTimeout(() => setVisible(false), 6000);
     };
-  }, [showCelebration]);
+
+    const first = setTimeout(show, 8000);
+    const interval = setInterval(show, 60000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(interval);
+      if (hideRef.current) clearTimeout(hideRef.current);
+    };
+  }, []);
 
   const isRtl = lang === "AR";
-  const countryName = lang === "AR" ? country.name.AR : country.name.EN;
+  const countryName = isRtl ? country.name.AR : country.name.EN;
 
   return (
     <div
       className={`fixed z-[9998] transition-all duration-500 ease-out ${
         isRtl ? "right-4" : "left-4"
       } bottom-4 sm:bottom-6 ${
-        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
+        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-8 opacity-0"
       }`}
+      style={{ willChange: "transform, opacity" }}
     >
-      <div className="relative w-72 overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-[#1a1408] to-[#0d0d0d] shadow-2xl shadow-amber-900/20 sm:w-80">
+      <div
+        className="relative w-[280px] overflow-hidden rounded-2xl border border-amber-500/25 shadow-2xl sm:w-[310px]"
+        style={{
+          background: "linear-gradient(135deg, #1a1408 0%, #0d0d0d 100%)",
+          animation: visible ? "vip-pulse 2s ease-in-out infinite" : "none",
+        }}
+      >
+        {/* Celebration particles */}
         {visible && particles.map((p) => (
           <span
             key={p.id}
@@ -126,14 +140,15 @@ export default function VipCelebration() {
             style={{
               left: `${p.x}%`,
               top: "-8px",
-              animation: `vip-fall ${2 + Math.random() * 2}s ease-in forwards`,
-              animationDelay: `${Math.random() * 0.5}s`,
+              animation: `vip-fall ${p.dur}s ease-in forwards`,
+              animationDelay: `${p.delay}s`,
             }}
           >
             {p.emoji}
           </span>
         ))}
 
+        {/* Close button */}
         <button
           onClick={() => setVisible(false)}
           className={`absolute top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-gray-500 transition-colors hover:bg-white/10 hover:text-white ${isRtl ? "left-2.5" : "right-2.5"}`}
@@ -144,43 +159,42 @@ export default function VipCelebration() {
         </button>
 
         <div className="p-4">
+          {/* VIP Badge */}
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-base">👑</span>
-            <span className="text-xs font-bold tracking-wider text-amber-400/80 uppercase">VIP</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-lg">👑</span>
+            <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">VIP Member</span>
           </div>
 
+          {/* User info */}
           <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""}`}>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/20 to-amber-700/10 text-2xl ring-1 ring-amber-500/20">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/25 to-amber-700/10 text-2xl ring-1 ring-amber-500/25">
               {country.flag}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-white">{name}</p>
-              <p className="mt-0.5 text-xs text-amber-400/70">{JOINED_TEXT[lang]}</p>
+              <p className="truncate text-[15px] font-bold text-white">{name}</p>
+              <p className="mt-0.5 text-xs font-medium text-amber-400/80">{JOINED_TEXT[lang]}</p>
             </div>
           </div>
 
-          <div className={`mt-3 flex items-center justify-between text-[10px] text-gray-500 ${isRtl ? "flex-row-reverse" : ""}`}>
-            <span>{country.flag} {countryName}</span>
+          {/* Footer info */}
+          <div className={`mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-[10px] text-gray-500 ${isRtl ? "flex-row-reverse" : ""}`}>
+            <span className="flex items-center gap-1">{country.flag} {countryName}</span>
             <span>{timeAgo}</span>
           </div>
         </div>
 
+        {/* Progress bar */}
         {visible && (
-          <div className="h-0.5 w-full bg-amber-900/20">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-amber-600" style={{ animation: "vip-shrink 6s linear forwards" }} />
+          <div className="h-[3px] w-full bg-amber-900/20">
+            <div
+              className="h-full rounded-full"
+              style={{
+                background: "linear-gradient(90deg, #f59e0b, #d97706)",
+                animation: "vip-shrink 6s linear forwards",
+              }}
+            />
           </div>
         )}
-
-        <style jsx>{`
-          @keyframes vip-fall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(120px) rotate(360deg); opacity: 0; }
-          }
-          @keyframes vip-shrink {
-            from { width: 100%; }
-            to { width: 0%; }
-          }
-        `}</style>
       </div>
     </div>
   );
