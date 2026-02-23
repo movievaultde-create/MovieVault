@@ -46,7 +46,7 @@ function buildServers(id: string, season: number, episode: number) {
       name: "MovieVault Server",
       label: "Fast 4K",
       premium: true,
-      url: `https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`,
+      url: `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`,
     },
     {
       name: "Server 1",

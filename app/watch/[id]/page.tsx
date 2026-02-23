@@ -35,7 +35,7 @@ const SERVERS = [
     name: "MovieVault Server",
     label: "Fast 4K",
     premium: true,
-    url: (id: string) => `https://vidsrc.xyz/embed/movie/${id}`,
+    url: (id: string) => `https://autoembed.co/movie/tmdb/${id}`,
   },
   {
     name: "Server 1",
