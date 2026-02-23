@@ -84,18 +84,18 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/95 via-black/80 to-transparent backdrop-blur-md">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-        <div className="flex h-[68px] items-center justify-between gap-4">
+        <div className="flex h-[72px] items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <Link href="/" className="flex shrink-0 items-center gap-3">
             <Image
               src="/favicon.png"
               alt="MovieVault"
-              width={40}
-              height={40}
-              className="h-9 w-9 rounded-lg sm:h-10 sm:w-10"
+              width={48}
+              height={48}
+              className="h-11 w-11 rounded-xl sm:h-12 sm:w-12"
               priority
             />
-            <span className="text-2xl font-extrabold tracking-tight sm:text-[26px]">
+            <span className="text-[28px] font-extrabold tracking-tight sm:text-[32px]">
               <span className="text-primary">Movie</span>
               <span className="text-white">Vault</span>
             </span>
