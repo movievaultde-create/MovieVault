@@ -17,16 +17,31 @@ export function triggerPopunder() {
   lastTrigger = now;
 
   try {
-    const w = window.open(AD_URL, "_blank", "noopener");
+    // Open as a small popup window (not tab) - browsers handle focus differently for popups
+    const screenW = window.screen.availWidth;
+    const screenH = window.screen.availHeight;
+    const w = window.open(
+      AD_URL,
+      "ad_" + now,
+      `width=${screenW},height=${screenH},left=0,top=0,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no`
+    );
+
     if (w) {
+      // Aggressively return focus to MovieVault
       w.blur();
       window.focus();
-      setTimeout(() => { try { window.focus(); } catch {} }, 50);
-      setTimeout(() => { try { window.focus(); } catch {} }, 200);
-      setTimeout(() => { try { window.focus(); } catch {} }, 500);
+
+      // Multiple delayed focus attempts
+      const delays = [0, 50, 100, 200, 400, 800];
+      delays.forEach((d) => {
+        setTimeout(() => {
+          try { w.blur(); } catch {}
+          try { window.focus(); } catch {}
+          try { document.body.focus(); } catch {}
+        }, d);
+      });
     }
   } catch {
-    // fallback: create a hidden link and click it
     try {
       const a = document.createElement("a");
       a.href = AD_URL;
@@ -37,7 +52,6 @@ export function triggerPopunder() {
       a.click();
       document.body.removeChild(a);
       setTimeout(() => { try { window.focus(); } catch {} }, 100);
-      setTimeout(() => { try { window.focus(); } catch {} }, 300);
     } catch {
       // blocked entirely
     }
