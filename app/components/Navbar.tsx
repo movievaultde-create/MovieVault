@@ -297,14 +297,16 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="border-t border-surface-border bg-black/95 backdrop-blur-md md:hidden">
-          <nav className="flex flex-col px-4 py-3">
+          <nav className="grid grid-cols-2 gap-1 px-4 py-3">
             {navLinks.map((link, i) => (
               <a
                 key={link.label}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  i === 0 ? "text-primary" : "text-text-secondary hover:text-white"
+                className={`rounded-lg px-3 py-3 text-center text-sm font-semibold transition-colors ${
+                  i === 0
+                    ? "bg-primary/10 text-primary"
+                    : "text-text-secondary hover:bg-surface-light hover:text-white"
                 }`}
               >
                 {link.label}
