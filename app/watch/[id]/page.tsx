@@ -153,7 +153,7 @@ export default function WatchPage({
                 referrerPolicy="origin"
               />
             )}
-            <VideoAdOverlay onPhaseChange={(isAd) => setAdActive(isAd)} />
+            <VideoAdOverlay key={activeServer} onPhaseChange={(isAd) => setAdActive(isAd)} />
           </div>
         </div>
 
@@ -169,6 +169,7 @@ export default function WatchPage({
                 if (server.premium) {
                   setTimeout(() => triggerPopunder(), 1500);
                 }
+                setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);

@@ -142,6 +142,7 @@ export default function WatchTVPage({
 
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
+    setAdActive(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
     triggerPopunder();
   };
@@ -204,7 +205,10 @@ export default function WatchTVPage({
                 referrerPolicy="origin"
               />
             )}
-            <VideoAdOverlay onPhaseChange={(isAd) => setAdActive(isAd)} />
+            <VideoAdOverlay
+              key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
+              onPhaseChange={(isAd) => setAdActive(isAd)}
+            />
           </div>
         </div>
 
@@ -220,6 +224,7 @@ export default function WatchTVPage({
                 if (server.premium) {
                   setTimeout(() => triggerPopunder(), 1500);
                 }
+                setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);

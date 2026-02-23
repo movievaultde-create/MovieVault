@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { triggerPopunder } from "../lib/ads";
 
-const PRE_ROLL_WAIT = 7;
+const PRE_ROLL_WAIT = 15;
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
-const MID_ROLL_WAIT = 5;
+const MID_ROLL_WAIT = 15;
+const QUICK_SKIP_AFTER = 5;
 
 interface Props {
   onPhaseChange?: (isAd: boolean) => void;
@@ -94,12 +95,15 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   };
 
   const handleSkip = () => {
-    // Require ad interaction before continuing.
+    setPhase("playing");
+  };
+
+  const handleQuickSkip = () => {
     if (!adOpened) {
       triggerPopunder();
       setAdOpened(true);
-      return;
     }
+    // As requested: once user opens ad and returns, overlay is gone.
     setPhase("playing");
   };
 
@@ -107,8 +111,8 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
 
   const isPreroll = phase === "preroll";
   const canSkip = countdown === 0;
-  const canContinue = canSkip && adOpened;
   const totalTime = isPreroll ? PRE_ROLL_WAIT : MID_ROLL_WAIT;
+  const canQuickSkip = totalTime - countdown >= QUICK_SKIP_AFTER && !canSkip;
   const progress = (1 - countdown / totalTime) * 100;
 
   return (
@@ -159,15 +163,15 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
             padding: "8px 16px",
             fontSize: 13,
             fontWeight: 700,
-            color: canContinue ? "#fff" : "#d1d5db",
-            background: canContinue ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)",
-            border: canContinue ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.12)",
+            color: "#fff",
+            background: "rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.2)",
             borderRadius: 8,
             cursor: "pointer",
             backdropFilter: "blur(4px)",
           }}
         >
-          {canContinue ? (isPreroll ? "▶ Start" : "▶ Continue") : "Watch ad first"}
+          {isPreroll ? "▶ Start" : "▶ Continue"}
         </button>
       )}
 
@@ -232,10 +236,22 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
         >
           {adOpened ? "✓ Ad Viewed — Thank you!" : "Watch Ad"}
         </button>
-        {canSkip && !adOpened && (
-          <p style={{ margin: 0, fontSize: 12, color: "#f59e0b" }}>
-            Please open ad once to continue playback
-          </p>
+        {canQuickSkip && (
+          <button
+            onClick={handleQuickSkip}
+            style={{
+              padding: "8px 14px",
+              fontSize: 12,
+              fontWeight: 700,
+              border: "1px solid rgba(245,158,11,0.35)",
+              borderRadius: 8,
+              cursor: "pointer",
+              background: "rgba(245,158,11,0.12)",
+              color: "#fbbf24",
+            }}
+          >
+            Open ad & skip now
+          </button>
         )}
       </div>
 
