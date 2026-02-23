@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getAdUrl } from "../lib/ads";
 import { useVip } from "../context/VipContext";
 
@@ -8,25 +8,19 @@ const PRE_ROLL_WAIT = 7;
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
 const MID_ROLL_WAIT = 5;
 
-interface VideoAdOverlayProps {
-  onReady?: () => void;
-}
-
-export default function VideoAdOverlay({ onReady }: VideoAdOverlayProps) {
+export default function VideoAdOverlay() {
   const { isVip } = useVip();
-  const [phase, setPhase] = useState<"preroll" | "playing" | "midroll">("preroll");
+  const [phase, setPhase] = useState<"preroll" | "playing" | "midroll">(isVip ? "playing" : "preroll");
   const [countdown, setCountdown] = useState(PRE_ROLL_WAIT);
   const [adOpened, setAdOpened] = useState(false);
-  const midrollTimer = useRef<ReturnType<typeof setInterval>>(null);
+  const midrollTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval>>(null);
+  const mounted = useRef(false);
 
-  // Skip all ads for VIP
   useEffect(() => {
-    if (isVip) {
-      setPhase("playing");
-      onReady?.();
-    }
-  }, [isVip, onReady]);
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   // Pre-roll countdown
   useEffect(() => {
@@ -50,16 +44,16 @@ export default function VideoAdOverlay({ onReady }: VideoAdOverlayProps) {
     };
   }, [isVip, phase]);
 
-  // Mid-roll timer
+  // Start mid-roll timer when playing
   useEffect(() => {
     if (isVip || phase !== "playing") return;
 
-    midrollTimer.current = setInterval(() => {
-      setPhase("midroll");
+    midrollTimer.current = setTimeout(() => {
+      if (mounted.current) setPhase("midroll");
     }, MID_ROLL_INTERVAL);
 
     return () => {
-      if (midrollTimer.current) clearInterval(midrollTimer.current);
+      if (midrollTimer.current) clearTimeout(midrollTimer.current);
     };
   }, [isVip, phase]);
 
@@ -85,111 +79,99 @@ export default function VideoAdOverlay({ onReady }: VideoAdOverlayProps) {
     };
   }, [phase]);
 
-  const handleAdClick = useCallback(() => {
+  const handleAdClick = () => {
     if (!adOpened) {
       window.open(getAdUrl(), "_blank");
       try { window.focus(); } catch {}
       setAdOpened(true);
     }
-  }, [adOpened]);
+  };
 
-  const handleSkip = useCallback(() => {
+  const handleSkip = () => {
     setPhase("playing");
-    onReady?.();
-  }, [onReady]);
+  };
 
   if (isVip || phase === "playing") return null;
 
   const isPreroll = phase === "preroll";
   const canSkip = countdown === 0;
+  const totalTime = isPreroll ? PRE_ROLL_WAIT : MID_ROLL_WAIT;
+  const progress = (1 - countdown / totalTime) * 100;
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm">
-      {/* Ad badge */}
-      <div className="absolute top-3 left-3 flex items-center gap-2">
+    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/95">
+      {/* AD badge + countdown */}
+      <div className="absolute top-3 left-3 flex items-center gap-2 sm:top-4 sm:left-4">
         <span className="rounded bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-black uppercase tracking-wider">
           AD
         </span>
         {!canSkip && (
-          <span className="text-xs text-gray-400">
-            {countdown}s
-          </span>
+          <span className="text-xs text-gray-400">{countdown}s</span>
         )}
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-col items-center gap-6 px-6 text-center">
-        {/* Icon */}
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20 sm:h-20 sm:w-20">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="#e50914" className="sm:h-10 sm:w-10">
-            <polygon points="5,3 19,12 5,21" />
+      {/* Skip button top-right when ready */}
+      {canSkip && (
+        <button
+          onClick={handleSkip}
+          className="absolute top-3 right-3 flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:top-4 sm:right-4 sm:text-sm"
+        >
+          {isPreroll ? "▶ Start" : "▶ Continue"}
+        </button>
+      )}
+
+      {/* Center content */}
+      <div className="flex flex-col items-center gap-5 px-6 text-center">
+        {/* Animated circle */}
+        <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+          <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
+            <circle cx="18" cy="18" r="16" fill="none" stroke="#222" strokeWidth="2" />
+            <circle
+              cx="18" cy="18" r="16" fill="none" stroke="#e50914" strokeWidth="2.5"
+              strokeDasharray={`${progress * 1.005} 100.5`}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-linear"
+            />
           </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            {canSkip ? (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#e50914">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
+            ) : (
+              <span className="text-2xl font-extrabold text-white sm:text-3xl">{countdown}</span>
+            )}
+          </div>
         </div>
 
         {/* Text */}
         <div>
-          <h3 className="text-lg font-bold text-white sm:text-xl">
-            {isPreroll ? "Your movie will start shortly" : "Ad Break"}
+          <h3 className="text-base font-bold text-white sm:text-lg">
+            {isPreroll ? "Your movie starts in a moment" : "Short ad break"}
           </h3>
-          <p className="mt-1.5 text-sm text-gray-400">
-            {isPreroll
-              ? "Please watch this short ad to support free streaming"
-              : "A short break — your movie will resume automatically"
-            }
+          <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+            Support free streaming
           </p>
         </div>
 
         {/* Ad button */}
         <button
           onClick={handleAdClick}
-          className={`rounded-xl px-8 py-3.5 text-sm font-bold transition-all ${
+          className={`rounded-xl px-6 py-3 text-sm font-bold transition-all sm:px-8 ${
             adOpened
               ? "border border-green-500/30 bg-green-500/10 text-green-400"
-              : "bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+              : "bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/25 hover:shadow-xl"
           }`}
         >
-          {adOpened ? "✓ Ad Viewed" : "Watch Ad"}
+          {adOpened ? "✓ Ad Viewed — Thank you!" : "Watch Ad"}
         </button>
-
-        {/* Skip / countdown */}
-        {canSkip ? (
-          <button
-            onClick={handleSkip}
-            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/10"
-          >
-            {isPreroll ? "Start Watching" : "Continue Watching"}
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <div className="relative h-8 w-8">
-              <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-                <circle cx="18" cy="18" r="15" fill="none" stroke="#333" strokeWidth="3" />
-                <circle
-                  cx="18" cy="18" r="15" fill="none" stroke="#e50914" strokeWidth="3"
-                  strokeDasharray={`${(1 - countdown / (isPreroll ? PRE_ROLL_WAIT : MID_ROLL_WAIT)) * 94.2} 94.2`}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
-                {countdown}
-              </span>
-            </div>
-            <span className="text-xs text-gray-500">Skip available soon</span>
-          </div>
-        )}
       </div>
 
-      {/* Progress bar at bottom */}
+      {/* Bottom progress bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
         <div
           className="h-full bg-primary transition-all duration-1000 ease-linear"
-          style={{
-            width: `${(1 - countdown / (isPreroll ? PRE_ROLL_WAIT : MID_ROLL_WAIT)) * 100}%`,
-          }}
+          style={{ width: `${progress}%` }}
         />
       </div>
     </div>

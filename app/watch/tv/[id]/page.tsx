@@ -105,13 +105,11 @@ export default function WatchTVPage({
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
-  const [adDismissed, setAdDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
 
-  // Fetch show data
   useEffect(() => {
     setLoading(true);
     fetch(`/api/tv/${id}?lang=${tmdbLang}`)
@@ -127,7 +125,6 @@ export default function WatchTVPage({
       .finally(() => setLoading(false));
   }, [id, tmdbLang]);
 
-  // Fetch episodes for selected season
   useEffect(() => {
     if (!show) return;
     setEpLoading(true);
@@ -144,17 +141,8 @@ export default function WatchTVPage({
 
   const servers = buildServers(id, selectedSeason, selectedEpisode, subLang);
 
-  const handleOverlayClick = () => {
-    if (!isVip) {
-      window.open(getAdUrl(), "_blank");
-      try { window.focus(); } catch {}
-    }
-    setAdDismissed(true);
-  };
-
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
-    setAdDismissed(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
     triggerPopunder();
   };
@@ -217,24 +205,7 @@ export default function WatchTVPage({
               
             />
 
-            <VideoAdOverlay onReady={() => setAdDismissed(true)} />
-
-            {!adDismissed && (
-              <div onClick={handleOverlayClick} className="absolute inset-0 z-10 cursor-pointer" title={t("clickToPlay")}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="animate-pulse rounded-full bg-white/10 p-6 backdrop-blur-sm">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="white" className="drop-shadow-lg">
-                      <polygon points="5,3 19,12 5,21" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="absolute bottom-4 left-0 right-0 text-center">
-                  <span className="rounded-full bg-black/60 px-4 py-2 text-xs text-white/80 backdrop-blur-sm">
-                    {t("clickToPlay")}
-                  </span>
-                </div>
-              </div>
-            )}
+            <VideoAdOverlay />
           </div>
         </div>
 
@@ -251,7 +222,6 @@ export default function WatchTVPage({
                   setTimeout(() => triggerPopunder(), 1500);
                 }
                 setSwitching(true);
-                setAdDismissed(false);
                 setTimeout(() => {
                   setActiveServer(i);
                   setSwitching(false);
