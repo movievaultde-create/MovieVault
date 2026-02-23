@@ -52,10 +52,10 @@ export async function GET(req: NextRequest) {
         url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16&with_keywords=210024&with_original_language=ja&sort_by=popularity.desc&page=${page}`;
         break;
       case "arab-movies":
-        url = `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
+        url = `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=ar-SA&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
         break;
       case "arab-series":
-        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=ar-SA&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
         break;
       case "trending":
         url = `${BASE}/trending/all/week?api_key=${TMDB_KEY}&language=${lang}&page=${page}`;
