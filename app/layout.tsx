@@ -24,9 +24,6 @@ export const metadata: Metadata = {
   verification: {
     google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
   },
-  other: {
-    "fb:app_id": "movievault2026",
-  },
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.png",
@@ -226,6 +223,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <meta property="og:url" content="https://movie-vault-eosin.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="MovieVault — Watch Movies, Series & Anime Free HD" />
+        <meta property="og:description" content="Stream thousands of movies, TV series and anime in HD for free. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً." />
+        <meta property="og:image" content="https://movie-vault-eosin.vercel.app/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="MovieVault" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background text-foreground antialiased`}
       >
