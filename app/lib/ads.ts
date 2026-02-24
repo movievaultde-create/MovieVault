@@ -6,31 +6,80 @@ const HILLTOP_URL =
 const HILLTOP_URL_2 =
   "https://amazing-population.com/bv3WV.0APR3-pcvEb-m/VyJVZ_DE0g2nOzDhI/xUNLDTAa1jLrTWY/4AMAjNEy0IMZDXkE";
 
-// Prioritize higher-value Hilltop links first, keep EffectiveGate as secondary.
-const AD_ROTATION = [
-  HILLTOP_URL,
-  HILLTOP_URL_2,
-  HILLTOP_URL,
-  HILLTOP_URL_2,
-];
-const HIGH_VALUE_START_AD = HILLTOP_URL;
-const STORAGE_KEY = "mv_ad_idx";
+const STORAGE_KEY_PREFIX = "mv_ad_idx";
+const EXOCLICK_URL = process.env.NEXT_PUBLIC_EXOCLICK_URL?.trim();
+const ADSTERRA_URL = process.env.NEXT_PUBLIC_ADSTERRA_URL?.trim();
+
+type TrafficTier = "tier1" | "tier2" | "tier3";
+
+const TIER1_GEOS = new Set([
+  "US", "CA", "GB", "DE", "FR", "AU", "NL", "SE", "NO", "DK", "CH", "AT", "BE", "IE", "NZ",
+]);
+const TIER2_GEOS = new Set([
+  "AE", "SA", "KW", "QA", "TR", "ES", "IT", "PL", "CZ", "PT", "BR", "MX", "CL", "AR", "ZA",
+]);
 
 let lastTrigger = 0;
 const COOLDOWN_MS = 5_000;
 let vipMode = false;
 
-function getStoredIndex(): number {
+function getRegionCode(): string | undefined {
   try {
-    const v = localStorage.getItem(STORAGE_KEY);
+    const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
+    for (const lang of langs) {
+      const m = lang.match(/[-_](\w{2})$/);
+      if (m?.[1]) return m[1].toUpperCase();
+    }
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
+
+function getTrafficTier(): TrafficTier {
+  const region = getRegionCode();
+  if (region && TIER1_GEOS.has(region)) return "tier1";
+  if (region && TIER2_GEOS.has(region)) return "tier2";
+  return "tier3";
+}
+
+function getRotationForTier(tier: TrafficTier): string[] {
+  const pool: string[] = [];
+
+  // Revenue-first waterfall by geo tier.
+  if (tier === "tier1") {
+    pool.push(HILLTOP_URL_2, HILLTOP_URL, HILLTOP_URL_2, HILLTOP_URL);
+    if (EXOCLICK_URL) pool.push(EXOCLICK_URL);
+    if (ADSTERRA_URL) pool.push(ADSTERRA_URL);
+  } else if (tier === "tier2") {
+    pool.push(HILLTOP_URL, HILLTOP_URL_2, HILLTOP_URL);
+    if (ADSTERRA_URL) pool.push(ADSTERRA_URL);
+    if (EXOCLICK_URL) pool.push(EXOCLICK_URL);
+  } else {
+    pool.push(HILLTOP_URL, HILLTOP_URL_2);
+    if (ADSTERRA_URL) pool.push(ADSTERRA_URL);
+  }
+
+  return pool.length ? pool : [HILLTOP_URL, HILLTOP_URL_2];
+}
+
+function getStartAdForTier(tier: TrafficTier): string {
+  return tier === "tier1" ? HILLTOP_URL_2 : HILLTOP_URL;
+}
+
+function getStoredIndex(tier: TrafficTier): number {
+  const key = `${STORAGE_KEY_PREFIX}_${tier}`;
+  try {
+    const v = localStorage.getItem(key);
     return v ? parseInt(v, 10) || 0 : 0;
   } catch {
     return 0;
   }
 }
 
-function setStoredIndex(i: number) {
-  try { localStorage.setItem(STORAGE_KEY, String(i)); } catch {}
+function setStoredIndex(tier: TrafficTier, i: number) {
+  const key = `${STORAGE_KEY_PREFIX}_${tier}`;
+  try { localStorage.setItem(key, String(i)); } catch {}
 }
 
 export function setVipMode(v: boolean) {
@@ -38,9 +87,11 @@ export function setVipMode(v: boolean) {
 }
 
 export function getAdUrl(): string {
-  const idx = getStoredIndex();
-  const url = AD_ROTATION[idx % AD_ROTATION.length];
-  setStoredIndex(idx + 1);
+  const tier = getTrafficTier();
+  const rotation = getRotationForTier(tier);
+  const idx = getStoredIndex(tier);
+  const url = rotation[idx % rotation.length];
+  setStoredIndex(tier, idx + 1);
   return url;
 }
 
@@ -48,7 +99,7 @@ export function getAdUrl(): string {
 export function triggerStartAd(): boolean {
   if (vipMode) return false;
 
-  const adUrl = HIGH_VALUE_START_AD;
+  const adUrl = getStartAdForTier(getTrafficTier());
   let opened = false;
 
   try {
