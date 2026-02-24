@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../context/LanguageContext";
@@ -13,6 +13,15 @@ interface CastMember {
   name: string;
   character: string;
   photo: string | null;
+}
+
+interface RelatedMovie {
+  id: number;
+  title: string;
+  poster: string | null;
+  rating: string;
+  year: string;
+  type: "movie";
 }
 
 interface MovieData {
@@ -30,11 +39,17 @@ interface MovieData {
   production_countries: string[];
   director: string | null;
   cast: CastMember[];
+  relatedMovies: RelatedMovie[];
 }
 
 const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
 };
+
+function withLangParams(baseUrl: string, subLang: string): string {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
+}
 
 function buildMovieServers(id: string, subLang: string): WatchServer[] {
   const directUrl = resolveDirectMovieUrl(id);
@@ -45,49 +60,70 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: `https://autoembed.co/movie/tmdb/${id}?sub=${subLang}`,
+      url: withLangParams(`https://autoembed.co/movie/tmdb/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://autoembed.cc/movie/tmdb/${id}`, subLang),
+      ],
     },
     {
       name: "Server 1",
       label: "VidSrc",
       premium: false,
       playerType: "iframe",
-      url: `https://vidsrc.to/embed/movie/${id}?ds_lang=${subLang}`,
+      url: withLangParams(`https://vidsrc.to/embed/movie/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://vidsrc.su/embed/movie/${id}`, subLang),
+      ],
     },
     {
       name: "Server 2",
       label: "VidSrc Pro",
       premium: false,
       playerType: "iframe",
-      url: `https://vidsrc.cc/v2/embed/movie/${id}?sub_lang=${subLang}`,
+      url: withLangParams(`https://vidsrc.cc/v2/embed/movie/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://vidsrc.net/embed/movie/${id}`, subLang),
+      ],
     },
     {
       name: "Server 3",
       label: "Embed",
       premium: false,
       playerType: "iframe",
-      url: `https://embed.su/embed/movie/${id}?sub=${subLang}`,
+      url: withLangParams(`https://embed.su/embed/movie/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://embed.smashystream.com/playere.php?tmdb=${id}`, subLang),
+      ],
     },
     {
       name: "Server 4",
       label: "Multi",
       premium: false,
       playerType: "iframe",
-      url: `https://multiembed.mov/?video_id=${id}&tmdb=1&sub_id=${subLang}`,
+      url: withLangParams(`https://multiembed.mov/?video_id=${id}&tmdb=1`, subLang),
+      mirrors: [
+        withLangParams(`https://multiembed.stream/?video_id=${id}&tmdb=1`, subLang),
+      ],
     },
     {
       name: "Server 5",
       label: "Videasy",
       premium: false,
       playerType: "iframe",
-      url: `https://player.videasy.net/movie/${id}?sub=${subLang}`,
+      url: withLangParams(`https://player.videasy.net/movie/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://player.autoembed.cc/movie/${id}`, subLang),
+      ],
     },
     {
       name: "Server 6",
       label: "NonTongo",
       premium: false,
       playerType: "iframe",
-      url: `https://nontongo.win/embed/movie/${id}?sub=${subLang}`,
+      url: withLangParams(`https://nontongo.win/embed/movie/${id}`, subLang),
+      mirrors: [
+        withLangParams(`https://nontongo.me/embed/movie/${id}`, subLang),
+      ],
     },
   ];
 }
@@ -101,9 +137,15 @@ export default function WatchPage({
   const { id } = use(params);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
-  const SERVERS = buildMovieServers(id, subLang);
+  const SERVERS = useMemo(() => buildMovieServers(id, subLang), [id, subLang]);
   const [activeServer, setActiveServer] = useState(0);
+  const [activeMirror, setActiveMirror] = useState(0);
   const currentServer = SERVERS[activeServer];
+  const currentServerUrls = useMemo(
+    () => [currentServer.url, ...(currentServer.mirrors ?? [])],
+    [currentServer]
+  );
+  const currentServerUrl = currentServerUrls[Math.min(activeMirror, currentServerUrls.length - 1)] ?? currentServer.url;
   const [adActive, setAdActive] = useState(true);
   const [adSession, setAdSession] = useState(0);
   const [movie, setMovie] = useState<MovieData | null>(null);
@@ -111,6 +153,21 @@ export default function WatchPage({
   const [error, setError] = useState<string | null>(null);
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    setActiveMirror(0);
+    setBusyMsg(false);
+  }, [activeServer, id, subLang]);
+
+  const handleIframeError = () => {
+    if (activeMirror < currentServerUrls.length - 1) {
+      setActiveMirror((v) => v + 1);
+      setBusyMsg(false);
+      return;
+    }
+    setBusyMsg(true);
+    setTimeout(() => setBusyMsg(false), 3500);
+  };
 
   // Always require start-ad when opening a movie page.
   useEffect(() => {
@@ -182,11 +239,13 @@ export default function WatchPage({
                 <VideoPlayer src={currentServer.directUrl} />
               ) : (
                 <iframe
-                  src={currentServer.url}
+                  key={`${activeServer}-${activeMirror}-${id}`}
+                  src={currentServerUrl}
+                  onError={handleIframeError}
                   className="absolute inset-0 h-full w-full"
                   allowFullScreen
                   allow="autoplay; encrypted-media; picture-in-picture"
-                  referrerPolicy="origin"
+                  referrerPolicy="no-referrer"
                 />
               )
             )}
@@ -209,10 +268,12 @@ export default function WatchPage({
                 if (server.premium) {
                   setTimeout(() => triggerPopunder(), 1500);
                 }
+                setBusyMsg(false);
                 setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);
+                  setActiveMirror(0);
                   setSwitching(false);
                 }, 2000);
               };
@@ -292,8 +353,70 @@ export default function WatchPage({
           t={t}
           isAr={isAr}
         />
+
+        <RelatedMoviesSection movie={movie} isAr={isAr} />
       </div>
     </div>
+  );
+}
+
+function RelatedMoviesSection({
+  movie,
+  isAr,
+}: {
+  movie: MovieData | null;
+  isAr: boolean;
+}) {
+  const related = movie?.relatedMovies ?? [];
+  if (!movie || related.length === 0) return null;
+
+  return (
+    <section className="mt-10">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-white sm:text-lg">
+        <div className="h-5 w-1 rounded-full bg-primary" />
+        {isAr ? "أفلام مشابهة" : "Related Movies"}
+      </h2>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {related.map((item) => (
+          <Link
+            key={item.id}
+            href={`/watch/${item.id}`}
+            onClick={() => triggerPopunder()}
+            className="group overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30"
+          >
+            <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
+              {item.poster ? (
+                <Image
+                  src={item.poster}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 220px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-text-muted">
+                  <svg width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                </div>
+              )}
+              <span className="absolute end-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400">
+                ★ {item.rating}
+              </span>
+            </div>
+
+            <div className="p-2.5">
+              <p className="truncate text-[13px] font-semibold text-white transition-colors group-hover:text-primary">
+                {item.title}
+              </p>
+              <p className="mt-1 text-[11px] text-text-muted">{item.year || "—"}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

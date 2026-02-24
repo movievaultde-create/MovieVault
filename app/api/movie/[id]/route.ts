@@ -3,6 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 const TMDB_KEY = process.env.TMDB_API_KEY ?? "";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
+interface TmdbGenre {
+  id: number;
+  name: string;
+}
+
+interface TmdbRelatedMovie {
+  id: number;
+  title?: string;
+  poster_path?: string | null;
+  vote_average?: number;
+  release_date?: string;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,6 +41,7 @@ export async function GET(
       production_countries: [],
       director: null,
       cast: [],
+      relatedMovies: [],
     });
   }
 
@@ -51,6 +65,38 @@ export async function GET(
     const director = credits.crew?.find(
       (c: { job: string }) => c.job === "Director"
     );
+    const genreIds: number[] = movie.genres?.map((g: TmdbGenre) => g.id).filter(Boolean) ?? [];
+
+    let relatedMovies: Array<{
+      id: number;
+      title: string;
+      poster: string | null;
+      rating: string;
+      year: string;
+      type: "movie";
+    }> = [];
+
+    if (genreIds.length > 0) {
+      const relatedRes = await fetch(
+        `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreIds[0]}&vote_count.gte=30&page=1`,
+        opts
+      );
+
+      if (relatedRes.ok) {
+        const relatedData = await relatedRes.json();
+        relatedMovies = (relatedData.results ?? [])
+          .filter((item: TmdbRelatedMovie) => item.id !== Number(id))
+          .slice(0, 10)
+          .map((item: TmdbRelatedMovie) => ({
+            id: item.id,
+            title: item.title ?? `Movie #${item.id}`,
+            poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+            rating: item.vote_average?.toFixed(1) ?? "0.0",
+            year: (item.release_date ?? "").slice(0, 4),
+            type: "movie" as const,
+          }));
+      }
+    }
 
     return NextResponse.json({
       id: movie.id,
@@ -81,6 +127,7 @@ export async function GET(
               ? `https://image.tmdb.org/t/p/w185${c.profile_path}`
               : null,
           })) ?? [],
+      relatedMovies,
     });
   } catch {
     return NextResponse.json(
