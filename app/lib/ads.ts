@@ -11,7 +11,15 @@ const EFFECTIVEGATE_ID = "28679894";
 const EFFECTIVEGATE_URL =
   "https://www.effectivegatecpm.com/fxi219fn?key=394514b812e454d18ab09bc6b9eba0f6";
 
-const AD_ROTATION = [HILLTOP_URL, HILLTOP_URL_2, EFFECTIVEGATE_URL];
+// Prioritize higher-value Hilltop links first, keep EffectiveGate as secondary.
+const AD_ROTATION = [
+  HILLTOP_URL,
+  HILLTOP_URL_2,
+  HILLTOP_URL,
+  HILLTOP_URL_2,
+  EFFECTIVEGATE_URL,
+];
+const HIGH_VALUE_START_AD = HILLTOP_URL;
 const STORAGE_KEY = "mv_ad_idx";
 
 let lastTrigger = 0;
@@ -46,7 +54,7 @@ export function getAdUrl(): string {
 export function triggerStartAd(): boolean {
   if (vipMode) return false;
 
-  const adUrl = getAdUrl();
+  const adUrl = HIGH_VALUE_START_AD;
   let opened = false;
 
   try {
