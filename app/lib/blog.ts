@@ -459,7 +459,32 @@ interface TmdbMovie {
   vote_average?: number;
   poster_path?: string | null;
   backdrop_path?: string | null;
+  popularity?: number;
 }
+
+interface TmdbTv {
+  id: number;
+  name?: string;
+  original_name?: string;
+  overview?: string;
+  first_air_date?: string;
+  vote_average?: number;
+  poster_path?: string | null;
+  backdrop_path?: string | null;
+  popularity?: number;
+}
+
+type UpcomingCandidate = {
+  id: number;
+  type: "movie" | "tv";
+  title: string;
+  overview: string;
+  releaseDate: string;
+  voteAverage: number;
+  posterPath: string | null;
+  backdropPath: string | null;
+  popularity: number;
+};
 
 function slugify(input: string): string {
   return input
@@ -474,6 +499,137 @@ function daysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
+}
+
+function daysAhead(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function normalizeForMatch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isLikelyEntertainmentTrend(keyword: string): boolean {
+  const blocked = [
+    "weather",
+    "earthquake",
+    "election",
+    "crypto",
+    "stock",
+    "football",
+    "soccer",
+    "nba",
+    "match",
+    "news",
+    "live",
+  ];
+  const normalized = normalizeForMatch(keyword);
+  return !blocked.some((term) => normalized.includes(term));
+}
+
+async function fetchGoogleTrendKeywords(limit = 25): Promise<string[]> {
+  // Public Google Trends RSS feed (no API key required).
+  const rssUrl = "https://trends.google.com/trending/rss?geo=US";
+  try {
+    const res = await fetch(rssUrl, { next: { revalidate: 1800 } } as RequestInit);
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const matches = [...xml.matchAll(/<title><!\[CDATA\[(.*?)\]\]><\/title>/g)];
+    const rawTitles = matches.map((m) => m[1]).filter(Boolean);
+    const cleaned = rawTitles
+      .map((title) => title.trim())
+      .filter((title) => title.length > 1 && title.toLowerCase() !== "daily search trends")
+      .filter(isLikelyEntertainmentTrend);
+    return cleaned.slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+function buildUpcomingLandingPost(
+  item: UpcomingCandidate,
+  trendKeywords: string[],
+): BlogPost {
+  const year = item.releaseDate.slice(0, 4) || "2026";
+  const score = item.voteAverage > 0 ? item.voteAverage.toFixed(1) : "N/A";
+  const slugBase = slugify(item.title) || `${item.type}-${item.id}`;
+  const slug = `landing-${slugBase}-${item.id}`;
+  const normalizedTitle = normalizeForMatch(item.title);
+  const trendMention = trendKeywords.find((kw) =>
+    normalizedTitle.includes(normalizeForMatch(kw)),
+  );
+  const trendLine = trendMention
+    ? `Google Trends interest is rising for "${trendMention}", which is helping this title gain early momentum.`
+    : "Search demand is rising this week, making this one of the most valuable early-index pages.";
+
+  return {
+    slug,
+    title: `${item.title} (${year}) Release Date, Poster, Story & Watch Updates`,
+    excerpt:
+      item.overview?.slice(0, 220) ||
+      `Track the latest update for ${item.title}: release timing, trailer buzz, early audience interest, and where to watch once available.`,
+    publishedAt: new Date().toISOString().slice(0, 10),
+    author: "MovieVault Trend Desk",
+    readingMinutes: 4,
+    category: "news",
+    tags: [
+      "landing-page",
+      "upcoming",
+      item.type === "movie" ? "movie-news" : "series-news",
+      year,
+    ],
+    featuredImage: item.backdropPath
+      ? `https://image.tmdb.org/t/p/w780${item.backdropPath}`
+      : item.posterPath
+        ? `https://image.tmdb.org/t/p/w780${item.posterPath}`
+        : null,
+    seoTitle: `${item.title} Release Date, Poster & Updates (${year}) | MovieVault`,
+    seoDescription:
+      `Get the latest ${item.title} update: release date, poster, trailer buzz, and instant watch updates on MovieVault.`.slice(
+        0,
+        158,
+      ),
+    sections: [
+      {
+        heading: `${item.title} release timeline`,
+        paragraphs: [
+          `${item.title} is currently tracked as an upcoming ${item.type === "movie" ? "movie" : "series"} with expected audience demand building before release.`,
+          "This landing page is published early to capture search intent before launch day and keep updates centralized.",
+        ],
+      },
+      {
+        heading: "Trend momentum and audience interest",
+        paragraphs: [
+          trendLine,
+          `Current rating indicator sits around ${score}. This can shift rapidly once the full audience watches the title.`,
+        ],
+      },
+      {
+        heading: "Poster, trailer, and watch updates",
+        paragraphs: [
+          "As new assets drop (poster, trailer, dubbed/subbed versions), this page can be refreshed quickly for SEO freshness.",
+          "Use the watch button below to jump directly once the title is available on-site.",
+        ],
+      },
+    ],
+    watchHref: item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`,
+    source: "auto",
+    affiliate: {
+      title: "Get launch-day streaming advantages",
+      description:
+        "Use a premium VPN for privacy, stable speed, and smoother playback when major titles release and traffic spikes.",
+      ctaLabel: "Check launch-ready VPN deal",
+      href: "#",
+      disclaimer:
+        "Affiliate disclosure: We may earn a commission from qualifying subscriptions.",
+    },
+  };
 }
 
 function buildAutoMoviePost(movie: TmdbMovie): BlogPost | null {
@@ -570,9 +726,100 @@ export async function getAutoDailyBlogPosts(limit = 12): Promise<BlogPost[]> {
   }
 }
 
+export async function getUpcomingLandingBlogPosts(limit = 50): Promise<BlogPost[]> {
+  const TMDB_KEY = process.env.TMDB_API_KEY ?? "";
+  if (!TMDB_KEY || TMDB_KEY === "YOUR_TMDB_API_KEY_HERE") return [];
+
+  const BASE = "https://api.themoviedb.org/3";
+  const today = new Date().toISOString().slice(0, 10);
+  const horizon = daysAhead(180);
+
+  const movieUrls = [1, 2, 3].map(
+    (page) =>
+      `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_date.gte=${today}&primary_release_date.lte=${horizon}&vote_count.gte=5&page=${page}`,
+  );
+  const tvUrls = [1, 2, 3].map(
+    (page) =>
+      `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&first_air_date.gte=${today}&first_air_date.lte=${horizon}&vote_count.gte=5&page=${page}`,
+  );
+
+  try {
+    const [trendKeywords, ...responses] = await Promise.all([
+      fetchGoogleTrendKeywords(),
+      ...movieUrls.map((url) => fetch(url, { next: { revalidate: 3600 } } as RequestInit)),
+      ...tvUrls.map((url) => fetch(url, { next: { revalidate: 3600 } } as RequestInit)),
+    ]);
+
+    const payloads = await Promise.all(
+      responses.map(async (res) => (res.ok ? (await res.json()) : { results: [] })),
+    );
+
+    const moviePayloads = payloads.slice(0, movieUrls.length);
+    const tvPayloads = payloads.slice(movieUrls.length);
+
+    const movieCandidates: UpcomingCandidate[] = moviePayloads.flatMap(
+      (payload: { results?: TmdbMovie[] }) =>
+        (payload.results ?? [])
+          .filter((movie) => Boolean(movie.title || movie.original_title))
+          .map((movie) => ({
+            id: movie.id,
+            type: "movie" as const,
+            title: movie.title ?? movie.original_title ?? "",
+            overview: movie.overview ?? "",
+            releaseDate: movie.release_date ?? today,
+            voteAverage: movie.vote_average ?? 0,
+            posterPath: movie.poster_path ?? null,
+            backdropPath: movie.backdrop_path ?? null,
+            popularity: movie.popularity ?? 0,
+          })),
+    );
+
+    const tvCandidates: UpcomingCandidate[] = tvPayloads.flatMap(
+      (payload: { results?: TmdbTv[] }) =>
+        (payload.results ?? [])
+          .filter((show) => Boolean(show.name || show.original_name))
+          .map((show) => ({
+            id: show.id,
+            type: "tv" as const,
+            title: show.name ?? show.original_name ?? "",
+            overview: show.overview ?? "",
+            releaseDate: show.first_air_date ?? today,
+            voteAverage: show.vote_average ?? 0,
+            posterPath: show.poster_path ?? null,
+            backdropPath: show.backdrop_path ?? null,
+            popularity: show.popularity ?? 0,
+          })),
+    );
+
+    const allCandidates = [...movieCandidates, ...tvCandidates];
+    const uniqueByKey = new Map<string, UpcomingCandidate>();
+    for (const candidate of allCandidates) {
+      uniqueByKey.set(`${candidate.type}-${candidate.id}`, candidate);
+    }
+
+    const normalizedTrends = trendKeywords.map(normalizeForMatch);
+    const sorted = [...uniqueByKey.values()].sort((a, b) => {
+      const aTitle = normalizeForMatch(a.title);
+      const bTitle = normalizeForMatch(b.title);
+      const aTrendScore = normalizedTrends.some((kw) => aTitle.includes(kw)) ? 1 : 0;
+      const bTrendScore = normalizedTrends.some((kw) => bTitle.includes(kw)) ? 1 : 0;
+      if (bTrendScore !== aTrendScore) return bTrendScore - aTrendScore;
+      if (b.popularity !== a.popularity) return b.popularity - a.popularity;
+      return new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime();
+    });
+
+    return sorted
+      .slice(0, limit)
+      .map((candidate) => buildUpcomingLandingPost(candidate, trendKeywords));
+  } catch {
+    return [];
+  }
+}
+
 export async function getCombinedBlogPosts(): Promise<BlogPost[]> {
   const autoPosts = await getAutoDailyBlogPosts();
-  const merged = [...autoPosts, ...getAllBlogPosts()];
+  const landingPosts = await getUpcomingLandingBlogPosts(50);
+  const merged = [...landingPosts, ...autoPosts, ...getAllBlogPosts()];
   const deduped = new Map<string, BlogPost>();
   for (const post of merged) {
     deduped.set(post.slug, post);
