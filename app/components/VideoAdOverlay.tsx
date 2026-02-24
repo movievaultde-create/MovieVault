@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { triggerPopunder, triggerStartAd } from "../lib/ads";
 
 const MID_ROLL_INTERVAL = 15 * 60 * 1000;
@@ -12,6 +12,8 @@ interface Props {
 export default function VideoAdOverlay({ onPhaseChange }: Props) {
   const [started, setStarted] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [pendingReturn, setPendingReturn] = useState(false);
+  const leftPageRef = useRef(false);
 
   const notifyParent = useCallback(
     (isAd: boolean) => {
@@ -35,14 +37,51 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
     return () => clearInterval(interval);
   }, [started]);
 
+  // Require user to return after opening ad page.
+  useEffect(() => {
+    if (!pendingReturn) return;
+
+    const finish = () => {
+      setPendingReturn(false);
+      setStarted(true);
+    };
+
+    const onBlur = () => {
+      leftPageRef.current = true;
+    };
+
+    const onFocus = () => {
+      if (leftPageRef.current) finish();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        leftPageRef.current = true;
+      } else if (document.visibilityState === "visible" && leftPageRef.current) {
+        finish();
+      }
+    };
+
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [pendingReturn]);
+
   const handleStart = () => {
     const opened = triggerStartAd();
     if (!opened) {
       setBlocked(true);
       return;
     }
+    leftPageRef.current = false;
     setBlocked(false);
-    setStarted(true);
+    setPendingReturn(true);
   };
 
   if (started) return null;
@@ -75,6 +114,20 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
       >
         ▶ Start
       </button>
+      {pendingReturn && (
+        <p
+          style={{
+            position: "absolute",
+            bottom: 44,
+            margin: 0,
+            color: "#9ca3af",
+            fontSize: 12,
+            textAlign: "center",
+          }}
+        >
+          Ad opened. Return to this page to continue watching.
+        </p>
+      )}
       {blocked && (
         <p
           style={{
