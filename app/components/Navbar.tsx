@@ -173,12 +173,6 @@ export default function Navbar() {
             <a href="/anime" className="rounded-xl px-5 py-2.5 text-[17px] font-bold text-gray-300 transition-colors hover:text-white">
               {t("navAnime")}
             </a>
-            <button
-              onClick={goToBlog}
-              className="rounded-xl px-5 py-2.5 text-[17px] font-bold text-gray-300 transition-colors hover:text-white"
-            >
-              Blog
-            </button>
           </nav>
 
           {/* Right Actions */}
@@ -265,6 +259,13 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={goToBlog}
+              className="hidden h-10 items-center rounded-full border border-amber-500/30 bg-amber-500/8 px-4 text-sm font-extrabold tracking-wide text-amber-300 transition-all hover:border-amber-400/70 hover:bg-amber-500/14 hover:text-amber-200 hover:shadow-[0_0_14px_0_rgba(245,158,11,0.22)] sm:flex sm:h-11"
+            >
+              Blog
+            </button>
 
             {/* VIP */}
             <Link
