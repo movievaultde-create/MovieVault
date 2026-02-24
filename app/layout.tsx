@@ -225,6 +225,7 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
+        <meta name="6a97888e-site-verification" content="e84c90fd1f6d68a8c466b0ea5a1d8874" />
         <meta property="og:url" content="https://movie-vault-eosin.vercel.app/" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="MovieVault — Watch Movies, Series & Anime Free HD" />
