@@ -170,6 +170,9 @@ export default function Navbar() {
             <a href="/anime" className="rounded-xl px-5 py-2.5 text-[17px] font-bold text-gray-300 transition-colors hover:text-white">
               {t("navAnime")}
             </a>
+            <Link href="/blog" className="rounded-xl px-5 py-2.5 text-[17px] font-bold text-gray-300 transition-colors hover:text-white">
+              Blog
+            </Link>
           </nav>
 
           {/* Right Actions */}
@@ -407,6 +410,10 @@ export default function Navbar() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
               {t("navAnime")}
             </a>
+            <Link href="/blog" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5">
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+              Blog
+            </Link>
           </nav>
 
           {/* Mobile Language Selector */}
