@@ -117,6 +117,10 @@ export default function HeroSection() {
               </Link>
               <Link
                 href="/blog"
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign("/blog");
+                }}
                 className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-primary transition-all hover:bg-primary/20"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

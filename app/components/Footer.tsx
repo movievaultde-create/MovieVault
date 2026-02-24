@@ -18,7 +18,14 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-text-muted">
-            <Link href="/blog" className="transition-colors hover:text-white">
+            <Link
+              href="/blog"
+              onClick={(event) => {
+                event.preventDefault();
+                window.location.assign("/blog");
+              }}
+              className="transition-colors hover:text-white"
+            >
               Blog
             </Link>
             <span className="text-surface-border">|</span>
