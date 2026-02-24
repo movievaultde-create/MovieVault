@@ -7,6 +7,7 @@ import { useLang, type TranslationKey } from "../../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 import VideoAdOverlay from "../../../components/VideoAdOverlay";
 import VideoPlayer from "../../../components/VideoPlayer";
+import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
   season_number: number;
@@ -43,29 +44,8 @@ const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
 };
 
-type WatchServer = {
-  name: string;
-  label: string;
-  premium: boolean;
-  url: string;
-  playerType: "iframe" | "direct";
-  directUrl?: string;
-};
-
-const BUNNY_TEST_STREAM_URL =
-  "https://vz-4cf47e6c-8db.b-cdn.net/525fd39d-e53c-481f-a2cc-d5268ea545d8/playlist.m3u8";
-
-function buildDirectTvUrl(id: string, season: number, episode: number): string | undefined {
-  const template = process.env.NEXT_PUBLIC_DIRECT_TV_URL_TEMPLATE?.trim();
-  if (!template) return BUNNY_TEST_STREAM_URL;
-  return template
-    .replaceAll("{id}", id)
-    .replaceAll("{season}", String(season))
-    .replaceAll("{episode}", String(episode));
-}
-
 function buildServers(id: string, season: number, episode: number, subLang: string): WatchServer[] {
-  const directUrl = buildDirectTvUrl(id, season, episode);
+  const directUrl = resolveDirectTvUrl(id, season, episode);
   return [
     {
       name: "MovieVault Server",
