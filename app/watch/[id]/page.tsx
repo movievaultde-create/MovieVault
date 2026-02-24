@@ -124,6 +124,7 @@ export default function WatchPage({
   useEffect(() => {
     const onPageShow = (event: PageTransitionEvent) => {
       if (!event.persisted) return;
+      setActiveServer(0);
       setAdActive(true);
       setAdSession((v) => v + 1);
     };
