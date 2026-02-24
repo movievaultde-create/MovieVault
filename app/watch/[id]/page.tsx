@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use, useMemo } from "react";
+import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../context/LanguageContext";
@@ -370,20 +370,75 @@ function RelatedMoviesSection({
   const related = movie?.relatedMovies ?? [];
   if (!movie || related.length === 0) return null;
 
-  return (
-    <section className="mt-10">
-      <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-white sm:text-lg">
-        <div className="h-5 w-1 rounded-full bg-primary" />
-        {isAr ? "أفلام مشابهة" : "Related Movies"}
-      </h2>
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setAtStart(el.scrollLeft <= 8);
+      setAtEnd(el.scrollLeft >= max - 8);
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      el.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, [related.length]);
+
+  const scrollByAmount = (direction: "next" | "prev") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = Math.max(el.clientWidth * 0.75, 300);
+    el.scrollBy({
+      left: direction === "next" ? amount : -amount,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <section className="mt-10 overflow-hidden rounded-2xl border border-surface-border bg-surface/40 p-4 sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-base font-bold text-white sm:text-lg">
+          <div className="h-5 w-1 rounded-full bg-primary" />
+          {isAr ? "مشابهات للمشاهدة" : "More Like This"}
+        </h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => scrollByAmount("prev")}
+            disabled={atStart}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white transition hover:border-white/30 disabled:opacity-35"
+            aria-label={isAr ? "السابق" : "Previous"}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            onClick={() => scrollByAmount("next")}
+            disabled={atEnd}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition hover:bg-primary/20 disabled:opacity-35"
+            aria-label={isAr ? "التالي" : "Next"}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {related.map((item) => (
           <Link
             key={item.id}
             href={`/watch/${item.id}`}
             onClick={() => triggerPopunder()}
-            className="group overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30"
+            className="group w-[165px] shrink-0 overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30 sm:w-[180px]"
           >
             <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
               {item.poster ? (
