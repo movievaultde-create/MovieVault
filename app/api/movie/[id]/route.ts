@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const TMDB_KEY = process.env.TMDB_API_KEY ?? "";
 const TMDB_BASE = "https://api.themoviedb.org/3";
+export const dynamic = "force-dynamic";
 
 interface TmdbGenre {
   id: number;
@@ -14,6 +15,7 @@ interface TmdbRelatedMovie {
   poster_path?: string | null;
   vote_average?: number;
   release_date?: string;
+  media_type?: string;
 }
 
 export async function GET(
@@ -77,24 +79,64 @@ export async function GET(
     }> = [];
 
     if (genreIds.length > 0) {
-      const relatedRes = await fetch(
-        `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreIds[0]}&vote_count.gte=30&page=1`,
-        opts
-      );
+      const genreQuery = genreIds.join(",");
+      const relatedRequests = [
+        fetch(
+          `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreQuery}&vote_count.gte=1&page=1`,
+          opts
+        ),
+        fetch(
+          `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreQuery}&vote_count.gte=1&page=2`,
+          opts
+        ),
+      ];
 
-      if (relatedRes.ok) {
-        const relatedData = await relatedRes.json();
-        relatedMovies = (relatedData.results ?? [])
-          .filter((item: TmdbRelatedMovie) => item.id !== Number(id))
-          .slice(0, 10)
-          .map((item: TmdbRelatedMovie) => ({
-            id: item.id,
-            title: item.title ?? `Movie #${item.id}`,
-            poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
-            rating: item.vote_average?.toFixed(1) ?? "0.0",
-            year: (item.release_date ?? "").slice(0, 4),
-            type: "movie" as const,
-          }));
+      const [relatedResPage1, relatedResPage2] = await Promise.all(relatedRequests);
+      const relatedPayloads = await Promise.all([
+        relatedResPage1.ok ? relatedResPage1.json() : { results: [] },
+        relatedResPage2.ok ? relatedResPage2.json() : { results: [] },
+      ]);
+
+      const deduped = new Map<number, TmdbRelatedMovie>();
+      for (const payload of relatedPayloads) {
+        for (const item of payload.results ?? []) {
+          if (!item?.id || item.id === Number(id)) continue;
+          deduped.set(item.id, item);
+        }
+      }
+
+      relatedMovies = [...deduped.values()]
+        .slice(0, 10)
+        .map((item: TmdbRelatedMovie) => ({
+          id: item.id,
+          title: item.title ?? `Movie #${item.id}`,
+          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+          rating: item.vote_average?.toFixed(1) ?? "0.0",
+          year: (item.release_date ?? "").slice(0, 4),
+          type: "movie" as const,
+        }));
+
+      if (relatedMovies.length < 10) {
+        const recommendationsRes = await fetch(
+          `${TMDB_BASE}/movie/${id}/recommendations?api_key=${TMDB_KEY}&language=${lang}&page=1`,
+          opts
+        );
+        if (recommendationsRes.ok) {
+          const recommendationsData = await recommendationsRes.json();
+          const existingIds = new Set(relatedMovies.map((movieItem) => movieItem.id));
+          const fallback = (recommendationsData.results ?? [])
+            .filter((item: TmdbRelatedMovie) => item.id && !existingIds.has(item.id))
+            .slice(0, 10 - relatedMovies.length)
+            .map((item: TmdbRelatedMovie) => ({
+              id: item.id,
+              title: item.title ?? `Movie #${item.id}`,
+              poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+              rating: item.vote_average?.toFixed(1) ?? "0.0",
+              year: (item.release_date ?? "").slice(0, 4),
+              type: "movie" as const,
+            }));
+          relatedMovies = [...relatedMovies, ...fallback].slice(0, 10);
+        }
       }
     }
 
