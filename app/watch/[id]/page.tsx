@@ -44,9 +44,12 @@ type WatchServer = {
   directUrl?: string;
 };
 
+const BUNNY_TEST_STREAM_URL =
+  "https://vz-4cf47e6c-8db.b-cdn.net/525fd39d-e53c-481f-a2cc-d5268ea545d8/playlist.m3u8";
+
 function buildDirectMovieUrl(id: string): string | undefined {
   const template = process.env.NEXT_PUBLIC_DIRECT_MOVIE_URL_TEMPLATE?.trim();
-  if (!template) return undefined;
+  if (!template) return BUNNY_TEST_STREAM_URL;
   return template.replaceAll("{id}", id);
 }
 
