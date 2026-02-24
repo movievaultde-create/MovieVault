@@ -9,6 +9,8 @@ const HILLTOP_SOCIAL_BAR_SCRIPT = "YOUR_HILLTOP_SOCIAL_BAR_SCRIPT_URL";
 const HILLTOP_POPUNDER_SCRIPT = "YOUR_HILLTOP_POPUNDER_SCRIPT_URL";
 // ──────────────────────────────────────────────────────────────────
 
+// ExoClick Popunder (zone id provided by user)
+const EXOCLICK_ZONE_ID = "5858634";
 const AD_LOAD_DELAY = 3000;
 
 function isPlaceholder(url: string) {
@@ -40,6 +42,9 @@ export default function AdsContainer() {
       if (!isPlaceholder(HILLTOP_POPUNDER_SCRIPT)) {
         injectScript(HILLTOP_POPUNDER_SCRIPT, "hilltop-popunder-script");
       }
+
+      // ExoClick popunder (inline+remote equivalent via data attributes)
+      injectExoClickPopunder("exoclick-popunder-script");
     }, AD_LOAD_DELAY);
 
     return () => clearTimeout(timer);
@@ -87,5 +92,34 @@ function injectScript(src: string, id: string) {
   script.id = id;
   script.src = src;
   script.async = true;
+  document.body.appendChild(script);
+}
+
+function injectExoClickPopunder(id: string) {
+  if (document.getElementById(id)) return;
+
+  const script = document.createElement("script");
+  script.id = id;
+  script.type = "application/javascript";
+  script.async = true;
+  script.src = "//a.pemsrv.com/popunder1000.js";
+
+  // ExoClick inline config (from provided zone script)
+  script.setAttribute("data-exo-ads_host", "a.pemsrv.com");
+  script.setAttribute("data-exo-syndication_host", "s.pemsrv.com");
+  script.setAttribute("data-exo-idzone", EXOCLICK_ZONE_ID);
+  script.setAttribute("data-exo-popup_fallback", "false");
+  script.setAttribute("data-exo-popup_force", "false");
+  script.setAttribute("data-exo-chrome_enabled", "true");
+  script.setAttribute("data-exo-new_tab", "false");
+  script.setAttribute("data-exo-frequency_period", "720");
+  script.setAttribute("data-exo-frequency_count", "1");
+  script.setAttribute("data-exo-trigger_method", "3");
+  script.setAttribute("data-exo-trigger_class", "");
+  script.setAttribute("data-exo-trigger_delay", "0");
+  script.setAttribute("data-exo-capping_enabled", "true");
+  script.setAttribute("data-exo-tcf_enabled", "true");
+  script.setAttribute("data-exo-only_inline", "false");
+
   document.body.appendChild(script);
 }
