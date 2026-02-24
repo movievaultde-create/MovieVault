@@ -457,30 +457,20 @@ interface TmdbMovie {
   overview?: string;
   release_date?: string;
   vote_average?: number;
+  vote_count?: number;
   poster_path?: string | null;
   backdrop_path?: string | null;
   popularity?: number;
-}
-
-interface TmdbTv {
-  id: number;
-  name?: string;
-  original_name?: string;
-  overview?: string;
-  first_air_date?: string;
-  vote_average?: number;
-  poster_path?: string | null;
-  backdrop_path?: string | null;
-  popularity?: number;
+  adult?: boolean;
 }
 
 type UpcomingCandidate = {
   id: number;
-  type: "movie" | "tv";
   title: string;
   overview: string;
   releaseDate: string;
   voteAverage: number;
+  voteCount: number;
   posterPath: string | null;
   backdropPath: string | null;
   popularity: number;
@@ -581,7 +571,7 @@ function buildUpcomingLandingPost(
     tags: [
       "landing-page",
       "upcoming",
-      item.type === "movie" ? "movie-news" : "series-news",
+      "movie-news",
       year,
     ],
     featuredImage: item.backdropPath
@@ -600,6 +590,7 @@ function buildUpcomingLandingPost(
         heading: `${item.title} release timeline`,
         paragraphs: [
           `${item.title} is currently tracked as an upcoming ${item.type === "movie" ? "movie" : "series"} with expected audience demand building before release.`,
+          `${item.title} is currently tracked as an upcoming movie with expected audience demand building before release.`,
           "This landing page is published early to capture search intent before launch day and keep updates centralized.",
         ],
       },
@@ -618,7 +609,7 @@ function buildUpcomingLandingPost(
         ],
       },
     ],
-    watchHref: item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`,
+    watchHref: `/watch/${item.id}`,
     source: "auto",
     affiliate: {
       title: "Get launch-day streaming advantages",
@@ -630,6 +621,19 @@ function buildUpcomingLandingPost(
         "Affiliate disclosure: We may earn a commission from qualifying subscriptions.",
     },
   };
+}
+
+function isQualifiedUpcomingMovie(movie: TmdbMovie, today: string, horizon: string): boolean {
+  const title = movie.title ?? movie.original_title ?? "";
+  const releaseDate = movie.release_date ?? "";
+  if (!title || !releaseDate) return false;
+  if (movie.adult) return false;
+  if (releaseDate < today || releaseDate > horizon) return false;
+  if ((movie.vote_count ?? 0) < 30) return false;
+  if ((movie.popularity ?? 0) < 20) return false;
+  if ((movie.overview ?? "").trim().length < 40) return false;
+  if (!movie.poster_path && !movie.backdrop_path) return false;
+  return true;
 }
 
 function buildAutoMoviePost(movie: TmdbMovie): BlogPost | null {
@@ -734,20 +738,15 @@ export async function getUpcomingLandingBlogPosts(limit = 50): Promise<BlogPost[
   const today = new Date().toISOString().slice(0, 10);
   const horizon = daysAhead(180);
 
-  const movieUrls = [1, 2, 3].map(
+  const movieUrls = [1, 2, 3, 4, 5].map(
     (page) =>
       `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&primary_release_date.gte=${today}&primary_release_date.lte=${horizon}&vote_count.gte=5&page=${page}`,
-  );
-  const tvUrls = [1, 2, 3].map(
-    (page) =>
-      `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=en-US&sort_by=popularity.desc&first_air_date.gte=${today}&first_air_date.lte=${horizon}&vote_count.gte=5&page=${page}`,
   );
 
   try {
     const [trendKeywords, ...responses] = await Promise.all([
       fetchGoogleTrendKeywords(),
       ...movieUrls.map((url) => fetch(url, { next: { revalidate: 3600 } } as RequestInit)),
-      ...tvUrls.map((url) => fetch(url, { next: { revalidate: 3600 } } as RequestInit)),
     ]);
 
     const payloads = await Promise.all(
@@ -755,46 +754,26 @@ export async function getUpcomingLandingBlogPosts(limit = 50): Promise<BlogPost[
     );
 
     const moviePayloads = payloads.slice(0, movieUrls.length);
-    const tvPayloads = payloads.slice(movieUrls.length);
 
     const movieCandidates: UpcomingCandidate[] = moviePayloads.flatMap(
       (payload: { results?: TmdbMovie[] }) =>
         (payload.results ?? [])
-          .filter((movie) => Boolean(movie.title || movie.original_title))
+          .filter((movie) => isQualifiedUpcomingMovie(movie, today, horizon))
           .map((movie) => ({
             id: movie.id,
-            type: "movie" as const,
             title: movie.title ?? movie.original_title ?? "",
             overview: movie.overview ?? "",
             releaseDate: movie.release_date ?? today,
             voteAverage: movie.vote_average ?? 0,
+            voteCount: movie.vote_count ?? 0,
             posterPath: movie.poster_path ?? null,
             backdropPath: movie.backdrop_path ?? null,
             popularity: movie.popularity ?? 0,
           })),
     );
-
-    const tvCandidates: UpcomingCandidate[] = tvPayloads.flatMap(
-      (payload: { results?: TmdbTv[] }) =>
-        (payload.results ?? [])
-          .filter((show) => Boolean(show.name || show.original_name))
-          .map((show) => ({
-            id: show.id,
-            type: "tv" as const,
-            title: show.name ?? show.original_name ?? "",
-            overview: show.overview ?? "",
-            releaseDate: show.first_air_date ?? today,
-            voteAverage: show.vote_average ?? 0,
-            posterPath: show.poster_path ?? null,
-            backdropPath: show.backdrop_path ?? null,
-            popularity: show.popularity ?? 0,
-          })),
-    );
-
-    const allCandidates = [...movieCandidates, ...tvCandidates];
     const uniqueByKey = new Map<string, UpcomingCandidate>();
-    for (const candidate of allCandidates) {
-      uniqueByKey.set(`${candidate.type}-${candidate.id}`, candidate);
+    for (const candidate of movieCandidates) {
+      uniqueByKey.set(`movie-${candidate.id}`, candidate);
     }
 
     const normalizedTrends = trendKeywords.map(normalizeForMatch);
