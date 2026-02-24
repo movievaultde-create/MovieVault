@@ -12,7 +12,6 @@ const DIRECT_MOVIE_MAP: Record<string, string> = {
   // Add your movie mappings here.
   // Example:
   // "1268609": "https://your-cdn/movie/1268609/playlist.m3u8",
-  "1268609": "https://vz-4cf47e6c-8db.b-cdn.net/62a75948-46ec-4eeb-935a-a3af4aeccc7f/playlist.m3u8",
 };
 
 // Per-episode direct sources (tmdbId:season:episode -> direct HLS/MP4 URL).
