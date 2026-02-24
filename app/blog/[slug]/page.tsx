@@ -9,6 +9,7 @@ import {
   getRelatedBlogPostsFromPool,
   humanizeBlogTag,
 } from "@/app/lib/blog";
+import BlogInlineAd from "@/app/components/blog/BlogInlineAd";
 
 const BASE_URL = "https://movie-vault-eosin.vercel.app";
 
@@ -149,6 +150,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           </section>
         ))}
+      </div>
+
+      <div className="mt-6">
+        <BlogInlineAd compact />
       </div>
 
       {post.affiliate ? (

@@ -6,6 +6,7 @@ import {
   humanizeBlogTag,
 } from "@/app/lib/blog";
 import BlogCard from "@/app/components/blog/BlogCard";
+import BlogInlineAd from "@/app/components/blog/BlogInlineAd";
 
 const BASE_URL = "https://movie-vault-eosin.vercel.app";
 
@@ -54,7 +55,9 @@ export default async function BlogPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
 
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-red-950/40 via-zinc-950 to-black p-6 sm:p-8">
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-red-950/40 via-zinc-950 to-black p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-10 h-56 w-56 rounded-full bg-amber-400/10 blur-3xl" />
         <p className="mb-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
           MovieVault Blog
         </p>
@@ -65,6 +68,11 @@ export default async function BlogPage() {
           This content hub is designed for long-term organic growth: internal linking, topic clusters,
           and intent-driven content optimized for both readers and search engines.
         </p>
+        <div className="mt-5 flex flex-wrap gap-2 text-xs text-gray-300">
+          <span className="rounded-full border border-white/15 px-2.5 py-1">Daily Updates</span>
+          <span className="rounded-full border border-white/15 px-2.5 py-1">SEO Ready</span>
+          <span className="rounded-full border border-white/15 px-2.5 py-1">Affiliate Friendly</span>
+        </div>
       </section>
 
       <section className="mt-8">
@@ -74,6 +82,10 @@ export default async function BlogPage() {
             <BlogCard key={post.slug} post={post} featured />
           ))}
         </div>
+      </section>
+
+      <section className="mt-8">
+        <BlogInlineAd />
       </section>
 
       <section className="mt-10">
@@ -87,8 +99,15 @@ export default async function BlogPage() {
           </Link>
         </div>
         <div className="grid gap-3">
-          {rest.map((post) => (
-            <BlogCard key={post.slug} post={post} />
+          {rest.map((post, index) => (
+            <div key={post.slug}>
+              <BlogCard post={post} />
+              {(index + 1) % 3 === 0 ? (
+                <div className="mt-3">
+                  <BlogInlineAd compact />
+                </div>
+              ) : null}
+            </div>
           ))}
         </div>
       </section>
