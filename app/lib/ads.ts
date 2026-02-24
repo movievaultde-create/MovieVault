@@ -6,18 +6,12 @@ const HILLTOP_URL =
 const HILLTOP_URL_2 =
   "https://amazing-population.com/bv3WV.0APR3-pcvEb-m/VyJVZ_DE0g2nOzDhI/xUNLDTAa1jLrTWY/4AMAjNEy0IMZDXkE";
 
-// EffectiveGate Smartlink — ID: 28679894
-const EFFECTIVEGATE_ID = "28679894";
-const EFFECTIVEGATE_URL =
-  "https://www.effectivegatecpm.com/fxi219fn?key=394514b812e454d18ab09bc6b9eba0f6";
-
 // Prioritize higher-value Hilltop links first, keep EffectiveGate as secondary.
 const AD_ROTATION = [
   HILLTOP_URL,
   HILLTOP_URL_2,
   HILLTOP_URL,
   HILLTOP_URL_2,
-  EFFECTIVEGATE_URL,
 ];
 const HIGH_VALUE_START_AD = HILLTOP_URL;
 const STORAGE_KEY = "mv_ad_idx";
@@ -135,4 +129,4 @@ export function triggerPopunder(options?: { force?: boolean }): boolean {
   return opened;
 }
 
-export { HILLTOP_URL, HILLTOP_URL_2, EFFECTIVEGATE_ID, EFFECTIVEGATE_URL };
+export { HILLTOP_URL, HILLTOP_URL_2 };
