@@ -371,6 +371,9 @@ function TrailerSection({
   isAr: boolean;
 }) {
   if (!trailerYoutubeKey) return null;
+  const trailerUrl =
+    `https://www.youtube-nocookie.com/embed/${trailerYoutubeKey}` +
+    "?autoplay=1&mute=1&playsinline=1&rel=0";
 
   return (
     <section className="mb-5 overflow-hidden rounded-xl border border-surface-border bg-surface/40">
@@ -382,7 +385,7 @@ function TrailerSection({
       </div>
       <div className="relative aspect-video w-full bg-black">
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${trailerYoutubeKey}`}
+          src={trailerUrl}
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
