@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 
 const TMDB_KEY = process.env.TMDB_API_KEY ?? "";
 const BASE = "https://api.themoviedb.org/3";
+export const dynamic = "force-dynamic";
+
+interface TmdbGenre {
+  id: number;
+  name: string;
+}
+
+interface TmdbRelatedShow {
+  id: number;
+  name?: string;
+  poster_path?: string | null;
+  vote_average?: number;
+  first_air_date?: string;
+}
 
 export async function GET(
   req: NextRequest,
@@ -25,6 +39,7 @@ export async function GET(
       number_of_seasons: 1,
       seasons: [{ season_number: 1, name: "Season 1", episode_count: 10, poster: null }],
       cast: [],
+      relatedShows: [],
     });
   }
 
@@ -41,6 +56,77 @@ export async function GET(
 
     const show = await showRes.json();
     const credits = creditsRes.ok ? await creditsRes.json() : { cast: [] };
+
+    const genreIds: number[] = show.genres?.map((g: TmdbGenre) => g.id).filter(Boolean) ?? [];
+    let relatedShows: Array<{
+      id: number;
+      title: string;
+      poster: string | null;
+      rating: string;
+      year: string;
+      type: "tv";
+    }> = [];
+
+    if (genreIds.length > 0) {
+      const genreQuery = genreIds.join(",");
+      const [relatedResPage1, relatedResPage2] = await Promise.all([
+        fetch(
+          `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreQuery}&vote_count.gte=1&page=1`,
+          opts
+        ),
+        fetch(
+          `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&with_genres=${genreQuery}&vote_count.gte=1&page=2`,
+          opts
+        ),
+      ]);
+
+      const relatedPayloads = await Promise.all([
+        relatedResPage1.ok ? relatedResPage1.json() : { results: [] },
+        relatedResPage2.ok ? relatedResPage2.json() : { results: [] },
+      ]);
+
+      const deduped = new Map<number, TmdbRelatedShow>();
+      for (const payload of relatedPayloads) {
+        for (const item of payload.results ?? []) {
+          if (!item?.id || item.id === Number(id)) continue;
+          deduped.set(item.id, item);
+        }
+      }
+
+      relatedShows = [...deduped.values()]
+        .slice(0, 10)
+        .map((item: TmdbRelatedShow) => ({
+          id: item.id,
+          title: item.name ?? `TV Show #${item.id}`,
+          poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+          rating: item.vote_average?.toFixed(1) ?? "0.0",
+          year: (item.first_air_date ?? "").slice(0, 4),
+          type: "tv" as const,
+        }));
+
+      if (relatedShows.length < 10) {
+        const recommendationsRes = await fetch(
+          `${BASE}/tv/${id}/recommendations?api_key=${TMDB_KEY}&language=${lang}&page=1`,
+          opts
+        );
+        if (recommendationsRes.ok) {
+          const recommendationsData = await recommendationsRes.json();
+          const existingIds = new Set(relatedShows.map((showItem) => showItem.id));
+          const fallback = (recommendationsData.results ?? [])
+            .filter((item: TmdbRelatedShow) => item.id && !existingIds.has(item.id))
+            .slice(0, 10 - relatedShows.length)
+            .map((item: TmdbRelatedShow) => ({
+              id: item.id,
+              title: item.name ?? `TV Show #${item.id}`,
+              poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+              rating: item.vote_average?.toFixed(1) ?? "0.0",
+              year: (item.first_air_date ?? "").slice(0, 4),
+              type: "tv" as const,
+            }));
+          relatedShows = [...relatedShows, ...fallback].slice(0, 10);
+        }
+      }
+    }
 
     return NextResponse.json({
       id: show.id,
@@ -83,6 +169,7 @@ export async function GET(
                 : null,
             })
           ) ?? [],
+      relatedShows,
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });

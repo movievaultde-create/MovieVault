@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../../../context/LanguageContext";
@@ -25,6 +25,15 @@ interface Episode {
   vote_average: number;
 }
 
+interface RelatedShow {
+  id: number;
+  title: string;
+  poster: string | null;
+  rating: string;
+  year: string;
+  type: "tv";
+}
+
 interface ShowData {
   id: number;
   name: string;
@@ -37,12 +46,18 @@ interface ShowData {
   number_of_seasons: number;
   seasons: Season[];
   cast: { name: string; character: string; photo: string | null }[];
+  relatedShows: RelatedShow[];
 }
 
 
 const SUB_LANG_MAP: Record<string, string> = {
   EN: "en", AR: "ar", DE: "de", FR: "fr", ES: "es", TR: "tr",
 };
+
+function withLangParams(baseUrl: string, subLang: string): string {
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
+}
 
 function buildServers(id: string, season: number, episode: number, subLang: string): WatchServer[] {
   const directUrl = resolveDirectTvUrl(id, season, episode);
@@ -53,49 +68,70 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: `https://autoembed.co/tv/tmdb/${id}-${season}-${episode}?sub=${subLang}`,
+      url: withLangParams(`https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://autoembed.cc/tv/tmdb/${id}-${season}-${episode}`, subLang),
+      ],
     },
     {
       name: "Server 1",
       label: "VidSrc",
       premium: false,
       playerType: "iframe",
-      url: `https://vidsrc.to/embed/tv/${id}/${season}/${episode}?ds_lang=${subLang}`,
+      url: withLangParams(`https://vidsrc.to/embed/tv/${id}/${season}/${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://vidsrc.su/embed/tv/${id}/${season}/${episode}`, subLang),
+      ],
     },
     {
       name: "Server 2",
       label: "VidSrc Pro",
       premium: false,
       playerType: "iframe",
-      url: `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}?sub_lang=${subLang}`,
+      url: withLangParams(`https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://vidsrc.net/embed/tv/${id}/${season}/${episode}`, subLang),
+      ],
     },
     {
       name: "Server 3",
       label: "Embed",
       premium: false,
       playerType: "iframe",
-      url: `https://embed.su/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
+      url: withLangParams(`https://embed.su/embed/tv/${id}/${season}/${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`, subLang),
+      ],
     },
     {
       name: "Server 4",
       label: "Multi",
       premium: false,
       playerType: "iframe",
-      url: `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}&sub_id=${subLang}`,
+      url: withLangParams(`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://multiembed.stream/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`, subLang),
+      ],
     },
     {
       name: "Server 5",
       label: "Videasy",
       premium: false,
       playerType: "iframe",
-      url: `https://player.videasy.net/tv/${id}/${season}/${episode}?sub=${subLang}`,
+      url: withLangParams(`https://player.videasy.net/tv/${id}/${season}/${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://player.autoembed.cc/tv/${id}/${season}/${episode}`, subLang),
+      ],
     },
     {
       name: "Server 6",
       label: "NonTongo",
       premium: false,
       playerType: "iframe",
-      url: `https://nontongo.win/embed/tv/${id}/${season}/${episode}?sub=${subLang}`,
+      url: withLangParams(`https://nontongo.win/embed/tv/${id}/${season}/${episode}`, subLang),
+      mirrors: [
+        withLangParams(`https://nontongo.me/embed/tv/${id}/${season}/${episode}`, subLang),
+      ],
     },
   ];
 }
@@ -114,6 +150,7 @@ export default function WatchTVPage({
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
+  const [activeMirror, setActiveMirror] = useState(0);
   const [adActive, setAdActive] = useState(true);
   const [adSession, setAdSession] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -169,8 +206,31 @@ export default function WatchTVPage({
       .finally(() => setEpLoading(false));
   }, [id, show, selectedSeason, tmdbLang]);
 
-  const servers = buildServers(id, selectedSeason, selectedEpisode, subLang);
+  const servers = useMemo(
+    () => buildServers(id, selectedSeason, selectedEpisode, subLang),
+    [id, selectedSeason, selectedEpisode, subLang]
+  );
   const currentServer = servers[activeServer];
+  const currentServerUrls = useMemo(
+    () => [currentServer.url, ...(currentServer.mirrors ?? [])],
+    [currentServer]
+  );
+  const currentServerUrl = currentServerUrls[Math.min(activeMirror, currentServerUrls.length - 1)] ?? currentServer.url;
+
+  useEffect(() => {
+    setActiveMirror(0);
+    setBusyMsg(false);
+  }, [activeServer, id, selectedSeason, selectedEpisode, subLang]);
+
+  const handleIframeError = () => {
+    if (activeMirror < currentServerUrls.length - 1) {
+      setActiveMirror((v) => v + 1);
+      setBusyMsg(false);
+      return;
+    }
+    setBusyMsg(true);
+    setTimeout(() => setBusyMsg(false), 3500);
+  };
 
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
@@ -232,12 +292,13 @@ export default function WatchTVPage({
                 <VideoPlayer src={currentServer.directUrl} />
               ) : (
                 <iframe
-                  key={`${activeServer}-${selectedSeason}-${selectedEpisode}`}
-                  src={currentServer.url}
+                  key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}`}
+                  src={currentServerUrl}
+                  onError={handleIframeError}
                   className="absolute inset-0 h-full w-full"
                   allowFullScreen
                   allow="autoplay; encrypted-media; picture-in-picture"
-                  referrerPolicy="origin"
+                  referrerPolicy="no-referrer"
                 />
               )
             )}
@@ -260,10 +321,12 @@ export default function WatchTVPage({
                 if (server.premium) {
                   setTimeout(() => triggerPopunder(), 1500);
                 }
+                setBusyMsg(false);
                 setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);
+                  setActiveMirror(0);
                   setSwitching(false);
                 }, 2000);
               };
@@ -449,8 +512,125 @@ export default function WatchTVPage({
         {show && (
           <ShowInfo show={show} t={t} isAr={isAr} />
         )}
+
+        <RelatedShowsSection show={show} isAr={isAr} />
       </div>
     </div>
+  );
+}
+
+function RelatedShowsSection({
+  show,
+  isAr,
+}: {
+  show: ShowData | null;
+  isAr: boolean;
+}) {
+  const related = show?.relatedShows ?? [];
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      setAtStart(el.scrollLeft <= 8);
+      setAtEnd(el.scrollLeft >= max - 8);
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      el.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, [related.length]);
+
+  if (!show || related.length === 0) return null;
+
+  const scrollByAmount = (direction: "next" | "prev") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = Math.max(el.clientWidth * 0.75, 300);
+    el.scrollBy({
+      left: direction === "next" ? amount : -amount,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <section className="mt-10 overflow-hidden rounded-2xl border border-surface-border bg-surface/40 p-4 sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-base font-bold text-white sm:text-lg">
+          <div className="h-5 w-1 rounded-full bg-primary" />
+          {isAr ? "مسلسلات مشابهة" : "More Like This"}
+        </h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => scrollByAmount("prev")}
+            disabled={atStart}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white transition hover:border-white/30 disabled:opacity-35"
+            aria-label={isAr ? "السابق" : "Previous"}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            onClick={() => scrollByAmount("next")}
+            disabled={atEnd}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition hover:bg-primary/20 disabled:opacity-35"
+            aria-label={isAr ? "التالي" : "Next"}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {related.map((item) => (
+          <Link
+            key={item.id}
+            href={`/watch/tv/${item.id}`}
+            onClick={() => triggerPopunder()}
+            className="group w-[165px] shrink-0 overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30 sm:w-[180px]"
+          >
+            <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
+              {item.poster ? (
+                <Image
+                  src={item.poster}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 50vw, 220px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-text-muted">
+                  <svg width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                </div>
+              )}
+              <span className="absolute end-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400">
+                ★ {item.rating}
+              </span>
+            </div>
+
+            <div className="p-2.5">
+              <p className="truncate text-[13px] font-semibold text-white transition-colors group-hover:text-primary">
+                {item.title}
+              </p>
+              <p className="mt-1 text-[11px] text-text-muted">{item.year || "—"}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
