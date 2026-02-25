@@ -46,6 +46,7 @@ interface ShowData {
   number_of_seasons: number;
   seasons: Season[];
   cast: { name: string; character: string; photo: string | null }[];
+  trailerYoutubeKey: string | null;
   relatedShows: RelatedShow[];
 }
 
@@ -284,6 +285,8 @@ export default function WatchTVPage({
           </div>
         )}
 
+        <TrailerSection trailerYoutubeKey={show?.trailerYoutubeKey ?? null} isAr={isAr} />
+
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
@@ -516,6 +519,37 @@ export default function WatchTVPage({
         <RelatedShowsSection show={show} isAr={isAr} />
       </div>
     </div>
+  );
+}
+
+function TrailerSection({
+  trailerYoutubeKey,
+  isAr,
+}: {
+  trailerYoutubeKey: string | null;
+  isAr: boolean;
+}) {
+  if (!trailerYoutubeKey) return null;
+
+  return (
+    <section className="mb-5 overflow-hidden rounded-xl border border-surface-border bg-surface/40">
+      <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
+        <div className="h-5 w-1 rounded-full bg-primary" />
+        <h2 className="text-sm font-bold text-white sm:text-base">
+          {isAr ? "تريلر المسلسل" : "Official Trailer"}
+        </h2>
+      </div>
+      <div className="relative aspect-video w-full bg-black">
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${trailerYoutubeKey}`}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          title={isAr ? "تريلر المسلسل" : "TV Trailer"}
+        />
+      </div>
+    </section>
   );
 }
 

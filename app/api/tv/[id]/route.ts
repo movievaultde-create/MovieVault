@@ -17,6 +17,13 @@ interface TmdbRelatedShow {
   first_air_date?: string;
 }
 
+interface TmdbVideo {
+  key?: string;
+  site?: string;
+  type?: string;
+  official?: boolean;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -45,9 +52,10 @@ export async function GET(
 
   try {
     const opts = { next: { revalidate: 3600 } } as RequestInit;
-    const [showRes, creditsRes] = await Promise.all([
+    const [showRes, creditsRes, videosRes] = await Promise.all([
       fetch(`${BASE}/tv/${id}?api_key=${TMDB_KEY}&language=${lang}`, opts),
       fetch(`${BASE}/tv/${id}/credits?api_key=${TMDB_KEY}&language=${lang}`, opts),
+      fetch(`${BASE}/tv/${id}/videos?api_key=${TMDB_KEY}&language=${lang}`, opts),
     ]);
 
     if (!showRes.ok) {
@@ -56,6 +64,15 @@ export async function GET(
 
     const show = await showRes.json();
     const credits = creditsRes.ok ? await creditsRes.json() : { cast: [] };
+    const videos = videosRes.ok ? await videosRes.json() : { results: [] };
+    const youtubeVideos: TmdbVideo[] = (videos.results ?? []).filter(
+      (v: TmdbVideo) => v.site === "YouTube" && typeof v.key === "string" && v.key.length > 0,
+    );
+    const trailer =
+      youtubeVideos.find((v) => v.type === "Trailer" && v.official) ??
+      youtubeVideos.find((v) => v.type === "Trailer") ??
+      youtubeVideos.find((v) => v.type === "Teaser") ??
+      youtubeVideos[0];
 
     const genreIds: number[] = show.genres?.map((g: TmdbGenre) => g.id).filter(Boolean) ?? [];
     let relatedShows: Array<{
@@ -169,6 +186,7 @@ export async function GET(
                 : null,
             })
           ) ?? [],
+      trailerYoutubeKey: trailer?.key ?? null,
       relatedShows,
     });
   } catch {

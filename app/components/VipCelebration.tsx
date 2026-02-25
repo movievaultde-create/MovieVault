@@ -134,6 +134,7 @@ const TIME_AGO: Record<Lang, string[]> = {
 
 const LANG_MAP: Record<string, Lang> = { en: "EN", ar: "AR", de: "DE", fr: "FR", es: "ES", tr: "TR" };
 const EMOJIS = ["🎉", "⭐", "✨", "🌟", "👑", "💎", "🏆", "🥇", "🎊", "💫"];
+const CELEBRATION_INTERVAL_MS = 35 * 60 * 1000;
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -232,8 +233,8 @@ export default function VipCelebration() {
       hideRef.current = setTimeout(() => setVisible(false), 6000);
     };
 
-    const first = setTimeout(show, 8000);
-    const interval = setInterval(show, 60000);
+    const first = setTimeout(show, CELEBRATION_INTERVAL_MS);
+    const interval = setInterval(show, CELEBRATION_INTERVAL_MS);
     return () => {
       clearTimeout(first);
       clearInterval(interval);

@@ -65,7 +65,7 @@ export default function AiRecommendationPanel() {
       confidence: isAr ? "ثقة" : "Confidence",
       reason: isAr ? "سبب الترشيح" : "Why this pick",
       unlock: isAr ? "فتح كامل توصيات الذكاء الاصطناعي" : "Unlock full AI picks",
-      teaser: isAr ? "توصيتان مجانيتان فقط" : "2 free recommendations only",
+      teaser: isAr ? "20 ترشيح حسب المزاج" : "20 mood-based picks",
       loading: isAr ? "جاري تحليل مزاجك..." : "Analyzing your mood...",
       retry: isAr ? "فشل التحميل، حاول مرة أخرى" : "Failed to load recommendations",
       goVip: isAr ? "الترقية إلى VIP" : "Upgrade to VIP",

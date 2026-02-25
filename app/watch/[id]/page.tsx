@@ -39,6 +39,7 @@ interface MovieData {
   production_countries: string[];
   director: string | null;
   cast: CastMember[];
+  trailerYoutubeKey: string | null;
   relatedMovies: RelatedMovie[];
 }
 
@@ -231,6 +232,8 @@ export default function WatchPage({
           {t("backToHome")}
         </Link>
 
+        <TrailerSection trailerYoutubeKey={movie?.trailerYoutubeKey ?? null} isAr={isAr} />
+
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
           <div className="relative aspect-video w-full">
@@ -357,6 +360,37 @@ export default function WatchPage({
         <RelatedMoviesSection movie={movie} isAr={isAr} />
       </div>
     </div>
+  );
+}
+
+function TrailerSection({
+  trailerYoutubeKey,
+  isAr,
+}: {
+  trailerYoutubeKey: string | null;
+  isAr: boolean;
+}) {
+  if (!trailerYoutubeKey) return null;
+
+  return (
+    <section className="mb-5 overflow-hidden rounded-xl border border-surface-border bg-surface/40">
+      <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
+        <div className="h-5 w-1 rounded-full bg-primary" />
+        <h2 className="text-sm font-bold text-white sm:text-base">
+          {isAr ? "التريلر الرسمي" : "Official Trailer"}
+        </h2>
+      </div>
+      <div className="relative aspect-video w-full bg-black">
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${trailerYoutubeKey}`}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          title={isAr ? "تريلر الفيلم" : "Movie Trailer"}
+        />
+      </div>
+    </section>
   );
 }
 

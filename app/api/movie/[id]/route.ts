@@ -18,6 +18,13 @@ interface TmdbRelatedMovie {
   media_type?: string;
 }
 
+interface TmdbVideo {
+  key?: string;
+  site?: string;
+  type?: string;
+  official?: boolean;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -49,9 +56,10 @@ export async function GET(
 
   try {
     const opts = { next: { revalidate: 3600 } } as RequestInit;
-    const [movieRes, creditsRes] = await Promise.all([
+    const [movieRes, creditsRes, videosRes] = await Promise.all([
       fetch(`${TMDB_BASE}/movie/${id}?api_key=${TMDB_KEY}&language=${lang}`, opts),
       fetch(`${TMDB_BASE}/movie/${id}/credits?api_key=${TMDB_KEY}&language=${lang}`, opts),
+      fetch(`${TMDB_BASE}/movie/${id}/videos?api_key=${TMDB_KEY}&language=${lang}`, opts),
     ]);
 
     if (!movieRes.ok) {
@@ -63,6 +71,15 @@ export async function GET(
 
     const movie = await movieRes.json();
     const credits = creditsRes.ok ? await creditsRes.json() : { cast: [], crew: [] };
+    const videos = videosRes.ok ? await videosRes.json() : { results: [] };
+    const youtubeVideos: TmdbVideo[] = (videos.results ?? []).filter(
+      (v: TmdbVideo) => v.site === "YouTube" && typeof v.key === "string" && v.key.length > 0,
+    );
+    const trailer =
+      youtubeVideos.find((v) => v.type === "Trailer" && v.official) ??
+      youtubeVideos.find((v) => v.type === "Trailer") ??
+      youtubeVideos.find((v) => v.type === "Teaser") ??
+      youtubeVideos[0];
 
     const director = credits.crew?.find(
       (c: { job: string }) => c.job === "Director"
@@ -169,6 +186,7 @@ export async function GET(
               ? `https://image.tmdb.org/t/p/w185${c.profile_path}`
               : null,
           })) ?? [],
+      trailerYoutubeKey: trailer?.key ?? null,
       relatedMovies,
     });
   } catch {
