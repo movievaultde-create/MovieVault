@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import HeroSection from "./components/HeroSection";
+import AiRecommendationPanel from "./components/AiRecommendationPanel";
 import { useLang } from "./context/LanguageContext";
 
 interface BrowseItem {
@@ -20,6 +22,13 @@ interface BrowseData {
   upcoming: BrowseItem[];
   newSeries: BrowseItem[];
   newAnime: BrowseItem[];
+  dailyDigest: {
+    date: string;
+    movies: BrowseItem[];
+    series: BrowseItem[];
+    anime: BrowseItem[];
+    arabic: BrowseItem[];
+  };
   trending: BrowseItem[];
   movies: BrowseItem[];
   series: BrowseItem[];
@@ -39,6 +48,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <AiRecommendationPanel />
 
       {/* New Releases (last 30 days) */}
       {(data?.newReleases?.length ?? 0) > 0 && (
@@ -85,6 +95,43 @@ export default function Home() {
         <TrendingSection
           items={data!.newAnime}
           title={t("newAnime")}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {/* Daily categorized updates */}
+      {(data?.dailyDigest?.movies?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.dailyDigest.movies}
+          title={`${t("addedToday")} • ${t("movie")}`}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {(data?.dailyDigest?.series?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.dailyDigest.series}
+          title={`${t("addedToday")} • ${t("tvShow")}`}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {(data?.dailyDigest?.anime?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.dailyDigest.anime}
+          title={`${t("addedToday")} • ${t("navAnime")}`}
+          isRtl={isRtl}
+          tvLabel={t("tvShow")}
+        />
+      )}
+
+      {(data?.dailyDigest?.arabic?.length ?? 0) > 0 && (
+        <TrendingSection
+          items={data!.dailyDigest.arabic}
+          title={`${t("addedToday")} • ${t("allArabMovies")}`}
           isRtl={isRtl}
           tvLabel={t("tvShow")}
         />
@@ -261,11 +308,12 @@ function TrendingSection({
               >
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
                   {item.poster ? (
-                    <img
+                    <Image
                       src={item.poster}
                       alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 640px) 144px, 176px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-text-muted">
@@ -395,11 +443,12 @@ function MediaCard({ item, tvLabel }: { item: BrowseItem; tvLabel: string }) {
     >
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
         {item.poster ? (
-          <img
+          <Image
             src={item.poster}
             alt={item.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-text-muted">
