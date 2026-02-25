@@ -3,6 +3,7 @@ export type WatchServer = {
   label: string;
   premium: boolean;
   url: string;
+  mirrors?: string[];
   playerType: "iframe" | "direct";
   directUrl?: string;
 };
@@ -23,6 +24,8 @@ const DIRECT_TV_MAP: Record<string, string> = {
 function movieTemplateUrl(id: string): string | undefined {
   const template = process.env.NEXT_PUBLIC_DIRECT_MOVIE_URL_TEMPLATE?.trim();
   if (!template) return undefined;
+  // Guardrail: never use public sample clips in production feed generation.
+  if (template.includes("samplelib.com")) return undefined;
   return template.replaceAll("{id}", id);
 }
 
