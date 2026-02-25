@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "./context/LanguageContext";
 import { VipProvider } from "./context/VipContext";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Popunder from "./components/Popunder";
@@ -223,6 +224,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const webSiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "MovieVault",
+    url: "https://movie-vault-eosin.vercel.app",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://movie-vault-eosin.vercel.app/?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
@@ -235,21 +248,27 @@ export default function RootLayout({
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="MovieVault" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background text-foreground antialiased`}
       >
         <LanguageProvider>
-          <VipProvider>
-            <Popunder />
-            <SocialBar />
-            <AntiAdblock />
-            <VipCelebration />
-            <Navbar />
-            <AdsContainer />
-            <main>{children}</main>
-            <Footer />
-          </VipProvider>
+          <AuthProvider>
+            <VipProvider>
+              <Popunder />
+              <SocialBar />
+              <AntiAdblock />
+              <VipCelebration />
+              <Navbar />
+              <AdsContainer />
+              <main>{children}</main>
+              <Footer />
+            </VipProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

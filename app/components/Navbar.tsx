@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
 import { useVip } from "../context/VipContext";
+import { useAuth } from "../context/AuthContext";
 import { triggerPopunder } from "../lib/ads";
 
 interface SearchResult {
@@ -19,6 +20,7 @@ interface SearchResult {
 export default function Navbar() {
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
   const { isVip } = useVip();
+  const { isAuthenticated } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -68,8 +70,12 @@ export default function Navbar() {
   }, []);
 
   const handleResultClick = () => { setSearchOpen(false); setQuery(""); setResults([]); triggerPopunder(); };
-  const goToBlog = useCallback(() => {
-    window.location.assign("/blog");
+  const openBlogInNewTab = useCallback(() => {
+    const blogTab = window.open("/blog", "_blank", "noopener,noreferrer");
+    if (blogTab) {
+      blogTab.blur();
+      window.focus();
+    }
   }, []);
 
   const chevronDown = (
@@ -261,11 +267,36 @@ export default function Navbar() {
             </div>
 
             <button
-              onClick={goToBlog}
+              type="button"
+              onClick={openBlogInNewTab}
               className="hidden h-10 items-center rounded-full border border-amber-500/30 bg-amber-500/8 px-4 text-sm font-extrabold tracking-wide text-amber-300 transition-all hover:border-amber-400/70 hover:bg-amber-500/14 hover:text-amber-200 hover:shadow-[0_0_14px_0_rgba(245,158,11,0.22)] sm:flex sm:h-11"
             >
               Blog
             </button>
+
+            {isAuthenticated ? (
+              <Link
+                href="/dashboard"
+                className="hidden h-10 items-center rounded-full border border-primary/30 bg-primary/10 px-4 text-sm font-bold text-primary transition hover:bg-primary/20 sm:flex sm:h-11"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden h-10 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-bold text-gray-300 transition hover:text-white sm:flex sm:h-11"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="hidden h-10 items-center rounded-full bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-hover sm:flex sm:h-11"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
 
             {/* VIP */}
             <Link
@@ -418,12 +449,41 @@ export default function Navbar() {
               {t("navAnime")}
             </a>
             <button
-              onClick={() => { setMobileMenuOpen(false); goToBlog(); }}
+              type="button"
+              onClick={() => { setMobileMenuOpen(false); openBlogInNewTab(); }}
               className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5"
             >
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
               Blog
             </button>
+
+            {isAuthenticated ? (
+              <a
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
+                Dashboard
+              </a>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 px-4 pt-2">
+                <a
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white"
+                >
+                  Login
+                </a>
+                <a
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-white"
+                >
+                  Sign up
+                </a>
+              </div>
+            )}
           </nav>
 
           {/* Mobile Language Selector */}

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Lang } from "../context/LanguageContext";
 import { useVip } from "../context/VipContext";
-import { getAdUrl } from "../lib/ads";
 
 interface Notif {
   icon: string;
@@ -109,7 +108,7 @@ export default function SocialBar() {
   const isRtl = lang === "AR";
 
   const handleClick = () => {
-    window.open(getAdUrl(), "_blank", "noopener,noreferrer");
+    window.location.assign("/signup");
     setVisible(false);
   };
 
