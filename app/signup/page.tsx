@@ -10,7 +10,7 @@ import { useLang } from "../context/LanguageContext";
 export default function SignupPage() {
   const router = useRouter();
   const { isAr } = useLang();
-  const { isAuthenticated, signup } = useAuth();
+  const { isAuthenticated, loading: authLoading, signup } = useAuth();
   const { login: vipLogin } = useVip();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,9 +34,12 @@ export default function SignupPage() {
       short: isAr ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : "Password must be at least 6 characters",
       exists: isAr ? "البريد مستخدم مسبقًا" : "Email already exists",
       invalid: isAr ? "بيانات غير صالحة" : "Invalid data",
+      db: isAr ? "قاعدة البيانات غير مربوطة بعد. أكمل ربط Supabase." : "Database is not connected yet. Complete Supabase setup.",
     }),
     [isAr],
   );
+
+  if (authLoading) return null;
 
   if (isAuthenticated) {
     router.replace("/dashboard");
@@ -55,11 +58,13 @@ export default function SignupPage() {
     }
     setLoading(true);
     setError("");
-    const result = signup(name, email, password);
+    const result = await signup(name, email, password);
     if (!result.ok) {
       setLoading(false);
       if (result.error === "email_exists") {
         setError(text.exists);
+      } else if (result.error === "db_not_configured") {
+        setError(text.db);
       } else {
         setError(text.invalid);
       }

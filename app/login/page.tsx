@@ -10,7 +10,7 @@ import { useLang } from "../context/LanguageContext";
 export default function LoginPage() {
   const router = useRouter();
   const { isAr } = useLang();
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, loading: authLoading, login } = useAuth();
   const { login: vipLogin } = useVip();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,9 +28,12 @@ export default function LoginPage() {
       signup: isAr ? "إنشاء حساب" : "Sign up",
       invalid: isAr ? "بيانات تسجيل الدخول غير صحيحة" : "Invalid credentials",
       required: isAr ? "أدخل البريد وكلمة المرور" : "Enter email and password",
+      db: isAr ? "قاعدة البيانات غير مربوطة بعد. أكمل ربط Supabase." : "Database is not connected yet. Complete Supabase setup.",
     }),
     [isAr],
   );
+
+  if (authLoading) return null;
 
   if (isAuthenticated) {
     router.replace("/dashboard");
@@ -45,9 +48,9 @@ export default function LoginPage() {
     }
     setLoading(true);
     setError("");
-    const result = login(email, password);
+    const result = await login(email, password);
     if (!result.ok) {
-      setError(text.invalid);
+      setError(result.error === "db_not_configured" ? text.db : text.invalid);
       setLoading(false);
       return;
     }

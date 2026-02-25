@@ -6,9 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "shorts:ingest": "tsx scripts/shorts/ingest.ts",
+    "shorts:generate": "tsx scripts/shorts/generate-short.ts",
+    "shorts:upload": "tsx scripts/shorts/upload-youtube.ts",
+    "shorts:daily": "tsx scripts/shorts/daily-job.ts",
+    "shorts:validate": "tsx scripts/shorts/validate-env.ts",
+    "shorts:health": "tsx scripts/shorts/health.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.914.0",
+    "@supabase/supabase-js": "^2.97.0",
+    "dotenv": "^17.2.3",
+    "googleapis": "^166.0.0",
     "next": "16.1.6",
     "playwright": "^1.58.2",
     "react": "19.2.3",
@@ -23,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }

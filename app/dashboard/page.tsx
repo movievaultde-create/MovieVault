@@ -10,7 +10,7 @@ import { useLang } from "../context/LanguageContext";
 export default function DashboardPage() {
   const router = useRouter();
   const { isAr } = useLang();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const { isVip, logout: vipLogout } = useVip();
 
   const text = useMemo(
@@ -31,6 +31,8 @@ export default function DashboardPage() {
     }),
     [isAr],
   );
+
+  if (authLoading) return null;
 
   if (!isAuthenticated || !user) {
     return (

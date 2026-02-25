@@ -8,10 +8,6 @@ export interface AuthUser {
   createdAt: string;
 }
 
-interface StoredUser extends AuthUser {
-  password: string;
-}
-
 interface AuthResult {
   ok: boolean;
   error?: string;
@@ -20,12 +16,12 @@ interface AuthResult {
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  signup: (name: string, email: string, password: string) => AuthResult;
-  login: (email: string, password: string) => AuthResult;
+  loading: boolean;
+  signup: (name: string, email: string, password: string) => Promise<AuthResult>;
+  login: (email: string, password: string) => Promise<AuthResult>;
   logout: () => void;
 }
 
-const USERS_KEY = "mv_auth_users";
 const SESSION_KEY = "mv_auth_session";
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -34,42 +30,54 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-function readUsers(): StoredUser[] {
+function parseSession(raw: string): AuthUser | null {
   try {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as StoredUser[];
-    if (!Array.isArray(parsed)) return [];
+    const parsed = JSON.parse(raw) as AuthUser;
+    if (!parsed || !parsed.email || !parsed.name || !parsed.createdAt) return null;
     return parsed;
   } catch {
-    return [];
+    return null;
   }
-}
-
-function writeUsers(users: StoredUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem(SESSION_KEY);
-    if (!email) return;
-    const users = readUsers();
-    const found = users.find((u) => u.email === normalizeEmail(email));
-    if (found) {
-      setUser({ name: found.name, email: found.email, createdAt: found.createdAt });
-    } else {
-      localStorage.removeItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) {
+      setLoading(false);
+      return;
     }
+    const sessionUser = parseSession(raw);
+    if (!sessionUser) {
+      localStorage.removeItem(SESSION_KEY);
+      setLoading(false);
+      return;
+    }
+    fetch(`/api/auth/me?email=${encodeURIComponent(sessionUser.email)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok && data.user) {
+          setUser(data.user);
+          localStorage.setItem(SESSION_KEY, JSON.stringify(data.user));
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem(SESSION_KEY);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const value = useMemo<AuthContextType>(
     () => ({
       user,
       isAuthenticated: Boolean(user),
-      signup: (name: string, email: string, password: string) => {
+      loading,
+      signup: async (name: string, email: string, password: string) => {
         const normalizedEmail = normalizeEmail(email);
         const trimmedName = name.trim();
         const safePassword = password.trim();
@@ -78,33 +86,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!normalizedEmail || !normalizedEmail.includes("@")) return { ok: false, error: "invalid_email" };
         if (safePassword.length < 6) return { ok: false, error: "password_short" };
 
-        const users = readUsers();
-        const exists = users.some((u) => u.email === normalizedEmail);
-        if (exists) return { ok: false, error: "email_exists" };
-
-        const createdAt = new Date().toISOString();
-        const newUser: StoredUser = {
-          name: trimmedName,
-          email: normalizedEmail,
-          password: safePassword,
-          createdAt,
-        };
-        const nextUsers = [...users, newUser];
-        writeUsers(nextUsers);
-        localStorage.setItem(SESSION_KEY, normalizedEmail);
-        setUser({ name: trimmedName, email: normalizedEmail, createdAt });
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: trimmedName,
+            email: normalizedEmail,
+            password: safePassword,
+          }),
+        });
+        const data = (await res.json()) as { ok?: boolean; error?: string; user?: AuthUser };
+        if (!res.ok || !data.ok || !data.user) {
+          return { ok: false, error: data.error ?? "signup_failed" };
+        }
+        localStorage.setItem(SESSION_KEY, JSON.stringify(data.user));
+        setUser(data.user);
         return { ok: true };
       },
-      login: (email: string, password: string) => {
+      login: async (email: string, password: string) => {
         const normalizedEmail = normalizeEmail(email);
         const safePassword = password.trim();
-        const users = readUsers();
-        const found = users.find((u) => u.email === normalizedEmail);
-        if (!found) return { ok: false, error: "user_not_found" };
-        if (found.password !== safePassword) return { ok: false, error: "invalid_credentials" };
-
-        localStorage.setItem(SESSION_KEY, normalizedEmail);
-        setUser({ name: found.name, email: found.email, createdAt: found.createdAt });
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: safePassword,
+          }),
+        });
+        const data = (await res.json()) as { ok?: boolean; error?: string; user?: AuthUser };
+        if (!res.ok || !data.ok || !data.user) {
+          return { ok: false, error: data.error ?? "login_failed" };
+        }
+        localStorage.setItem(SESSION_KEY, JSON.stringify(data.user));
+        setUser(data.user);
         return { ok: true };
       },
       logout: () => {
@@ -112,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       },
     }),
-    [user],
+    [loading, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
