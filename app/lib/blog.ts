@@ -466,6 +466,7 @@ interface TmdbMovie {
 
 type UpcomingCandidate = {
   id: number;
+  type: "movie";
   title: string;
   overview: string;
   releaseDate: string;
@@ -761,6 +762,7 @@ export async function getUpcomingLandingBlogPosts(limit = 50): Promise<BlogPost[
           .filter((movie) => isQualifiedUpcomingMovie(movie, today, horizon))
           .map((movie) => ({
             id: movie.id,
+            type: "movie" as const,
             title: movie.title ?? movie.original_title ?? "",
             overview: movie.overview ?? "",
             releaseDate: movie.release_date ?? today,
