@@ -33,7 +33,7 @@ export default function WatchlistButton({
       router.push("/login");
       return;
     }
-    toggleWatchlist(item);
+    void toggleWatchlist(item);
   };
 
   return (

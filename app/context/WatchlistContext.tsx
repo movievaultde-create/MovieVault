@@ -17,75 +17,51 @@ interface WatchlistContextType {
   items: WatchlistItem[];
   ready: boolean;
   isInWatchlist: (id: number, type: "movie" | "tv") => boolean;
-  toggleWatchlist: (item: Omit<WatchlistItem, "addedAt">) => { ok: boolean; added: boolean };
-  removeFromWatchlist: (id: number, type: "movie" | "tv") => void;
-  clearWatchlist: () => void;
+  toggleWatchlist: (item: Omit<WatchlistItem, "addedAt">) => Promise<{ ok: boolean; added: boolean }>;
+  removeFromWatchlist: (id: number, type: "movie" | "tv") => Promise<void>;
+  clearWatchlist: () => Promise<void>;
 }
 
 const WatchlistContext = createContext<WatchlistContextType | null>(null);
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-function getStorageKey(email: string | null): string | null {
-  if (!email) return null;
-  return `mv_watchlist_${normalizeEmail(email)}`;
-}
-
-function parseItems(raw: string | null): WatchlistItem[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as WatchlistItem[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item) =>
-        typeof item?.id === "number" &&
-        (item?.type === "movie" || item?.type === "tv") &&
-        typeof item?.title === "string"
-    );
-  } catch {
-    return [];
-  }
-}
 
 export function WatchlistProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [ready, setReady] = useState(false);
-
-  const key = useMemo(() => getStorageKey(user?.email ?? null), [user?.email]);
+  const [busy, setBusy] = useState(false);
+  const email = useMemo(() => user?.email?.trim().toLowerCase() ?? "", [user?.email]);
 
   useEffect(() => {
     if (authLoading) return;
-    let active = true;
-    const applyState = (nextItems: WatchlistItem[]) => {
-      Promise.resolve().then(() => {
-        if (!active) return;
-        setItems(nextItems);
-        setReady(true);
-      });
-    };
-
-    if (!key) {
-      applyState([]);
-    } else {
-      applyState(parseItems(localStorage.getItem(key)));
+    if (!email) {
+      setItems([]);
+      setReady(true);
+      return;
     }
+
+    let active = true;
+    setReady(false);
+    fetch(`/api/watchlist?email=${encodeURIComponent(email)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { ok?: boolean; items?: WatchlistItem[] } | null) => {
+        if (!active) return;
+        if (data?.ok && Array.isArray(data.items)) {
+          setItems(data.items);
+        } else {
+          setItems([]);
+        }
+      })
+      .catch(() => {
+        if (active) setItems([]);
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+
     return () => {
       active = false;
     };
-  }, [authLoading, key]);
-
-  const persist = useCallback(
-    (nextItems: WatchlistItem[]) => {
-      setItems(nextItems);
-      if (key) {
-        localStorage.setItem(key, JSON.stringify(nextItems));
-      }
-    },
-    [key]
-  );
+  }, [authLoading, email]);
 
   const isInWatchlist = useCallback(
     (id: number, type: "movie" | "tv") => items.some((item) => item.id === id && item.type === type),
@@ -93,29 +69,69 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleWatchlist = useCallback(
-    (item: Omit<WatchlistItem, "addedAt">) => {
-      if (!key) return { ok: false, added: false };
+    async (item: Omit<WatchlistItem, "addedAt">) => {
+      if (!email || busy) return { ok: false, added: false };
       const exists = items.some((entry) => entry.id === item.id && entry.type === item.type);
-      if (exists) {
-        persist(items.filter((entry) => !(entry.id === item.id && entry.type === item.type)));
-        return { ok: true, added: false };
+
+      try {
+        setBusy(true);
+        if (exists) {
+          const res = await fetch("/api/watchlist", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, id: item.id, type: item.type }),
+          });
+          if (!res.ok) return { ok: false, added: false };
+          setItems((prev) => prev.filter((entry) => !(entry.id === item.id && entry.type === item.type)));
+          return { ok: true, added: false };
+        }
+
+        const res = await fetch("/api/watchlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, item }),
+        });
+        if (!res.ok) return { ok: false, added: false };
+        setItems((prev) => [
+          { ...item, addedAt: new Date().toISOString() },
+          ...prev.filter((entry) => !(entry.id === item.id && entry.type === item.type)),
+        ]);
+        return { ok: true, added: true };
+      } catch {
+        return { ok: false, added: false };
+      } finally {
+        setBusy(false);
       }
-      persist([{ ...item, addedAt: new Date().toISOString() }, ...items]);
-      return { ok: true, added: true };
     },
-    [items, key, persist]
+    [busy, email, items]
   );
 
   const removeFromWatchlist = useCallback(
-    (id: number, type: "movie" | "tv") => {
-      persist(items.filter((entry) => !(entry.id === id && entry.type === type)));
+    async (id: number, type: "movie" | "tv") => {
+      if (!email) return;
+      const res = await fetch("/api/watchlist", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, id, type }),
+      });
+      if (res.ok) {
+        setItems((prev) => prev.filter((entry) => !(entry.id === id && entry.type === type)));
+      }
     },
-    [items, persist]
+    [email]
   );
 
-  const clearWatchlist = useCallback(() => {
-    persist([]);
-  }, [persist]);
+  const clearWatchlist = useCallback(async () => {
+    if (!email) return;
+    const res = await fetch("/api/watchlist", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.ok) {
+      setItems([]);
+    }
+  }, [email]);
 
   const value = useMemo<WatchlistContextType>(
     () => ({

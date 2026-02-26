@@ -60,7 +60,9 @@ export default function WatchlistPage() {
             {items.length > 0 && (
               <button
                 type="button"
-                onClick={() => clearWatchlist()}
+                onClick={() => {
+                  void clearWatchlist();
+                }}
                 className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/20"
               >
                 {text.clear}
