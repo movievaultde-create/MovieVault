@@ -129,28 +129,60 @@ async function sendDailyReleaseEmails(
     .eq("wants_new_releases", true);
   if (subscribersError || !subscribers || subscribers.length === 0) return 0;
 
-  const movieLines = movies.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("<br/>");
-  const seriesLines = series.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("<br/>");
-  const textMovieLines = movies.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("\n");
-  const textSeriesLines = series.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("\n");
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://movie-vault.dev";
+  const heroImageUrl = `${siteUrl.replace(/\/+$/, "")}/og-image.jpg`;
+  const picks = [...movies, ...series].slice(0, 3);
+  const pickEmojis = ["🌟", "🔥", "✨"];
+  const pickLinesHtml = picks
+    .map((item, index) => {
+      const category = item.type === "movie" ? "Movie" : "Series";
+      return `${item.title} – [${category}] ${pickEmojis[index] ?? "🎬"}`;
+    })
+    .join("<br/>");
+  const pickLinesText = picks
+    .map((item, index) => {
+      const category = item.type === "movie" ? "Movie" : "Series";
+      return `${item.title} - [${category}] ${pickEmojis[index] ?? "🎬"}`;
+    })
+    .join("\n");
 
   let sent = 0;
   for (const subscriber of subscribers) {
     const ok = await sendEmail({
       to: subscriber.email,
-      subject: "MovieVault daily new releases",
+      subject: "🍿 Your movie night is ready! Discover the latest additions to MovieVault",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.6">
-          <h2>New releases are live today</h2>
-          <p>Hello ${subscriber.name?.trim() || "there"}, here is your daily update:</p>
-          <h3>Movies</h3>
-          <p>${movieLines || "No movie updates today."}</p>
-          <h3>Series</h3>
-          <p>${seriesLines || "No series updates today."}</p>
-          <p><a href="${req.nextUrl.origin}" target="_blank" rel="noopener">Open MovieVault</a></p>
+          <p>
+            <img src="${heroImageUrl}" alt="MovieVault" width="600" style="max-width:100%;border-radius:12px;display:block" />
+          </p>
+          <p>Hi ${subscriber.name?.trim() || "there"},</p>
+          <p>No need to search endlessly for "What should I watch tonight?"... We've updated the library just for you! 🎬</p>
+          <p>We've just added a carefully curated selection of shows that we're sure you'll love:</p>
+          <p>${pickLinesHtml || "New updates are available now."}</p>
+          <p><strong>Ready to watch?</strong></p>
+          <p>With one click, jump straight into your favorite world:</p>
+          <p><a href="${siteUrl}" target="_blank" rel="noopener">Click here to watch now</a></p>
+          <p>Have a great night,<br/>The MovieVault Team</p>
         </div>
       `,
-      text: `New releases are live today.\n\nMovies:\n${textMovieLines || "No movie updates today."}\n\nSeries:\n${textSeriesLines || "No series updates today."}\n\n${req.nextUrl.origin}`,
+      text: `Hi ${subscriber.name?.trim() || "there"},
+
+No need to search endlessly for "What should I watch tonight?"... We've updated the library just for you!
+
+We've just added a carefully curated selection of shows that we're sure you'll love:
+
+${pickLinesText || "New updates are available now."}
+
+Ready to watch?
+With one click, jump straight into your favorite world:
+${siteUrl}
+
+Direct image URL:
+${heroImageUrl}
+
+Have a great night,
+The MovieVault Team`,
     });
     if (ok) sent += 1;
   }
