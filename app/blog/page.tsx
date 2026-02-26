@@ -8,7 +8,7 @@ import {
 import BlogCard from "@/app/components/blog/BlogCard";
 import BlogInlineAd from "@/app/components/blog/BlogInlineAd";
 
-const BASE_URL = "https://movie-vault-eosin.vercel.app";
+const BASE_URL = "https://movie-vault.dev";
 
 export const metadata: Metadata = {
   title: "MovieVault Blog | Movie Reviews, Lists & Streaming Guides",

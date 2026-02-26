@@ -15,6 +15,6 @@ User-Agent: Yandex
 Allow: /
 Disallow: /api/
 
-Sitemap: https://movie-vault-eosin.vercel.app/sitemap.xml
+Sitemap: https://movie-vault.dev/sitemap.xml
 
-Host: https://movie-vault-eosin.vercel.app
+Host: movie-vault.dev

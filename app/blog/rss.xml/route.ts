@@ -1,6 +1,6 @@
 import { getCombinedBlogPosts } from "@/app/lib/blog";
 
-const BASE_URL = "https://movie-vault-eosin.vercel.app";
+const BASE_URL = "https://movie-vault.dev";
 
 export async function GET() {
   const posts = await getCombinedBlogPosts();

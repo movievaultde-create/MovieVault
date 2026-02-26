@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://movie-vault-eosin.vercel.app"),
+  metadataBase: new URL("https://movie-vault.dev"),
   verification: {
     google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
   },
@@ -185,14 +185,14 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD",
     description:
       "Stream thousands of movies, TV series and anime in HD for free. Available in Arabic, English, German, French, Spanish & Turkish. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً.",
-    url: "https://movie-vault-eosin.vercel.app",
+    url: "https://movie-vault.dev",
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "de_DE", "fr_FR", "es_ES", "tr_TR"],
     siteName: "MovieVault",
     images: [
       {
-        url: "https://movie-vault-eosin.vercel.app/og-image.jpg",
+        url: "https://movie-vault.dev/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "MovieVault — Watch Movies, Series & Anime Free in HD",
@@ -205,7 +205,7 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD | أفلام مترجمة",
     description:
       "Stream thousands of movies, series & anime in HD free. شاهد أحدث الأفلام والمسلسلات والأنمي مجاناً.",
-    images: ["https://movie-vault-eosin.vercel.app/og-image.jpg"],
+    images: ["https://movie-vault.dev/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -229,10 +229,10 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "MovieVault",
-    url: "https://movie-vault-eosin.vercel.app",
+    url: "https://movie-vault.dev",
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://movie-vault-eosin.vercel.app/?q={search_term_string}",
+      target: "https://movie-vault.dev/?q={search_term_string}",
       "query-input": "required name=search_term_string",
     },
   };
@@ -241,11 +241,11 @@ export default function RootLayout({
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <meta name="6a97888e-site-verification" content="e84c90fd1f6d68a8c466b0ea5a1d8874" />
-        <meta property="og:url" content="https://movie-vault-eosin.vercel.app/" />
+        <meta property="og:url" content="https://movie-vault.dev/" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="MovieVault — Watch Movies, Series & Anime Free HD" />
         <meta property="og:description" content="Stream thousands of movies, TV series and anime in HD for free. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً." />
-        <meta property="og:image" content="https://movie-vault-eosin.vercel.app/og-image.jpg" />
+        <meta property="og:image" content="https://movie-vault.dev/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="MovieVault" />

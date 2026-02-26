@@ -11,7 +11,7 @@ import {
 } from "@/app/lib/blog";
 import BlogInlineAd from "@/app/components/blog/BlogInlineAd";
 
-const BASE_URL = "https://movie-vault-eosin.vercel.app";
+const BASE_URL = "https://movie-vault.dev";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;

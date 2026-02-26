@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getCombinedBlogPosts, getCombinedBlogTags } from "@/app/lib/blog";
 
-const BASE = "https://movie-vault-eosin.vercel.app";
+const BASE = "https://movie-vault.dev";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
