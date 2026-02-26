@@ -11,6 +11,12 @@ function normalizeSupabaseUrl(rawUrl: string | undefined): string | null {
   return cleaned;
 }
 
+function previewValue(value: string | undefined): string {
+  if (!value) return "<missing>";
+  const cleaned = value.trim().replace(/\s+/g, " ");
+  return cleaned.length > 80 ? `${cleaned.slice(0, 80)}...` : cleaned;
+}
+
 export function getSupabaseAdmin(): SupabaseClient {
   if (cached) return cached;
 
@@ -27,11 +33,18 @@ export function getSupabaseAdmin(): SupabaseClient {
     const missing = [];
     if (!url) missing.push("SUPABASE_URL");
     if (!serviceRoleKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-    throw new Error(`Supabase env is missing: ${missing.join(", ")}`);
+    throw new Error(
+      `Supabase env is missing: ${missing.join(", ")} | rawUrl=${previewValue(rawUrl)}`
+    );
   }
 
-  cached = createClient(url, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  try {
+    cached = createClient(url, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown_error";
+    throw new Error(`Supabase init failed: ${message} | rawUrl=${previewValue(rawUrl)}`);
+  }
   return cached;
 }
