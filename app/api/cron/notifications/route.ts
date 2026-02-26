@@ -25,6 +25,15 @@ type BrowseDigestItem = {
   type: "movie" | "tv";
 };
 
+type EnrichedDigestItem = {
+  id: number;
+  title: string;
+  type: "movie" | "tv";
+  genresLabel: string;
+  posterUrl: string | null;
+  watchUrl: string;
+};
+
 function isAuthorized(req: NextRequest): boolean {
   const vercelCronHeader = req.headers.get("x-vercel-cron");
   if (vercelCronHeader) return true;
@@ -40,6 +49,33 @@ async function fetchTmdb(path: string) {
   });
   if (!res.ok) return null;
   return res.json();
+}
+
+async function enrichDigestItems(items: BrowseDigestItem[]): Promise<EnrichedDigestItem[]> {
+  const imageBase = "https://image.tmdb.org/t/p/w500";
+  const enriched = await Promise.all(
+    items.map(async (item) => {
+      const details = await fetchTmdb(`/${item.type}/${item.id}?language=en-US`);
+      const genres = Array.isArray(details?.genres)
+        ? details.genres
+            .map((genre: { name?: string }) => genre?.name?.trim())
+            .filter((genreName: string | undefined): genreName is string => Boolean(genreName))
+        : [];
+      const genresLabel = genres.length > 0 ? genres.slice(0, 2).join("/") : item.type === "movie" ? "Movie" : "Series";
+      const posterPath = typeof details?.poster_path === "string" ? details.poster_path : null;
+      const posterUrl = posterPath ? `${imageBase}${posterPath}` : null;
+      const watchUrl = item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`;
+      return {
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        genresLabel,
+        posterUrl,
+        watchUrl,
+      };
+    })
+  );
+  return enriched;
 }
 
 async function markSubscriptionInactive(supabase: ReturnType<typeof getSupabaseAdmin>, endpoint: string) {
@@ -130,21 +166,30 @@ async function sendDailyReleaseEmails(
   if (subscribersError || !subscribers || subscribers.length === 0) return 0;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://movie-vault.dev";
-  const heroImageUrl = `${siteUrl.replace(/\/+$/, "")}/og-image.jpg`;
+  const baseUrl = siteUrl.replace(/\/+$/, "");
+  const heroImageUrl = `${baseUrl}/og-image.jpg`;
+  const footerImageUrl = `${baseUrl}/email-footer.png`;
   const picks = [...movies, ...series].slice(0, 3);
+  const enrichedPicks = await enrichDigestItems(picks);
   const pickEmojis = ["🌟", "🔥", "✨"];
-  const pickLinesHtml = picks
+  const pickLinesHtml = enrichedPicks
     .map((item, index) => {
-      const category = item.type === "movie" ? "Movie" : "Series";
-      return `${item.title} – [${category}] ${pickEmojis[index] ?? "🎬"}`;
+      const posterHtml = item.posterUrl
+        ? `<img src="${item.posterUrl}" alt="${item.title}" width="140" style="display:block;border-radius:10px;margin:8px 0;" />`
+        : "";
+      return `
+        <div style="margin:0 0 16px">
+          <div><strong>${item.title}</strong> – [${item.genresLabel}] ${pickEmojis[index] ?? "🎬"}</div>
+          ${posterHtml}
+        </div>
+      `;
     })
-    .join("<br/>");
-  const pickLinesText = picks
+    .join("");
+  const pickLinesText = enrichedPicks
     .map((item, index) => {
-      const category = item.type === "movie" ? "Movie" : "Series";
-      return `${item.title} - [${category}] ${pickEmojis[index] ?? "🎬"}`;
+      return `${item.title} - [${item.genresLabel}] ${pickEmojis[index] ?? "🎬"}${item.posterUrl ? `\nPoster: ${item.posterUrl}` : ""}`;
     })
-    .join("\n");
+    .join("\n\n");
 
   let sent = 0;
   for (const subscriber of subscribers) {
@@ -159,11 +204,14 @@ async function sendDailyReleaseEmails(
           <p>Hi ${subscriber.name?.trim() || "there"},</p>
           <p>No need to search endlessly for "What should I watch tonight?"... We've updated the library just for you! 🎬</p>
           <p>We've just added a carefully curated selection of shows that we're sure you'll love:</p>
-          <p>${pickLinesHtml || "New updates are available now."}</p>
-          <p><strong>Ready to watch?</strong></p>
+          ${pickLinesHtml || "<p>New updates are available now.</p>"}
+          <p><strong>Ready to watch?🥳</strong></p>
           <p>With one click, jump straight into your favorite world:</p>
           <p><a href="${siteUrl}" target="_blank" rel="noopener">Click here to watch now</a></p>
-          <p>Have a great night,<br/>The MovieVault Team</p>
+          <p>Have a great night,🌙🌒<br/>The MovieVault Team😉</p>
+          <p style="margin:24px 0 0">
+            <img src="${footerImageUrl}" alt="MovieVault Library" width="600" style="max-width:100%;border-radius:12px;display:block;border:1px solid #e5e7eb" />
+          </p>
         </div>
       `,
       text: `Hi ${subscriber.name?.trim() || "there"},
@@ -174,15 +222,17 @@ We've just added a carefully curated selection of shows that we're sure you'll l
 
 ${pickLinesText || "New updates are available now."}
 
-Ready to watch?
+Ready to watch?🥳
 With one click, jump straight into your favorite world:
-${siteUrl}
+Click here to watch now: ${siteUrl}
 
 Direct image URL:
 ${heroImageUrl}
 
-Have a great night,
-The MovieVault Team`,
+Have a great night,🌙🌒
+The MovieVault Team😉
+
+Footer image: ${footerImageUrl}`,
     });
     if (ok) sent += 1;
   }
