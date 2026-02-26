@@ -58,11 +58,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const { data: knownUser } = await supabase
+      .from("app_users")
+      .select("email")
+      .eq("email", email)
+      .maybeSingle();
+
     const { error } = await supabase.from("app_email_subscribers").upsert(
       {
         email,
         name: body.name?.trim() || null,
-        user_email: email,
+        user_email: knownUser?.email ?? null,
         is_active: subscribe,
         wants_new_releases: body.wantsNewReleases ?? true,
         wants_vip_updates: body.wantsVipUpdates ?? true,

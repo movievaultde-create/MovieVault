@@ -59,6 +59,17 @@ export async function upsertEmailSubscriber(
   const email = normalizeEmail(args.email);
   if (!email) return;
 
+  let safeUserEmail: string | null = null;
+  const candidateUserEmail = args.userEmail ? normalizeEmail(args.userEmail) : null;
+  if (candidateUserEmail) {
+    const { data: userRow } = await supabase
+      .from("app_users")
+      .select("email")
+      .eq("email", candidateUserEmail)
+      .maybeSingle();
+    safeUserEmail = userRow?.email ?? null;
+  }
+
   const { data: existing } = await supabase
     .from("app_email_subscribers")
     .select("email,is_active")
@@ -71,7 +82,7 @@ export async function upsertEmailSubscriber(
     {
       email,
       name: args.name?.trim() || null,
-      user_email: args.userEmail ? normalizeEmail(args.userEmail) : null,
+      user_email: safeUserEmail,
       is_active: true,
       updated_at: new Date().toISOString(),
     },
