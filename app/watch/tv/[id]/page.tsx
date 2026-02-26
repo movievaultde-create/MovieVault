@@ -7,6 +7,7 @@ import { useLang, type TranslationKey } from "../../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 import VideoAdOverlay from "../../../components/VideoAdOverlay";
 import VideoPlayer from "../../../components/VideoPlayer";
+import FollowNotificationButton from "../../../components/FollowNotificationButton";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
@@ -286,6 +287,17 @@ export default function WatchTVPage({
         )}
 
         <TrailerSection trailerYoutubeKey={show?.trailerYoutubeKey ?? null} isAr={isAr} />
+
+        {show && (
+          <div className="mb-4 flex items-center justify-end">
+            <FollowNotificationButton
+              type="tv"
+              itemId={show.id}
+              title={show.name}
+              isAr={isAr}
+            />
+          </div>
+        )}
 
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">

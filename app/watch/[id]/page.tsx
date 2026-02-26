@@ -7,6 +7,7 @@ import { useLang, type TranslationKey } from "../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../lib/ads";
 import VideoAdOverlay from "../../components/VideoAdOverlay";
 import VideoPlayer from "../../components/VideoPlayer";
+import FollowNotificationButton from "../../components/FollowNotificationButton";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
 
 interface CastMember {
@@ -233,6 +234,17 @@ export default function WatchPage({
         </Link>
 
         <TrailerSection trailerYoutubeKey={movie?.trailerYoutubeKey ?? null} isAr={isAr} />
+
+        {movie && (
+          <div className="mb-4 flex items-center justify-end">
+            <FollowNotificationButton
+              type="movie"
+              itemId={movie.id}
+              title={movie.title}
+              isAr={isAr}
+            />
+          </div>
+        )}
 
         {/* Player */}
         <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
