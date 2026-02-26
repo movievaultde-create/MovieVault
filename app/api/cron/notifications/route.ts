@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { isWebPushConfigured, sendWebPush } from "../../../lib/webPush";
+import { isEmailConfigured, sendEmail } from "../../../lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,13 @@ type PushPayload = {
   icon?: string;
   badge?: string;
   tag?: string;
+};
+
+type BrowseDigestItem = {
+  id: number;
+  title: string;
+  year: string;
+  type: "movie" | "tv";
 };
 
 function isAuthorized(req: NextRequest): boolean {
@@ -82,6 +90,74 @@ async function sendToUser(
   return delivered;
 }
 
+async function sendDailyReleaseEmails(
+  req: NextRequest,
+  supabase: ReturnType<typeof getSupabaseAdmin>
+): Promise<number> {
+  if (!isEmailConfigured()) return 0;
+
+  const browseRes = await fetch(`${req.nextUrl.origin}/api/browse?lang=en-US`, { cache: "no-store" });
+  if (!browseRes.ok) return 0;
+  const browseData = (await browseRes.json()) as {
+    dailyDigest?: {
+      date?: string;
+      movies?: BrowseDigestItem[];
+      series?: BrowseDigestItem[];
+    };
+  };
+
+  const dateKey = browseData.dailyDigest?.date ?? new Date().toISOString().slice(0, 10);
+  const movies = (browseData.dailyDigest?.movies ?? []).slice(0, 3);
+  const series = (browseData.dailyDigest?.series ?? []).slice(0, 3);
+  if (movies.length === 0 && series.length === 0) return 0;
+
+  const eventKey = `daily_email_releases:${dateKey}`;
+  const { error: eventError } = await supabase
+    .from("app_email_events_log")
+    .insert({ event_key: eventKey, event_type: "daily_releases" });
+
+  if (eventError) {
+    const duplicate = "code" in eventError && eventError.code === "23505";
+    if (duplicate) return 0;
+    return 0;
+  }
+
+  const { data: subscribers, error: subscribersError } = await supabase
+    .from("app_email_subscribers")
+    .select("email,name")
+    .eq("is_active", true)
+    .eq("wants_new_releases", true);
+  if (subscribersError || !subscribers || subscribers.length === 0) return 0;
+
+  const movieLines = movies.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("<br/>");
+  const seriesLines = series.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("<br/>");
+  const textMovieLines = movies.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("\n");
+  const textSeriesLines = series.map((item) => `- ${item.title} (${item.year || "N/A"})`).join("\n");
+
+  let sent = 0;
+  for (const subscriber of subscribers) {
+    const ok = await sendEmail({
+      to: subscriber.email,
+      subject: "MovieVault daily new releases",
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6">
+          <h2>New releases are live today</h2>
+          <p>Hello ${subscriber.name?.trim() || "there"}, here is your daily update:</p>
+          <h3>Movies</h3>
+          <p>${movieLines || "No movie updates today."}</p>
+          <h3>Series</h3>
+          <p>${seriesLines || "No series updates today."}</p>
+          <p><a href="${req.nextUrl.origin}" target="_blank" rel="noopener">Open MovieVault</a></p>
+        </div>
+      `,
+      text: `New releases are live today.\n\nMovies:\n${textMovieLines || "No movie updates today."}\n\nSeries:\n${textSeriesLines || "No series updates today."}\n\n${req.nextUrl.origin}`,
+    });
+    if (ok) sent += 1;
+  }
+
+  return sent;
+}
+
 function isRecentDate(value: string | undefined, days: number): boolean {
   if (!value) return false;
   const ts = new Date(value).getTime();
@@ -93,9 +169,10 @@ async function runNotifications(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  if (!TMDB_KEY || !isWebPushConfigured()) {
+  if (!TMDB_KEY) {
     return NextResponse.json({ ok: false, error: "not_configured" }, { status: 500 });
   }
+  const pushEnabled = isWebPushConfigured();
 
   let supabase;
   try {
@@ -104,7 +181,7 @@ async function runNotifications(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "db_not_configured" }, { status: 500 });
   }
 
-  let sent = 0;
+  let pushSent = 0;
 
   const { data: seriesFollows } = await supabase
     .from("app_notify_series_follows")
@@ -127,15 +204,17 @@ async function runNotifications(req: NextRequest) {
     const eventKey = `tv:${tvId}:s${last.season_number}e${last.episode_number}`;
     const title = data?.name || users[0]?.title || `TV #${tvId}`;
     for (const user of users) {
-      const delivered = await sendToUser(supabase, user.user_email, eventKey, "new_episode", {
+      const delivered = pushEnabled
+        ? await sendToUser(supabase, user.user_email, eventKey, "new_episode", {
         title: "New Episode Available",
         body: `${title} S${last.season_number}E${last.episode_number} is now available.`,
         url: `/watch/tv/${tvId}`,
         icon: "/favicon.png",
         badge: "/favicon.png",
         tag: eventKey,
-      });
-      if (delivered) sent += 1;
+      })
+        : false;
+      if (delivered) pushSent += 1;
     }
   }
 
@@ -161,19 +240,22 @@ async function runNotifications(req: NextRequest) {
     const eventKey = `movie:${movieId}:bluray`;
     const title = users[0]?.title || `Movie #${movieId}`;
     for (const user of users) {
-      const delivered = await sendToUser(supabase, user.user_email, eventKey, "bluray", {
+      const delivered = pushEnabled
+        ? await sendToUser(supabase, user.user_email, eventKey, "bluray", {
         title: "BluRay Released",
         body: `${title} is now available in BluRay quality.`,
         url: `/watch/${movieId}`,
         icon: "/favicon.png",
         badge: "/favicon.png",
         tag: eventKey,
-      });
-      if (delivered) sent += 1;
+      })
+        : false;
+      if (delivered) pushSent += 1;
     }
   }
 
-  return NextResponse.json({ ok: true, sent });
+  const emailSent = await sendDailyReleaseEmails(req, supabase);
+  return NextResponse.json({ ok: true, pushSent, emailSent, sent: pushSent + emailSent });
 }
 
 export async function POST(req: NextRequest) {

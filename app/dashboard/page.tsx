@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useVip } from "../context/VipContext";
 import { useLang } from "../context/LanguageContext";
 import PushNotificationsCard from "../components/PushNotificationsCard";
+import EmailPreferencesCard from "../components/EmailPreferencesCard";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -142,6 +143,7 @@ export default function DashboardPage() {
           </div>
 
           <PushNotificationsCard email={user.email} isAr={isAr} />
+          <EmailPreferencesCard email={user.email} name={user.name} isAr={isAr} />
 
           <div className="mt-7 flex flex-wrap gap-3">
             {!isVip && (

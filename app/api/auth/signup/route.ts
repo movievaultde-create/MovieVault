@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { hashPassword } from "../../../lib/password";
 import { ensureReferralCode, registerReferralSignup } from "../../../lib/referral";
+import { upsertEmailSubscriber } from "../../../lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,6 +97,17 @@ export async function POST(req: NextRequest) {
       }
     } catch {
       // Keep signup successful even if referral bookkeeping fails.
+    }
+
+    try {
+      await upsertEmailSubscriber(supabase, {
+        email: safeEmail,
+        name: safeName,
+        userEmail: safeEmail,
+        sendWelcome: true,
+      });
+    } catch {
+      // Keep signup successful even if email subscription fails.
     }
 
     return NextResponse.json({
