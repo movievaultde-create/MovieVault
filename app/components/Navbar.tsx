@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
 import { useVip } from "../context/VipContext";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +19,7 @@ interface SearchResult {
 }
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
   const { isVip } = useVip();
   const { isAuthenticated } = useAuth();
@@ -68,6 +70,19 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   const handleResultClick = () => { setSearchOpen(false); setQuery(""); setResults([]); triggerPopunder(); };
   const openBlogInNewTab = useCallback(() => {
@@ -374,7 +389,7 @@ export default function Navbar() {
 
       {/* ═══════════════ Mobile Menu ═══════════════ */}
       {mobileMenuOpen && (
-        <div className="max-h-[calc(100vh-64px)] overflow-y-auto border-t border-white/10 bg-black/98 backdrop-blur-xl lg:hidden">
+        <div className="max-h-[calc(100vh-64px)] overflow-y-auto border-t border-white/10 bg-black/98 backdrop-blur-xl animate-in fade-in duration-200 lg:hidden">
           <nav className="flex flex-col px-5 py-4">
             {/* Home */}
             <a href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary">
