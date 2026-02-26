@@ -205,10 +205,15 @@ async function sendDailyReleaseEmails(
           <p>No need to search endlessly for "What should I watch tonight?"... We've updated the library just for you! 🎬</p>
           <p>We've just added a carefully curated selection of shows that we're sure you'll love:</p>
           ${pickLinesHtml || "<p>New updates are available now.</p>"}
-          <p><strong>Ready to watch?🥳</strong></p>
-          <p>With one click, jump straight into your favorite world:</p>
-          <p><a href="${siteUrl}" target="_blank" rel="noopener">Click here to watch now</a></p>
-          <p>Have a great night,🌙🌒<br/>The MovieVault Team😉</p>
+          <p style="margin:0 0 8px"><strong>Ready to watch? 🥳</strong></p>
+          <p style="margin:0 0 20px">With one click, jump straight into your favorite world:</p>
+          <p style="margin:0 0 28px">
+            <a href="${siteUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 28px;border-radius:12px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#ffffff !important;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 14px rgba(99,102,241,0.4);">🍿 Click here to watch now</a>
+          </p>
+          <div style="margin:28px 0 0;padding-top:20px;border-top:1px solid #e5e7eb;">
+            <p style="margin:0 0 4px;font-size:16px;color:#374151;">Have a great night, 🌙🌒</p>
+            <p style="margin:0;font-size:14px;color:#6b7280;">The MovieVault Team 😉</p>
+          </div>
           <p style="margin:24px 0 0">
             <img src="${footerImageUrl}" alt="MovieVault Library" width="600" style="max-width:100%;border-radius:12px;display:block;border:1px solid #e5e7eb" />
           </p>
