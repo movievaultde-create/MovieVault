@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HeroSection from "./components/HeroSection";
 import AiRecommendationPanel from "./components/AiRecommendationPanel";
+import WatchlistButton from "./components/WatchlistButton";
 import { useLang } from "./context/LanguageContext";
 
 interface BrowseItem {
@@ -344,6 +345,8 @@ function TrendingSection({
                     {item.rating}
                   </span>
 
+                  <WatchlistButton item={item} />
+
                   {/* Hover play */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/50">
                     <div className="flex h-10 w-10 scale-0 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100 sm:h-12 sm:w-12">
@@ -473,6 +476,8 @@ function MediaCard({ item, tvLabel }: { item: BrowseItem; tvLabel: string }) {
           </svg>
           {item.rating}
         </span>
+
+        <WatchlistButton item={item} />
 
         {/* Hover play */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/50">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useVip } from "../context/VipContext";
 import { useLang } from "../context/LanguageContext";
+import WatchlistButton from "./WatchlistButton";
 
 type MoodKey =
   | "exciting"
@@ -169,6 +170,7 @@ export default function AiRecommendationPanel() {
                   ) : (
                     <div className="flex h-full items-center justify-center text-gray-500">N/A</div>
                   )}
+                  <WatchlistButton item={item} />
                 </div>
                 <div className="space-y-1.5 p-3">
                   <h3 className="truncate text-sm font-bold text-white">{item.title}</h3>

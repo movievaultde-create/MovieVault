@@ -24,6 +24,7 @@ export default function DashboardPage() {
       vip: isAr ? "مفعل VIP" : "VIP Active",
       normal: isAr ? "حساب عادي" : "Standard Account",
       upgrade: isAr ? "ترقية إلى VIP" : "Upgrade to VIP",
+      watchlist: isAr ? "قائمة المفضلة" : "Watchlist",
       home: isAr ? "الرئيسية" : "Home",
       logout: isAr ? "تسجيل خروج" : "Logout",
       needLogin: isAr ? "يلزم تسجيل الدخول أولًا." : "You need to login first.",
@@ -82,6 +83,12 @@ export default function DashboardPage() {
                 {text.upgrade}
               </Link>
             )}
+            <Link
+              href="/watchlist"
+              className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
+            >
+              {text.watchlist}
+            </Link>
             <Link
               href="/"
               className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"

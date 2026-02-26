@@ -275,12 +275,20 @@ export default function Navbar() {
             </button>
 
             {isAuthenticated ? (
-              <Link
-                href="/dashboard"
-                className="hidden h-10 items-center rounded-full border border-primary/30 bg-primary/10 px-4 text-sm font-bold text-primary transition hover:bg-primary/20 sm:flex sm:h-11"
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/watchlist"
+                  className="hidden h-10 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-bold text-gray-300 transition hover:text-white sm:flex sm:h-11"
+                >
+                  {t("favorites")}
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="hidden h-10 items-center rounded-full border border-primary/30 bg-primary/10 px-4 text-sm font-bold text-primary transition hover:bg-primary/20 sm:flex sm:h-11"
+                >
+                  Dashboard
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -458,14 +466,24 @@ export default function Navbar() {
             </button>
 
             {isAuthenticated ? (
-              <a
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
-              >
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
-                Dashboard
-              </a>
+              <>
+                <a
+                  href="/watchlist"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" /></svg>
+                  {t("favorites")}
+                </a>
+                <a
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
+                  Dashboard
+                </a>
+              </>
             ) : (
               <div className="grid grid-cols-2 gap-2 px-4 pt-2">
                 <a

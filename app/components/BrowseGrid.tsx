@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLang, type TranslationKey } from "../context/LanguageContext";
 import { triggerPopunder } from "../lib/ads";
+import WatchlistButton from "./WatchlistButton";
 
 interface BrowseItem {
   id: number;
@@ -123,11 +125,12 @@ export default function BrowseGrid({
               >
                 <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
                   {item.poster ? (
-                    <img
+                    <Image
                       src={item.poster}
                       alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-text-muted">
@@ -150,6 +153,8 @@ export default function BrowseGrid({
                     </svg>
                     {item.rating}
                   </span>
+
+                  <WatchlistButton item={item} />
 
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/50">
                     <div className="flex h-12 w-12 scale-0 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100">

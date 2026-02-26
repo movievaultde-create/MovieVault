@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { LanguageProvider } from "./context/LanguageContext";
 import { VipProvider } from "./context/VipContext";
 import { AuthProvider } from "./context/AuthContext";
+import { WatchlistProvider } from "./context/WatchlistContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Popunder from "./components/Popunder";
@@ -258,16 +259,18 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <AuthProvider>
-            <VipProvider>
-              <Popunder />
-              <SocialBar />
-              <AntiAdblock />
-              <VipCelebration />
-              <Navbar />
-              <AdsContainer />
-              <main>{children}</main>
-              <Footer />
-            </VipProvider>
+            <WatchlistProvider>
+              <VipProvider>
+                <Popunder />
+                <SocialBar />
+                <AntiAdblock />
+                <VipCelebration />
+                <Navbar />
+                <AdsContainer />
+                <main>{children}</main>
+                <Footer />
+              </VipProvider>
+            </WatchlistProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>
