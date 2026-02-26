@@ -64,46 +64,36 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const timestamp = new Date().toUTCString();
-      const clientIp = getClientIp(req);
-      const country = req.headers.get("cf-ipcountry")?.trim();
-      const locationText = country ? `${country} / ${clientIp}` : clientIp;
-      const deviceInfo = getDeviceInfo(req);
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://movie-vault.dev";
-      const resetPasswordUrl =
-        process.env.NEXT_PUBLIC_RESET_PASSWORD_URL?.trim() || `${siteUrl}/login`;
+      const logoUrl = `${siteUrl.replace(/\/+$/, "")}/og-image.jpg`;
+      const safeName = data.name || "there";
 
       await sendEmail({
         to: safeEmail,
-        subject: "New login detected for your MovieVault account",
+        subject: "You're back! 🍿 Your night starts now on MovieVault",
         html: `
-          <div style="font-family:Arial,sans-serif;line-height:1.6">
-            <h2>Hi ${data.name || "User"},</h2>
-            <p>You have successfully logged into your account. We're glad to have you back!</p>
-            <p>This is a quick notification to let you know that your MovieVault account was just accessed from a new device or browser.</p>
-            <p><strong>Time:</strong> ${timestamp}</p>
-            <p><strong>Device/Browser:</strong> ${deviceInfo}</p>
-            <p><strong>Location/IP Address:</strong> ${locationText}</p>
-            <p>If this was you, you can safely ignore this email.</p>
-            <p><strong>Wasn't you?</strong><br/>
-            Please secure your account immediately by changing your password:
-            <a href="${resetPasswordUrl}" target="_blank" rel="noopener">${resetPasswordUrl}</a></p>
-            <p>Happy watching,<br/>Best regards,<br/>The MovieVault Team</p>
+          <div style="font-family:Arial,sans-serif;line-height:1.7;color:#101418">
+            <p style="margin:0 0 14px">
+              <img src="${logoUrl}" alt="MovieVault" width="600" style="max-width:100%;border-radius:12px;display:block" />
+            </p>
+            <h2 style="margin:0 0 8px">Welcome back, ${safeName},</h2>
+            <p style="margin:0 0 8px">You have successfully logged into your account. We're glad to have you back!</p>
+            <p style="margin:0 0 8px">We missed you!</p>
+            <p style="margin:0 0 16px">Get your favorite snack ready, lots of fun awaits you inside the app.</p>
+            <p style="margin:0 0 16px">
+              <a href="${siteUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:10px 16px;border-radius:10px;background:#111827;color:#ffffff;text-decoration:none;font-weight:600">Go to Library</a>
+            </p>
+            <p style="margin:0">Happy watching,<br/>Best regards,<br/>The MovieVault Team</p>
           </div>
         `,
-        text: `Hi ${data.name || "User"},
+        text: `Welcome back, ${safeName},
 You have successfully logged into your account. We're glad to have you back!
 
-This is a quick notification to let you know that your MovieVault account was just accessed from a new device or browser.
+We missed you!
 
-Time: ${timestamp}
-Device/Browser: ${deviceInfo}
-Location/IP Address: ${locationText}
+Get your favorite snack ready, lots of fun awaits you inside the app.
 
-If this was you, you can safely ignore this email.
-
-Wasn't you?
-Please secure your account immediately by changing your password: ${resetPasswordUrl}
+Go to Library: ${siteUrl}
 
 Happy watching,
 Best regards,
