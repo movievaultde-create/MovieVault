@@ -90,18 +90,31 @@ export async function upsertEmailSubscriber(
   );
 
   if (args.sendWelcome && !wasActive) {
+    const safeName = args.name?.trim() || "there";
     await sendEmail({
       to: email,
-      subject: "MovieVault subscription confirmed",
+      subject: "Your account was created successfully - MovieVault",
       html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6">
-          <h2>Subscription successful</h2>
-          <p>Your email is now subscribed to MovieVault updates.</p>
-          <p>You will receive new movie/series alerts and VIP updates (if enabled).</p>
-          <p><a href="${SITE_URL}" target="_blank" rel="noopener">Open MovieVault</a></p>
+        <div style="font-family:Arial,sans-serif;line-height:1.7;color:#101418">
+          <h2 style="margin:0 0 8px">Hello ${safeName},</h2>
+          <p style="margin:0 0 8px">Thank you for choosing MovieVault. We hope our platform exceeds your expectations.</p>
+          <p style="margin:0 0 8px">Your account has been created successfully.</p>
+          <p style="margin:0 0 8px">You can now watch movies and series, and enable smart notifications.</p>
+          <p style="margin:0 0 8px">You can also access VIP for free by inviting friends, or via an affordable monthly plan.</p>
+          <p style="margin:0 0 8px">
+            Website:
+            <a href="${SITE_URL}" target="_blank" rel="noopener">${SITE_URL}</a>
+          </p>
+          <p style="margin:0">Best regards, and enjoy your watch time.</p>
         </div>
       `,
-      text: `Subscription successful. Your email is now subscribed to MovieVault updates. Visit ${SITE_URL}`,
+      text: `Hello ${safeName},
+Thank you for choosing MovieVault.
+Your account has been created successfully.
+You can now watch movies and series, and enable smart notifications.
+You can access VIP for free by inviting friends, or via an affordable monthly plan.
+Website: ${SITE_URL}
+Best regards, and enjoy your watch time.`,
     });
   }
 }

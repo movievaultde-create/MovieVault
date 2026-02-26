@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         subject: "Login successful - MovieVault",
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6">
-            <h2>تم تسجيل الدخول بنجاح</h2>
+            <h2>Login successful</h2>
             <p>Hi ${data.name || "there"}, your MovieVault account was logged in successfully.</p>
             <p>Time: ${new Date().toUTCString()}</p>
             <p>If this wasn't you, change your password immediately.</p>
