@@ -10,6 +10,25 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function getClientIp(req: NextRequest): string {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const first = forwardedFor.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim();
+  if (cfIp) return cfIp;
+  return "Unknown";
+}
+
+function getDeviceInfo(req: NextRequest): string {
+  const userAgent = req.headers.get("user-agent")?.trim() || "Unknown device";
+  const platform = req.headers.get("sec-ch-ua-platform")?.replace(/"/g, "").trim();
+  return platform ? `${userAgent} | Platform: ${platform}` : userAgent;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
@@ -45,18 +64,50 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+      const timestamp = new Date().toUTCString();
+      const clientIp = getClientIp(req);
+      const country = req.headers.get("cf-ipcountry")?.trim();
+      const locationText = country ? `${country} / ${clientIp}` : clientIp;
+      const deviceInfo = getDeviceInfo(req);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://movie-vault.dev";
+      const resetPasswordUrl =
+        process.env.NEXT_PUBLIC_RESET_PASSWORD_URL?.trim() || `${siteUrl}/login`;
+
       await sendEmail({
         to: safeEmail,
-        subject: "Login successful - MovieVault",
+        subject: "New login detected for your MovieVault account",
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6">
-            <h2>Login successful</h2>
-            <p>Hi ${data.name || "there"}, your MovieVault account was logged in successfully.</p>
-            <p>Time: ${new Date().toUTCString()}</p>
-            <p>If this wasn't you, change your password immediately.</p>
+            <h2>Hi ${data.name || "User"},</h2>
+            <p>You have successfully logged into your account. We're glad to have you back!</p>
+            <p>This is a quick notification to let you know that your MovieVault account was just accessed from a new device or browser.</p>
+            <p><strong>Time:</strong> ${timestamp}</p>
+            <p><strong>Device/Browser:</strong> ${deviceInfo}</p>
+            <p><strong>Location/IP Address:</strong> ${locationText}</p>
+            <p>If this was you, you can safely ignore this email.</p>
+            <p><strong>Wasn't you?</strong><br/>
+            Please secure your account immediately by changing your password:
+            <a href="${resetPasswordUrl}" target="_blank" rel="noopener">${resetPasswordUrl}</a></p>
+            <p>Happy watching,<br/>Best regards,<br/>The MovieVault Team</p>
           </div>
         `,
-        text: `Login successful for your MovieVault account at ${new Date().toUTCString()}. If this wasn't you, change your password immediately.`,
+        text: `Hi ${data.name || "User"},
+You have successfully logged into your account. We're glad to have you back!
+
+This is a quick notification to let you know that your MovieVault account was just accessed from a new device or browser.
+
+Time: ${timestamp}
+Device/Browser: ${deviceInfo}
+Location/IP Address: ${locationText}
+
+If this was you, you can safely ignore this email.
+
+Wasn't you?
+Please secure your account immediately by changing your password: ${resetPasswordUrl}
+
+Happy watching,
+Best regards,
+The MovieVault Team`,
       });
     } catch {
       // Keep login successful even if email delivery fails.
