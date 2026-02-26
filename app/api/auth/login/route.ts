@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { verifyPassword } from "../../../lib/password";
+import { sendEmail } from "../../../lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,24 @@ export async function POST(req: NextRequest) {
     const valid = await verifyPassword(safePassword, data.password_hash);
     if (!valid) {
       return NextResponse.json({ ok: false, error: "invalid_credentials" }, { status: 401 });
+    }
+
+    try {
+      await sendEmail({
+        to: safeEmail,
+        subject: "Login successful - MovieVault",
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <h2>تم تسجيل الدخول بنجاح</h2>
+            <p>Hi ${data.name || "there"}, your MovieVault account was logged in successfully.</p>
+            <p>Time: ${new Date().toUTCString()}</p>
+            <p>If this wasn't you, change your password immediately.</p>
+          </div>
+        `,
+        text: `Login successful for your MovieVault account at ${new Date().toUTCString()}. If this wasn't you, change your password immediately.`,
+      });
+    } catch {
+      // Keep login successful even if email delivery fails.
     }
 
     return NextResponse.json({
