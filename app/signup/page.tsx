@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useVip } from "../context/VipContext";
@@ -9,8 +9,11 @@ import { useLang } from "../context/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const referralCode = searchParams.get("ref")?.trim().toUpperCase() ?? "";
+  const [referralCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("ref")?.trim().toUpperCase() ?? "";
+  });
   const { isAr } = useLang();
   const { isAuthenticated, loading: authLoading, signup } = useAuth();
   const { login: vipLogin } = useVip();
