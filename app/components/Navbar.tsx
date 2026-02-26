@@ -23,6 +23,7 @@ export default function Navbar() {
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
   const { isVip } = useVip();
   const { isAuthenticated } = useAuth();
+  const dashboardHref = isAuthenticated ? "/dashboard" : "/login";
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -211,7 +212,11 @@ export default function Navbar() {
               </button>
 
               {searchOpen && (
-                <div className={`absolute top-14 w-[340px] sm:w-[420px] ${isRtl ? "left-0" : "right-0"}`}>
+                <div
+                  className={`absolute top-14 left-1/2 z-50 w-[calc(100vw-1rem)] -translate-x-1/2 sm:left-auto sm:w-[420px] sm:translate-x-0 ${
+                    isRtl ? "sm:left-0" : "sm:right-0"
+                  }`}
+                >
                   <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-2xl shadow-black/60">
                     <div className="flex items-center gap-2.5 border-b border-white/10 px-4">
                       <svg width="18" height="18" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
@@ -479,6 +484,14 @@ export default function Navbar() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
               Blog
             </button>
+            <a
+              href={dashboardHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
+            >
+              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
+              Dashboard
+            </a>
 
             {isAuthenticated ? (
               <>
@@ -489,14 +502,6 @@ export default function Navbar() {
                 >
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" /></svg>
                   {t("favorites")}
-                </a>
-                <a
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
-                >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
-                  Dashboard
                 </a>
               </>
             ) : (
