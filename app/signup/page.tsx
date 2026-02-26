@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useVip } from "../context/VipContext";
@@ -9,6 +9,8 @@ import { useLang } from "../context/LanguageContext";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref")?.trim().toUpperCase() ?? "";
   const { isAr } = useLang();
   const { isAuthenticated, loading: authLoading, signup } = useAuth();
   const { login: vipLogin } = useVip();
@@ -37,6 +39,7 @@ export default function SignupPage() {
       exists: isAr ? "البريد مستخدم مسبقًا" : "Email already exists",
       invalid: isAr ? "بيانات غير صالحة" : "Invalid data",
       db: isAr ? "قاعدة البيانات غير مربوطة بعد. أكمل ربط Supabase." : "Database is not connected yet. Complete Supabase setup.",
+      inviteTag: isAr ? "تم تطبيق دعوة صديق على هذا التسجيل" : "Friend invite applied to this signup",
     }),
     [isAr],
   );
@@ -60,7 +63,7 @@ export default function SignupPage() {
     }
     setLoading(true);
     setError("");
-    const result = await signup(name, email, password);
+    const result = await signup(name, email, password, referralCode || undefined);
     if (!result.ok) {
       setLoading(false);
       if (result.error === "email_exists") {
@@ -82,6 +85,11 @@ export default function SignupPage() {
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-surface/70 p-7 shadow-2xl">
         <h1 className="text-3xl font-extrabold text-white">{text.title}</h1>
         <p className="mt-2 text-sm text-text-secondary">{text.subtitle}</p>
+        {referralCode && (
+          <p className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+            {text.inviteTag} · {referralCode}
+          </p>
+        )}
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>

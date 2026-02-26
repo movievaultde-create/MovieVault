@@ -17,7 +17,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  signup: (name: string, email: string, password: string) => Promise<AuthResult>;
+  signup: (name: string, email: string, password: string, referralCode?: string) => Promise<AuthResult>;
   login: (email: string, password: string) => Promise<AuthResult>;
   logout: () => void;
 }
@@ -45,20 +45,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    const finishLoading = () => {
+      Promise.resolve().then(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+    };
+
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) {
-      setLoading(false);
-      return;
+      finishLoading();
+      return () => {
+        active = false;
+      };
     }
     const sessionUser = parseSession(raw);
     if (!sessionUser) {
       localStorage.removeItem(SESSION_KEY);
-      setLoading(false);
-      return;
+      finishLoading();
+      return () => {
+        active = false;
+      };
     }
     fetch(`/api/auth/me?email=${encodeURIComponent(sessionUser.email)}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
+        if (!active) return;
         if (data?.ok && data.user) {
           setUser(data.user);
           localStorage.setItem(SESSION_KEY, JSON.stringify(data.user));
@@ -67,9 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
+        if (!active) return;
         localStorage.removeItem(SESSION_KEY);
       })
-      .finally(() => setLoading(false));
+      .finally(() => finishLoading());
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const value = useMemo<AuthContextType>(
@@ -77,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAuthenticated: Boolean(user),
       loading,
-      signup: async (name: string, email: string, password: string) => {
+      signup: async (name: string, email: string, password: string, referralCode?: string) => {
         const normalizedEmail = normalizeEmail(email);
         const trimmedName = name.trim();
         const safePassword = password.trim();
@@ -93,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: trimmedName,
             email: normalizedEmail,
             password: safePassword,
+            referralCode: referralCode?.trim() || undefined,
           }),
         });
         const data = (await res.json()) as { ok?: boolean; error?: string; user?: AuthUser };

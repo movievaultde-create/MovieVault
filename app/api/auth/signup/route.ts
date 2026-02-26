@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { hashPassword } from "../../../lib/password";
+import { ensureReferralCode, registerReferralSignup } from "../../../lib/referral";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ function normalizeEmail(email: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, referralCode } = await req.json();
     const safeName = typeof name === "string" ? name.trim() : "";
     const safeEmail = typeof email === "string" ? normalizeEmail(email) : "";
     const safePassword = typeof password === "string" ? password.trim() : "";
@@ -58,6 +59,15 @@ export async function POST(req: NextRequest) {
 
     if (insertError || !data) {
       return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
+    }
+
+    try {
+      await ensureReferralCode(supabase, safeEmail);
+      if (typeof referralCode === "string" && referralCode.trim()) {
+        await registerReferralSignup(supabase, safeEmail, referralCode);
+      }
+    } catch {
+      // Keep signup successful even if referral bookkeeping fails.
     }
 
     return NextResponse.json({

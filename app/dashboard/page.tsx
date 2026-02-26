@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useVip } from "../context/VipContext";
 import { useLang } from "../context/LanguageContext";
@@ -12,6 +12,13 @@ export default function DashboardPage() {
   const { isAr } = useLang();
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const { isVip, logout: vipLogout } = useVip();
+  const [referral, setReferral] = useState<{
+    inviteLink: string;
+    successfulReferrals: number;
+    neededToReward: number;
+    rewardsEarned: number;
+  } | null>(null);
+  const [copyDone, setCopyDone] = useState(false);
 
   const text = useMemo(
     () => ({
@@ -29,9 +36,35 @@ export default function DashboardPage() {
       logout: isAr ? "تسجيل خروج" : "Logout",
       needLogin: isAr ? "يلزم تسجيل الدخول أولًا." : "You need to login first.",
       goLogin: isAr ? "الذهاب لتسجيل الدخول" : "Go to Login",
+      inviteTitle: isAr ? "شارك واربح VIP" : "Invite & Earn VIP",
+      inviteDesc: isAr ? "ادعُ 5 أصدقاء واحصل على شهر VIP مجاني." : "Invite 5 friends and unlock 1 free VIP month.",
+      invited: isAr ? "دعوات ناجحة" : "Successful invites",
+      rewards: isAr ? "أشهر مجانية مكتسبة" : "Free months earned",
+      left: isAr ? "متبقي للمكافأة التالية" : "Left for next reward",
+      copyInvite: isAr ? "نسخ رابط الدعوة" : "Copy invite link",
+      copied: isAr ? "تم النسخ" : "Copied",
     }),
     [isAr],
   );
+
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch(`/api/referral/me?email=${encodeURIComponent(user.email)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.ok) {
+          setReferral({
+            inviteLink: data.inviteLink,
+            successfulReferrals: data.successfulReferrals,
+            neededToReward: data.neededToReward,
+            rewardsEarned: data.rewardsEarned,
+          });
+        }
+      })
+      .catch(() => {
+        setReferral(null);
+      });
+  }, [user?.email]);
 
   if (authLoading) return null;
 
@@ -72,6 +105,39 @@ export default function DashboardPage() {
               value={new Date(user.createdAt).toLocaleDateString()}
             />
             <InfoRow label={text.status} value={isVip ? text.vip : text.normal} highlight={isVip} />
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4">
+            <h2 className="text-base font-bold text-emerald-300">{text.inviteTitle}</h2>
+            <p className="mt-1 text-xs text-emerald-100/90">{text.inviteDesc}</p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <InfoRow label={text.invited} value={String(referral?.successfulReferrals ?? 0)} />
+              <InfoRow label={text.rewards} value={String(referral?.rewardsEarned ?? 0)} />
+              <InfoRow label={text.left} value={String(referral?.neededToReward ?? 5)} />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <input
+                value={referral?.inviteLink ?? ""}
+                readOnly
+                className="min-w-[260px] flex-1 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white outline-none"
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!referral?.inviteLink) return;
+                  try {
+                    await navigator.clipboard.writeText(referral.inviteLink);
+                    setCopyDone(true);
+                    setTimeout(() => setCopyDone(false), 2000);
+                  } catch {
+                    // no-op
+                  }
+                }}
+                className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-black hover:bg-emerald-400"
+              >
+                {copyDone ? text.copied : text.copyInvite}
+              </button>
+            </div>
           </div>
 
           <div className="mt-7 flex flex-wrap gap-3">
