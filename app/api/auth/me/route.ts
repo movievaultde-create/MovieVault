@@ -18,8 +18,13 @@ export async function GET(req: NextRequest) {
     let supabase;
     try {
       supabase = getSupabaseAdmin();
-    } catch {
-      return NextResponse.json({ ok: false, error: "db_not_configured" }, { status: 500 });
+    } catch (dbConfigError) {
+      const details =
+        dbConfigError instanceof Error ? dbConfigError.message : "Supabase env is missing";
+      return NextResponse.json(
+        { ok: false, error: "db_not_configured", details },
+        { status: 500 }
+      );
     }
     const { data, error } = await supabase
       .from("app_users")
