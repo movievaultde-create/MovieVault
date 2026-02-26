@@ -13,6 +13,7 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   const [started, setStarted] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [pendingReturn, setPendingReturn] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const leftPageRef = useRef(false);
 
   const notifyParent = useCallback(
@@ -27,6 +28,12 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   useEffect(() => {
     notifyParent(!started);
   }, [started, notifyParent]);
+
+  useEffect(() => {
+    const ua = navigator.userAgent || "";
+    const mobile = /Android|iPhone|iPad|iPod|Mobi/i.test(ua) || navigator.maxTouchPoints > 1;
+    setIsMobile(mobile);
+  }, []);
 
   // During watching: trigger ad every 15 minutes (no on-screen overlay).
   useEffect(() => {
@@ -76,6 +83,13 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
   const handleStart = () => {
     const opened = triggerStartAd();
     if (!opened) {
+      if (isMobile) {
+        // Mobile browsers often block popups even on tap; don't dead-end playback.
+        setStarted(true);
+        setPendingReturn(false);
+        setBlocked(false);
+        return;
+      }
       setBlocked(true);
       return;
     }
@@ -129,18 +143,42 @@ export default function VideoAdOverlay({ onPhaseChange }: Props) {
         </p>
       )}
       {blocked && (
-        <p
+        <div
           style={{
             position: "absolute",
-            bottom: 22,
-            margin: 0,
-            color: "#fbbf24",
-            fontSize: 12,
-            textAlign: "center",
+            bottom: 18,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
           }}
         >
-          Popup was blocked. Disable popup blocker and press Start again.
-        </p>
+          <p
+            style={{
+              margin: 0,
+              color: "#fbbf24",
+              fontSize: 12,
+              textAlign: "center",
+            }}
+          >
+            Popup was blocked. Disable popup blocker and press Start again.
+          </p>
+          <button
+            onClick={() => setStarted(true)}
+            style={{
+              padding: "8px 14px",
+              fontSize: 12,
+              fontWeight: 700,
+              borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.08)",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Continue Watching
+          </button>
+        </div>
       )}
     </div>
   );
