@@ -3,6 +3,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MILESTONE_SIZE = 5;
 const REWARD_DAYS = 30;
+const MAX_QUALIFIED_PER_IP_DAILY = 2;
+const MAX_QUALIFIED_PER_REFERRER_IP_30D = 2;
+
+export interface ReferralSecuritySignals {
+  ipHash: string | null;
+  deviceHash: string | null;
+  userAgentHash: string | null;
+}
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -41,7 +49,8 @@ export async function ensureReferralCode(supabase: SupabaseClient, email: string
 export async function registerReferralSignup(
   supabase: SupabaseClient,
   referredEmail: string,
-  referralCode: string
+  referralCode: string,
+  signals: ReferralSecuritySignals
 ): Promise<void> {
   const safeEmail = normalizeEmail(referredEmail);
   const safeCode = referralCode.trim().toUpperCase();
@@ -57,16 +66,68 @@ export async function registerReferralSignup(
   const referrerEmail = normalizeEmail(owner.user_email);
   if (referrerEmail === safeEmail) return;
 
+  let status: "qualified" | "rejected" = "qualified";
+  let rejectionReason: string | null = null;
+
+  if (signals.deviceHash) {
+    const { count: deviceCount, error: deviceError } = await supabase
+      .from("app_referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("device_hash", signals.deviceHash)
+      .eq("status", "qualified");
+    if (deviceError) throw deviceError;
+    if ((deviceCount ?? 0) > 0) {
+      status = "rejected";
+      rejectionReason = "device_reused";
+    }
+  }
+
+  if (status === "qualified" && signals.ipHash) {
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: ipDailyCount, error: ipDailyError } = await supabase
+      .from("app_referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("ip_hash", signals.ipHash)
+      .eq("status", "qualified")
+      .gte("created_at", since24h);
+    if (ipDailyError) throw ipDailyError;
+    if ((ipDailyCount ?? 0) >= MAX_QUALIFIED_PER_IP_DAILY) {
+      status = "rejected";
+      rejectionReason = "ip_daily_limit";
+    }
+  }
+
+  if (status === "qualified" && signals.ipHash) {
+    const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { count: referrerIpCount, error: referrerIpError } = await supabase
+      .from("app_referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("referrer_email", referrerEmail)
+      .eq("ip_hash", signals.ipHash)
+      .eq("status", "qualified")
+      .gte("created_at", since30d);
+    if (referrerIpError) throw referrerIpError;
+    if ((referrerIpCount ?? 0) >= MAX_QUALIFIED_PER_REFERRER_IP_30D) {
+      status = "rejected";
+      rejectionReason = "referrer_ip_limit";
+    }
+  }
+
   const { error: referralInsertError } = await supabase.from("app_referrals").insert({
     referrer_email: referrerEmail,
     referred_email: safeEmail,
     referral_code: safeCode,
-    status: "qualified",
+    status,
+    rejection_reason: rejectionReason,
+    ip_hash: signals.ipHash,
+    device_hash: signals.deviceHash,
+    user_agent_hash: signals.userAgentHash,
   });
 
   if (referralInsertError && referralInsertError.code !== "23505") {
     throw referralInsertError;
   }
+  if (status !== "qualified") return;
 
   const { count, error: countError } = await supabase
     .from("app_referrals")

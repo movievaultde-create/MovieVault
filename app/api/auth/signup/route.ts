@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { getSupabaseAdmin } from "../../../lib/supabaseAdmin";
 import { hashPassword } from "../../../lib/password";
 import { ensureReferralCode, registerReferralSignup } from "../../../lib/referral";
@@ -8,6 +9,23 @@ export const dynamic = "force-dynamic";
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function sha256(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function getFirstIp(req: NextRequest): string | null {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const first = forwardedFor.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim();
+  if (cfIp) return cfIp;
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -64,7 +82,17 @@ export async function POST(req: NextRequest) {
     try {
       await ensureReferralCode(supabase, safeEmail);
       if (typeof referralCode === "string" && referralCode.trim()) {
-        await registerReferralSignup(supabase, safeEmail, referralCode);
+        const userAgent = req.headers.get("user-agent") ?? "";
+        const acceptLang = req.headers.get("accept-language") ?? "";
+        const secChUa = req.headers.get("sec-ch-ua") ?? "";
+        const secChPlatform = req.headers.get("sec-ch-ua-platform") ?? "";
+        const ip = getFirstIp(req);
+
+        await registerReferralSignup(supabase, safeEmail, referralCode, {
+          ipHash: ip ? sha256(ip) : null,
+          deviceHash: userAgent ? sha256(`${userAgent}|${acceptLang}|${secChUa}|${secChPlatform}`) : null,
+          userAgentHash: userAgent ? sha256(userAgent) : null,
+        });
       }
     } catch {
       // Keep signup successful even if referral bookkeeping fails.
