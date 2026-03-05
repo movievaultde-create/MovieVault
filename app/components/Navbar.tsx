@@ -36,10 +36,13 @@ export default function Navbar() {
 
   const [moviesDropdown, setMoviesDropdown] = useState(false);
   const [seriesDropdown, setSeriesDropdown] = useState(false);
+  const [animeDropdown, setAnimeDropdown] = useState(false);
   const [mobileMoviesOpen, setMobileMoviesOpen] = useState(false);
   const [mobileSeriesOpen, setMobileSeriesOpen] = useState(false);
+  const [mobileAnimeOpen, setMobileAnimeOpen] = useState(false);
   const moviesRef = useRef<HTMLDivElement>(null);
   const seriesRef = useRef<HTMLDivElement>(null);
+  const animeRef = useRef<HTMLDivElement>(null);
 
   const currentLang = LANGUAGES.find((l) => l.code === lang)!;
 
@@ -67,6 +70,7 @@ export default function Navbar() {
       if (langRef.current && !langRef.current.contains(e.target as Node)) setLangMenuOpen(false);
       if (moviesRef.current && !moviesRef.current.contains(e.target as Node)) setMoviesDropdown(false);
       if (seriesRef.current && !seriesRef.current.contains(e.target as Node)) setSeriesDropdown(false);
+      if (animeRef.current && !animeRef.current.contains(e.target as Node)) setAnimeDropdown(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -192,9 +196,42 @@ export default function Navbar() {
               )}
             </div>
 
-            <a href="/anime" className="rounded-xl px-5 py-2.5 text-[17px] font-bold text-gray-300 transition-colors hover:text-white">
-              {t("navAnime")}
-            </a>
+            {/* Anime Dropdown */}
+            <div className="relative" ref={animeRef}>
+              <button
+                onClick={() => { setAnimeDropdown(!animeDropdown); setMoviesDropdown(false); setSeriesDropdown(false); }}
+                className={`flex items-center rounded-xl px-5 py-2.5 text-[17px] font-bold transition-colors hover:text-white ${pathname?.startsWith("/anime") ? "text-white" : "text-gray-300"}`}
+              >
+                {t("navAnime")}
+                {chevronDown}
+              </button>
+              {animeDropdown && (
+                <div className={`absolute top-12 w-56 ${isRtl ? "right-0" : "left-0"}`}>
+                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111] py-2 shadow-2xl shadow-black/60">
+                    <a href="/anime" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /></svg>
+                      {t("allAnime")}
+                    </a>
+                    <a href="/anime/action" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">⚔️</span> {t("animeAction")}
+                    </a>
+                    <a href="/anime/family" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">👨‍👩‍👧‍👦</span> {t("animeFamily")}
+                    </a>
+                    <a href="/anime/18" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">🔞</span> {t("anime18")}
+                    </a>
+                    <div className="mx-4 my-1.5 border-t border-white/10" />
+                    <a href="/anime/servers" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">🖥️</span> {t("animeServers")}
+                    </a>
+                    <a href="/anime/translation" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">🌐</span> {t("animeTranslation")}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Right Actions */}
@@ -472,10 +509,42 @@ export default function Navbar() {
             <div className="mx-4 my-1 border-t border-white/5" />
 
             {/* Anime */}
-            <a href="/anime" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
-              {t("navAnime")}
-            </a>
+            <button
+              onClick={() => setMobileAnimeOpen(!mobileAnimeOpen)}
+              className="flex w-full items-center justify-between rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5"
+            >
+              <span className="flex items-center gap-3">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
+                {t("navAnime")}
+              </span>
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className={`text-gray-500 transition-transform duration-200 ${mobileAnimeOpen ? "rotate-180" : ""}`}>
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            {mobileAnimeOpen && (
+              <div className={`mb-1 flex flex-col gap-0.5 rounded-xl bg-white/[0.03] py-2 ${isRtl ? "mr-4 pr-4" : "ml-4 pl-4"}`}>
+                <a href="/anime" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /></svg>
+                  {t("allAnime")}
+                </a>
+                <a href="/anime/action" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">⚔️</span> {t("animeAction")}
+                </a>
+                <a href="/anime/family" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">👨‍👩‍👧‍👦</span> {t("animeFamily")}
+                </a>
+                <a href="/anime/18" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">🔞</span> {t("anime18")}
+                </a>
+                <a href="/anime/servers" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">🖥️</span> {t("animeServers")}
+                </a>
+                <a href="/anime/translation" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">🌐</span> {t("animeTranslation")}
+                </a>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={() => { setMobileMenuOpen(false); openBlogInNewTab(); }}

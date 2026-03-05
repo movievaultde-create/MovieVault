@@ -19,9 +19,11 @@ interface BrowseItem {
 export default function BrowseGrid({
   category,
   titleKey,
+  hideHeader,
 }: {
-  category: "movies" | "series" | "anime" | "arab-movies" | "arab-series" | "turkish-series" | "korean-series" | "indian-series" | "indian-movies";
+  category: "movies" | "series" | "anime" | "anime-action" | "anime-family" | "anime-18" | "arab-movies" | "arab-series" | "turkish-series" | "korean-series" | "indian-series" | "indian-movies";
   titleKey: TranslationKey;
+  hideHeader?: boolean;
 }) {
   const { t, tmdbLang } = useLang();
   const [items, setItems] = useState<BrowseItem[]>([]);
@@ -81,26 +83,27 @@ export default function BrowseGrid({
   const skeletons = Array.from({ length: 18 });
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-16">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-        {/* Header */}
-        <div className="mb-8 flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-border text-text-secondary transition-colors hover:bg-surface-light hover:text-white"
-          >
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
-          <div className="h-8 w-1 rounded-full bg-primary" />
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">{t(titleKey)}</h1>
-          {!initialLoad && (
-            <span className="rounded-full bg-surface px-3 py-1 text-xs text-text-muted">
-              {totalPages * 20}+ {t(titleKey).toLowerCase()}
-            </span>
-          )}
-        </div>
+    <div className={hideHeader ? undefined : "min-h-screen bg-background pt-20 pb-16"}>
+      <div className={hideHeader ? undefined : "mx-auto max-w-[1400px] px-4 sm:px-6"}>
+        {!hideHeader && (
+          <div className="mb-8 flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-border text-text-secondary transition-colors hover:bg-surface-light hover:text-white"
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </Link>
+            <div className="h-8 w-1 rounded-full bg-primary" />
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">{t(titleKey)}</h1>
+            {!initialLoad && (
+              <span className="rounded-full bg-surface px-3 py-1 text-xs text-text-muted">
+                {totalPages * 20}+ {t(titleKey).toLowerCase()}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Grid */}
         {initialLoad ? (

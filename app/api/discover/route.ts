@@ -9,6 +9,8 @@ interface TmdbItem {
   id: number;
   title?: string;
   name?: string;
+  original_title?: string;
+  original_name?: string;
   poster_path: string | null;
   vote_average: number;
   release_date?: string;
@@ -16,9 +18,10 @@ interface TmdbItem {
 }
 
 function mapItem(item: TmdbItem, type: "movie" | "tv") {
+  const fallbackTitle = item.original_title ?? item.original_name ?? "";
   return {
     id: item.id,
-    title: item.title ?? item.name ?? "",
+    title: item.title ?? item.name ?? fallbackTitle,
     poster: item.poster_path
       ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
       : null,
@@ -51,6 +54,16 @@ export async function GET(req: NextRequest) {
       case "anime":
         url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16&with_keywords=210024&with_original_language=ja&sort_by=popularity.desc&page=${page}`;
         break;
+      case "anime-action":
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16,10759&with_keywords=210024&with_original_language=ja&sort_by=popularity.desc&page=${page}`;
+        break;
+      case "anime-family":
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16,10751&with_keywords=210024&with_original_language=ja&sort_by=popularity.desc&page=${page}`;
+        break;
+      case "anime-18":
+        // TMDB discover/tv does not support certification; use keyword 27281 (mature/ecchi) for real 18+ anime
+        url = `${BASE}/discover/tv?api_key=${TMDB_KEY}&language=${lang}&with_genres=16&with_keywords=210024,27281&with_original_language=ja&sort_by=popularity.desc&page=${page}`;
+        break;
       case "arab-movies":
         url = `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=ar-SA&with_original_language=ar&sort_by=popularity.desc&page=${page}`;
         break;
@@ -76,7 +89,8 @@ export async function GET(req: NextRequest) {
         url = `${BASE}/discover/movie?api_key=${TMDB_KEY}&language=${lang}&sort_by=popularity.desc&page=${page}`;
     }
 
-    const res = await fetch(url, { next: { revalidate: 3600 } } as RequestInit);
+    // Daily refresh (86400 = 24h)
+    const res = await fetch(url, { next: { revalidate: 86400 } } as RequestInit);
     if (!res.ok) {
       return NextResponse.json({ results: [], page, total_pages: 1 });
     }

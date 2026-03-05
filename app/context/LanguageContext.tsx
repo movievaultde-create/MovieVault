@@ -75,6 +75,14 @@ const translations = {
   allMovies: { EN: "All Movies", AR: "جميع الأفلام", DE: "Alle Filme", FR: "Tous les films", ES: "Todas las películas", TR: "Tüm Filmler" },
   allSeries: { EN: "All Series", AR: "جميع المسلسلات", DE: "Alle Serien", FR: "Toutes les séries", ES: "Todas las series", TR: "Tüm Diziler" },
   allAnime: { EN: "All Anime", AR: "جميع الأنمي", DE: "Alle Anime", FR: "Tous les anime", ES: "Todo el anime", TR: "Tüm Animeler" },
+  animeAction: { EN: "Action", AR: "أكشن", DE: "Action", FR: "Action", ES: "Acción", TR: "Aksiyon" },
+  animeFamily: { EN: "Family", AR: "عائلي", DE: "Familie", FR: "Famille", ES: "Familiar", TR: "Aile" },
+  anime18: { EN: "18+", AR: "فوق +18", DE: "18+", FR: "18+", ES: "18+", TR: "18+" },
+  animeServers: { EN: "Servers", AR: "السيرفرات", DE: "Server", FR: "Serveurs", ES: "Servidores", TR: "Sunucular" },
+  animeTranslation: { EN: "Subtitles", AR: "ترجمة", DE: "Untertitel", FR: "Sous-titres", ES: "Subtítulos", TR: "Altyazı" },
+  animeServersInfo: { EN: "Multiple servers available for each title. Choose your preferred server on the watch page.", AR: "عدة سيرفرات متاحة لكل عنوان. اختر السيرفر المناسب من صفحة المشاهدة.", DE: "Mehrere Server pro Titel. Wähle auf der Watch-Seite.", FR: "Plusieurs serveurs par titre. Choisissez sur la page de lecture.", ES: "Varios servidores por título. Elige en la página de reproducción.", TR: "Her başlık için birden fazla sunucu. İzleme sayfasından seçin." },
+  animeTranslationInfo: { EN: "Subtitles available in Arabic, English, German, French, Spanish & Turkish on the watch page.", AR: "الترجمة متاحة بالعربية والإنجليزية والألمانية والفرنسية والإسبانية والتركية في صفحة المشاهدة.", DE: "Untertitel auf der Watch-Seite: AR, EN, DE, FR, ES, TR.", FR: "Sous-titres disponibles en AR, EN, DE, FR, ES, TR sur la page de lecture.", ES: "Subtítulos en AR, EN, DE, FR, ES, TR en la página de reproducción.", TR: "İzleme sayfasında Arapça, İngilizce, Almanca, Fransızca, İspanyolca ve Türkçe altyazı." },
+  animeChooseCategory: { EN: "Choose a category to browse anime", AR: "اختر التصنيف لعرض الأنمي", DE: "Kategorie wählen", FR: "Choisir une catégorie", ES: "Elige una categoría", TR: "Anime için kategori seçin" },
   noMoreResults: { EN: "No more results", AR: "لا توجد نتائج أخرى", DE: "Keine weiteren Ergebnisse", FR: "Plus de résultats", ES: "No hay más resultados", TR: "Daha fazla sonuç yok" },
 
   // TV / Seasons / Episodes

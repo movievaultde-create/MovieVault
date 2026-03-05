@@ -14,6 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/movies`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE}/tv-series`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE}/anime`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${BASE}/anime/all`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${BASE}/anime/action`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${BASE}/anime/family`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${BASE}/anime/18`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
+    { url: `${BASE}/anime/servers`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/anime/translation`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
 
     // Category pages
     { url: `${BASE}/korean-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
@@ -30,6 +36,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/datenschutz`, lastModified: now, changeFrequency: "yearly", priority: 0.1 },
     { url: `${BASE}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/blog/rss.xml`, lastModified: now, changeFrequency: "daily", priority: 0.4 },
+    { url: `${BASE}/guides`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE}/guides/best-action-movies-2026`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/guides/family-movies-weekend`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/guides/how-to-choose-movie-tonight`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     ...blogPosts.map((post) => ({
       url: `${BASE}/blog/${post.slug}`,
       lastModified: post.updatedAt ? new Date(post.updatedAt) : new Date(post.publishedAt),
