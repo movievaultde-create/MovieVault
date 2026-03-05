@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchAniListDiscover } from "@/app/lib/anilist";
+import { fetchAniListDiscover } from "../../lib/anilist";
 
 const TMDB_KEY = process.env.TMDB_API_KEY ?? "";
 const BASE = "https://api.themoviedb.org/3";
@@ -225,7 +225,8 @@ export async function GET(req: NextRequest) {
 
     const type = (category === "movies" || category === "arab-movies" || category === "indian-movies") ? "movie" : category === "trending" ? "movie" : "tv";
 
-    const results = (data.results ?? []).map((item: TmdbItem & { media_type?: string }) => {
+    const rawResults = (data.results ?? []) as (TmdbItem & { media_type?: string })[];
+    const results = rawResults.map((item) => {
       const itemType = item.media_type
         ? (item.media_type as "movie" | "tv")
         : (type as "movie" | "tv");

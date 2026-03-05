@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchAniListDiscover } from "@/app/lib/anilist";
+import { fetchAniListDiscover } from "../../../lib/anilist";
 
 /**
  * AniList discover: returns anime (TV + movies) in same shape as TMDB discover.
