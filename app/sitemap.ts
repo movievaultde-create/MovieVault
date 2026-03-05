@@ -20,6 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/anime/18`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
     { url: `${BASE}/anime/servers`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE}/anime/translation`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${BASE}/anime/anilist`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/anime/shounen`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/anime/seinen`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
 
     // Category pages
     { url: `${BASE}/korean-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },

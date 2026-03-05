@@ -14,6 +14,7 @@ interface BrowseItem {
   rating: string;
   year: string;
   type: "movie" | "tv";
+  studio?: string | null;
 }
 
 export default function BrowseGrid({
@@ -21,7 +22,7 @@ export default function BrowseGrid({
   titleKey,
   hideHeader,
 }: {
-  category: "movies" | "series" | "anime" | "anime-action" | "anime-family" | "anime-18" | "arab-movies" | "arab-series" | "turkish-series" | "korean-series" | "indian-series" | "indian-movies";
+  category: "movies" | "series" | "anime" | "anime-action" | "anime-family" | "anime-18" | "anilist" | "anilist-shounen" | "anilist-seinen" | "arab-movies" | "arab-series" | "turkish-series" | "korean-series" | "indian-series" | "indian-movies";
   titleKey: TranslationKey;
   hideHeader?: boolean;
 }) {
@@ -172,6 +173,11 @@ export default function BrowseGrid({
                   <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-primary">
                     {item.title}
                   </h3>
+                  {item.studio && (
+                    <span className="truncate text-[11px] text-primary/90" title={item.studio}>
+                      {item.studio}
+                    </span>
+                  )}
                   <span className="text-[11px] text-text-muted">{item.year}</span>
                 </div>
               </Link>

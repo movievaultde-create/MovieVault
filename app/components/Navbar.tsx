@@ -206,26 +206,35 @@ export default function Navbar() {
                 {chevronDown}
               </button>
               {animeDropdown && (
-                <div className={`absolute top-12 w-56 ${isRtl ? "right-0" : "left-0"}`}>
-                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#111] py-2 shadow-2xl shadow-black/60">
-                    <a href="/anime" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                <div className={`absolute top-full z-[100] mt-1 w-56 min-w-[14rem] ${isRtl ? "right-0 left-auto" : "left-0 right-auto"}`}>
+                  <div className="rounded-2xl border border-white/15 bg-[#0d0d0d] py-2 shadow-2xl shadow-black/70 ring-1 ring-white/5">
+                    <a href="/anime" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /></svg>
                       {t("allAnime")}
                     </a>
-                    <a href="/anime/action" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                    <a href="/anime/action" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <span className="text-lg">⚔️</span> {t("animeAction")}
                     </a>
-                    <a href="/anime/family" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                    <a href="/anime/family" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <span className="text-lg">👨‍👩‍👧‍👦</span> {t("animeFamily")}
                     </a>
-                    <a href="/anime/18" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                    <a href="/anime/18" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <span className="text-lg">🔞</span> {t("anime18")}
                     </a>
+                    <a href="/anime/anilist" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
+                      <span className="text-lg">📋</span> {t("anilistAnime")}
+                    </a>
+                    <a href="/anime/shounen" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
+                      <span className="text-lg">👦</span> {t("demographicShounen")}
+                    </a>
+                    <a href="/anime/seinen" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
+                      <span className="text-lg">🧑</span> {t("demographicSeinen")}
+                    </a>
                     <div className="mx-4 my-1.5 border-t border-white/10" />
-                    <a href="/anime/servers" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                    <a href="/anime/servers" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <span className="text-lg">🖥️</span> {t("animeServers")}
                     </a>
-                    <a href="/anime/translation" onClick={() => setAnimeDropdown(false)} className={dropdownItemClass}>
+                    <a href="/anime/translation" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
                       <span className="text-lg">🌐</span> {t("animeTranslation")}
                     </a>
                   </div>
@@ -535,6 +544,15 @@ export default function Navbar() {
                 </a>
                 <a href="/anime/18" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
                   <span className="text-lg">🔞</span> {t("anime18")}
+                </a>
+                <a href="/anime/anilist" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">📋</span> {t("anilistAnime")}
+                </a>
+                <a href="/anime/shounen" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">👦</span> {t("demographicShounen")}
+                </a>
+                <a href="/anime/seinen" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
+                  <span className="text-lg">🧑</span> {t("demographicSeinen")}
                 </a>
                 <a href="/anime/servers" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
                   <span className="text-lg">🖥️</span> {t("animeServers")}

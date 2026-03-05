@@ -80,8 +80,12 @@ const translations = {
   anime18: { EN: "18+", AR: "فوق +18", DE: "18+", FR: "18+", ES: "18+", TR: "18+" },
   animeServers: { EN: "Servers", AR: "السيرفرات", DE: "Server", FR: "Serveurs", ES: "Servidores", TR: "Sunucular" },
   animeTranslation: { EN: "Subtitles", AR: "ترجمة", DE: "Untertitel", FR: "Sous-titres", ES: "Subtítulos", TR: "Altyazı" },
+  anilistAnime: { EN: "AniList Anime", AR: "أنمي AniList", DE: "AniList Anime", FR: "Anime AniList", ES: "Anime AniList", TR: "AniList Anime" },
+  demographicShounen: { EN: "Shounen", AR: "شونن", DE: "Shounen", FR: "Shōnen", ES: "Shounen", TR: "Shounen" },
+  demographicSeinen: { EN: "Seinen", AR: "ساينن", DE: "Seinen", FR: "Seinen", ES: "Seinen", TR: "Seinen" },
   animeServersInfo: { EN: "Multiple servers available for each title. Choose your preferred server on the watch page.", AR: "عدة سيرفرات متاحة لكل عنوان. اختر السيرفر المناسب من صفحة المشاهدة.", DE: "Mehrere Server pro Titel. Wähle auf der Watch-Seite.", FR: "Plusieurs serveurs par titre. Choisissez sur la page de lecture.", ES: "Varios servidores por título. Elige en la página de reproducción.", TR: "Her başlık için birden fazla sunucu. İzleme sayfasından seçin." },
   animeTranslationInfo: { EN: "Subtitles available in Arabic, English, German, French, Spanish & Turkish on the watch page.", AR: "الترجمة متاحة بالعربية والإنجليزية والألمانية والفرنسية والإسبانية والتركية في صفحة المشاهدة.", DE: "Untertitel auf der Watch-Seite: AR, EN, DE, FR, ES, TR.", FR: "Sous-titres disponibles en AR, EN, DE, FR, ES, TR sur la page de lecture.", ES: "Subtítulos en AR, EN, DE, FR, ES, TR en la página de reproducción.", TR: "İzleme sayfasında Arapça, İngilizce, Almanca, Fransızca, İspanyolca ve Türkçe altyazı." },
+  anime18Info: { EN: "This section may include anime for mature audiences. Viewer discretion advised.", AR: "قد يتضمن هذا القسم أنمي للبالغين. يُنصح الحذر.", DE: "Dieser Bereich kann Anime für erwachsene Zuschauer enthalten.", FR: "Cette section peut contenir des anime pour public averti.", ES: "Esta sección puede incluir anime para público maduro.", TR: "Bu bölüm yetişkinlere yönelik anime içerebilir." },
   animeChooseCategory: { EN: "Choose a category to browse anime", AR: "اختر التصنيف لعرض الأنمي", DE: "Kategorie wählen", FR: "Choisir une catégorie", ES: "Elige una categoría", TR: "Anime için kategori seçin" },
   noMoreResults: { EN: "No more results", AR: "لا توجد نتائج أخرى", DE: "Keine weiteren Ergebnisse", FR: "Plus de résultats", ES: "No hay más resultados", TR: "Daha fazla sonuç yok" },
 

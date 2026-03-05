@@ -5,17 +5,20 @@ import Link from "next/link";
 import { useLang } from "../../context/LanguageContext";
 import BrowseGrid from "../../components/BrowseGrid";
 
-const VALID_CATEGORIES = ["all", "action", "family", "18", "servers", "translation"] as const;
+const VALID_CATEGORIES = ["all", "action", "family", "18", "anilist", "shounen", "seinen", "servers", "translation"] as const;
 type CategorySlug = (typeof VALID_CATEGORIES)[number];
 
 const CATEGORY_CONFIG: Record<
   CategorySlug,
-  { category: Parameters<typeof BrowseGrid>[0]["category"]; titleKey: "allAnime" | "animeAction" | "animeFamily" | "anime18" }
+  { category: Parameters<typeof BrowseGrid>[0]["category"]; titleKey: "allAnime" | "animeAction" | "animeFamily" | "anime18" | "anilistAnime" | "demographicShounen" | "demographicSeinen" }
 > = {
   all: { category: "anime", titleKey: "allAnime" },
   action: { category: "anime-action", titleKey: "animeAction" },
   family: { category: "anime-family", titleKey: "animeFamily" },
   "18": { category: "anime-18", titleKey: "anime18" },
+  anilist: { category: "anilist", titleKey: "anilistAnime" },
+  shounen: { category: "anilist-shounen", titleKey: "demographicShounen" },
+  seinen: { category: "anilist-seinen", titleKey: "demographicSeinen" },
   servers: { category: "anime", titleKey: "allAnime" },
   translation: { category: "anime", titleKey: "allAnime" },
 };
@@ -48,7 +51,7 @@ export default function AnimeCategoryPage({ params }: { params: Promise<{ catego
           </h1>
         </div>
 
-        {/* Info banner for Servers / Translation */}
+        {/* Info banner for Servers / Translation / 18+ */}
         {normalized === "servers" && (
           <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-sm text-white">
             <p className={isAr ? "text-right" : "text-left"}>{t("animeServersInfo")}</p>
@@ -57,6 +60,11 @@ export default function AnimeCategoryPage({ params }: { params: Promise<{ catego
         {normalized === "translation" && (
           <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-sm text-white">
             <p className={isAr ? "text-right" : "text-left"}>{t("animeTranslationInfo")}</p>
+          </div>
+        )}
+        {normalized === "18" && (
+          <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-200">
+            <p className={isAr ? "text-right" : "text-left"}>{t("anime18Info")}</p>
           </div>
         )}
 
