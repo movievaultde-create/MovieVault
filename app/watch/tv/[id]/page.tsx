@@ -3,7 +3,7 @@
 import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLang, type TranslationKey } from "../../../context/LanguageContext";
+import { useLang, LANGUAGES, type TranslationKey } from "../../../context/LanguageContext";
 import { triggerPopunder, getAdUrl } from "../../../lib/ads";
 import VideoAdOverlay from "../../../components/VideoAdOverlay";
 import VideoPlayer from "../../../components/VideoPlayer";
@@ -73,6 +73,7 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       url: withLangParams(`https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`, subLang),
       mirrors: [
         withLangParams(`https://autoembed.cc/tv/tmdb/${id}-${season}-${episode}`, subLang),
+        withLangParams(`https://2embed.cc/embedtv/${id}?s=${season}&e=${episode}`, subLang),
       ],
     },
     {
@@ -83,6 +84,7 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       url: withLangParams(`https://vidsrc.to/embed/tv/${id}/${season}/${episode}`, subLang),
       mirrors: [
         withLangParams(`https://vidsrc.su/embed/tv/${id}/${season}/${episode}`, subLang),
+        withLangParams(`https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`, subLang),
       ],
     },
     {
@@ -93,6 +95,7 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       url: withLangParams(`https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`, subLang),
       mirrors: [
         withLangParams(`https://vidsrc.net/embed/tv/${id}/${season}/${episode}`, subLang),
+        withLangParams(`https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`, subLang),
       ],
     },
     {
@@ -146,6 +149,7 @@ export default function WatchTVPage({
   const { id } = use(params);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
+  const subLabel = LANGUAGES.find((l) => l.code === lang)?.label ?? "English";
 
   const [show, setShow] = useState<ShowData | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -159,6 +163,7 @@ export default function WatchTVPage({
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const episodeSelectAfterSeasonFetchRef = useRef<number | "last" | null>(null);
 
   // Always require start-ad when opening another show.
   useEffect(() => {
@@ -201,8 +206,21 @@ export default function WatchTVPage({
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data && !data.error) {
-          setEpisodes(data.episodes ?? []);
-          setSelectedEpisode(1);
+          const list: Episode[] = data.episodes ?? [];
+          setEpisodes(list);
+          const pending = episodeSelectAfterSeasonFetchRef.current;
+          episodeSelectAfterSeasonFetchRef.current = null;
+          if (pending === "last" && list.length > 0) {
+            const maxNum = Math.max(...list.map((e) => e.episode_number));
+            setSelectedEpisode(maxNum);
+          } else if (
+            typeof pending === "number" &&
+            list.some((e) => e.episode_number === pending)
+          ) {
+            setSelectedEpisode(pending);
+          } else {
+            setSelectedEpisode(1);
+          }
         }
       })
       .finally(() => setEpLoading(false));
@@ -239,6 +257,63 @@ export default function WatchTVPage({
     setAdActive(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
     triggerPopunder();
+  };
+
+  const sortedEpisodes = useMemo(
+    () => [...episodes].sort((a, b) => a.episode_number - b.episode_number),
+    [episodes]
+  );
+
+  const sortedSeasons = useMemo(
+    () => (show ? [...show.seasons].sort((a, b) => a.season_number - b.season_number) : []),
+    [show]
+  );
+
+  const episodeNav = useMemo(() => {
+    if (!show || sortedEpisodes.length === 0) {
+      return { prev: null as null | { s: number; e: number | "last" }, next: null as null | { s: number; e: number } };
+    }
+    const idx = sortedEpisodes.findIndex((e) => e.episode_number === selectedEpisode);
+    if (idx < 0) {
+      return { prev: null, next: null };
+    }
+    let prev: { s: number; e: number | "last" } | null = null;
+    let next: { s: number; e: number } | null = null;
+    if (idx > 0) {
+      prev = { s: selectedSeason, e: sortedEpisodes[idx - 1].episode_number };
+    } else {
+      const si = sortedSeasons.findIndex((s) => s.season_number === selectedSeason);
+      if (si > 0) {
+        prev = { s: sortedSeasons[si - 1].season_number, e: "last" };
+      }
+    }
+    if (idx < sortedEpisodes.length - 1) {
+      next = { s: selectedSeason, e: sortedEpisodes[idx + 1].episode_number };
+    } else {
+      const si = sortedSeasons.findIndex((s) => s.season_number === selectedSeason);
+      if (si >= 0 && si < sortedSeasons.length - 1) {
+        next = { s: sortedSeasons[si + 1].season_number, e: 1 };
+      }
+    }
+    return { prev, next };
+  }, [show, sortedEpisodes, sortedSeasons, selectedSeason, selectedEpisode]);
+
+  const navigateToEpisode = (seasonNum: number, episodeNum: number | "last") => {
+    if (seasonNum === selectedSeason && typeof episodeNum === "number") {
+      playEpisode(episodeNum);
+      return;
+    }
+    setAdActive(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    triggerPopunder();
+    if (seasonNum === selectedSeason && episodeNum === "last") {
+      if (sortedEpisodes.length > 0) {
+        setSelectedEpisode(sortedEpisodes[sortedEpisodes.length - 1].episode_number);
+      }
+      return;
+    }
+    episodeSelectAfterSeasonFetchRef.current = episodeNum;
+    setSelectedSeason(seasonNum);
   };
 
   if (loading) {
@@ -307,7 +382,7 @@ export default function WatchTVPage({
                 <VideoPlayer src={currentServer.directUrl} />
               ) : (
                 <iframe
-                  key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}`}
+                  key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
                   src={currentServerUrl}
                   onError={handleIframeError}
                   className="absolute inset-0 h-full w-full"
@@ -322,6 +397,71 @@ export default function WatchTVPage({
               onPhaseChange={(isAd) => setAdActive(isAd)}
             />
           </div>
+        </div>
+
+        {/* Prev / Next episode — outside player so it stays visible (not lost in black frame) */}
+        {show && show.seasons.length > 0 && (
+          <div
+            className="mt-4 flex flex-wrap items-stretch justify-between gap-3 rounded-xl border-2 border-primary/35 bg-surface px-3 py-3 shadow-lg shadow-black/20 sm:px-4"
+            dir={isRtl ? "rtl" : "ltr"}
+            role="navigation"
+            aria-label={t("episodes")}
+          >
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.prev}
+              onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
+              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
+                !epLoading && episodeNav.prev
+                  ? "border-surface-border bg-surface-light text-white hover:border-primary/60 hover:bg-primary/10"
+                  : "cursor-not-allowed border-surface-border/50 text-text-muted opacity-40"
+              }`}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span className="truncate">{t("prevEpisode")}</span>
+            </button>
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.next}
+              onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
+              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
+                !epLoading && episodeNav.next
+                  ? "border-primary bg-primary/20 text-primary hover:bg-primary/30"
+                  : "cursor-not-allowed border-surface-border/50 text-text-muted opacity-40"
+              }`}
+            >
+              <span className="truncate">{t("nextEpisode")}</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Subtitle language indicator */}
+        <div className="mt-3 flex items-center gap-2 text-sm text-text-muted">
+          <span>{t("animeTranslation")}:</span>
+          <span className="rounded bg-surface-light px-2 py-1 font-medium text-white">{subLabel}</span>
         </div>
 
         {/* Servers */}
@@ -422,7 +562,10 @@ export default function WatchTVPage({
               <div className="relative">
                 <select
                   value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(Number(e.target.value))}
+                  onChange={(e) => {
+                    episodeSelectAfterSeasonFetchRef.current = null;
+                    setSelectedSeason(Number(e.target.value));
+                  }}
                   className="appearance-none rounded-lg border border-surface-border bg-surface px-4 py-2.5 pe-10 text-sm font-medium text-white outline-none transition-colors hover:border-primary/40 focus:border-primary"
                 >
                   {show.seasons.map((s) => (
@@ -442,7 +585,10 @@ export default function WatchTVPage({
               {show.seasons.map((s) => (
                 <button
                   key={s.season_number}
-                  onClick={() => setSelectedSeason(s.season_number)}
+                  onClick={() => {
+                    episodeSelectAfterSeasonFetchRef.current = null;
+                    setSelectedSeason(s.season_number);
+                  }}
                   className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
                     selectedSeason === s.season_number
                       ? "bg-primary text-white shadow-md shadow-primary/20"
