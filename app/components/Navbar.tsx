@@ -130,7 +130,7 @@ export default function Navbar() {
     pathname.startsWith("/indian-series");
 
   return (
-    <header className="glass sticky top-0 z-50">
+    <header className="glass fixed inset-x-0 top-0 z-50">
       <div className="mx-auto max-w-[1400px] px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           {/* Logo */}
