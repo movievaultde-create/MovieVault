@@ -7,7 +7,9 @@ import HeroSection from "./components/HeroSection";
 import AiRecommendationPanel from "./components/AiRecommendationPanel";
 import MediaCard from "./components/MediaCard";
 import WatchlistButton from "./components/WatchlistButton";
+import { InGridAdCard } from "./components/ads/InGridAdCard";
 import { useLang } from "./context/LanguageContext";
+import { watchPath } from "./lib/watchUrl";
 
 interface BrowseItem {
   id: number;
@@ -19,6 +21,7 @@ interface BrowseItem {
 }
 
 interface BrowseData {
+  hotNow?: BrowseItem[];
   newReleases: BrowseItem[];
   nowPlaying: BrowseItem[];
   upcoming: BrowseItem[];
@@ -38,11 +41,12 @@ interface BrowseData {
 }
 
 export default function Home() {
-  const { t, isRtl, tmdbLang } = useLang();
+  const { t, isRtl, tmdbLang, isAr } = useLang();
   const [data, setData] = useState<BrowseData | null>(null);
 
   useEffect(() => {
-    fetch(`/api/browse?lang=${tmdbLang}`)
+    const day = new Date().toISOString().slice(0, 10);
+    fetch(`/api/browse?lang=${encodeURIComponent(tmdbLang)}&day=${day}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d && !d.error) setData(d); });
   }, [tmdbLang]);
@@ -52,7 +56,7 @@ export default function Home() {
       <HeroSection />
       <AiRecommendationPanel />
 
-      {/* New Releases (last 30 days) */}
+      {/* New Releases = curated hottest + latest (no duplicate section) */}
       {(data?.newReleases?.length ?? 0) > 0 && (
         <TrendingSection
           items={data!.newReleases}
@@ -160,6 +164,7 @@ function TrendingSection({
   isRtl: boolean;
   tvLabel: string;
 }) {
+  const { isAr, t } = useLang();
   const skeletons = Array.from({ length: 6 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -270,7 +275,7 @@ function TrendingSection({
             {items.map((item, i) => (
               <Link
                 key={`${item.type}-${item.id}`}
-                href={item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`}
+                href={watchPath(item.type, item.id, item.title)}
                 className="group block w-36 shrink-0 sm:w-44"
               >
                 <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-[var(--border-hover)] group-hover:shadow-md">
@@ -312,7 +317,9 @@ function TrendingSection({
                   </div>
                 </div>
 
-                <p className="mt-2 line-clamp-2 text-sm font-bold text-[var(--text-primary)]">{item.title}</p>
+                <p className="mt-2 line-clamp-2 text-sm font-bold text-[var(--text-primary)]">
+                  {isAr ? `${item.title} ${t("subtitled")}` : item.title}
+                </p>
                 <p className="mt-0.5 text-[11px] text-[var(--text-dim)]">{item.year}</p>
               </Link>
             ))}
@@ -372,9 +379,19 @@ function ContentSection({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {items.map((item) => (
-            <MediaCard key={`${item.type}-${item.id}`} item={item} tvLabel={tvLabel} />
-          ))}
+          {items.flatMap((item, idx) => {
+            const card = (
+              <MediaCard key={`${item.type}-${item.id}`} item={item} tvLabel={tvLabel} />
+            );
+            // One ad per homepage section max
+            if (idx === 5) {
+              return [
+                card,
+                <InGridAdCard key={`home-ad-${id}`} slotId={`home-${id}`} />,
+              ];
+            }
+            return [card];
+          })}
         </div>
       )}
     </section>

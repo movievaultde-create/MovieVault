@@ -1,4 +1,6 @@
-// HilltopAds Direct Link — Zone #6821389
+import { fireHilltopOfferClick } from "./hilltopOfferClick";
+
+// HilltopAds Direct Link — Zone #6821389 (legacy waterfall fallback)
 const HILLTOP_URL =
   "https://shiny-fortune.com/dim.FRzldWG/Npv/ZOGlUg/jeemU9rudZfUWl/kWPFTyY-4sMajXEHziO/D/kstFNvjvgtySMmTMMV5-Mfwv";
 
@@ -95,37 +97,15 @@ export function getAdUrl(): string {
   return url;
 }
 
-// Hard open for Start button to maximize reliability.
+// Hard open for Start button — Hilltop Direct + Popunder on real click.
 export function triggerStartAd(): boolean {
   if (vipMode) return false;
-
-  const adUrl = getStartAdForTier(getTrafficTier());
-  let opened = false;
-
   try {
-    const win = window.open(adUrl, "_blank", "noopener,noreferrer");
-    if (win) opened = true;
+    fireHilltopOfferClick("start-watching");
+    return true;
   } catch {
-    // try fallback below
+    return false;
   }
-
-  if (!opened) {
-    try {
-      const a = document.createElement("a");
-      a.href = adUrl;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      opened = true;
-    } catch {
-      // blocked
-    }
-  }
-
-  return opened;
 }
 
 export function triggerPopunder(options?: { force?: boolean }): boolean {

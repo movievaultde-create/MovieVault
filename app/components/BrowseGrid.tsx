@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useLang, type TranslationKey } from "../context/LanguageContext";
 import MediaCard from "./MediaCard";
+import { InGridAdCard } from "./ads/InGridAdCard";
 
 interface BrowseItem {
   id: number;
@@ -130,14 +131,27 @@ export default function BrowseGrid({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {items
               .filter((item) => item != null && Number.isFinite(item.id))
-              .map((item, idx) => (
-                <MediaCard
-                  key={`${item.type}-${item.id}-${idx}`}
-                  item={item}
-                  tvLabel={t("tvShow")}
-                  showStudio={Boolean(item.studio)}
-                />
-              ))}
+              .flatMap((item, idx) => {
+                const card = (
+                  <MediaCard
+                    key={`${item.type}-${item.id}-${idx}`}
+                    item={item}
+                    tvLabel={t("tvShow")}
+                    showStudio={Boolean(item.studio)}
+                  />
+                );
+                // Sparse: at most one ad per browse grid (after ~6th card)
+                if (idx === 5) {
+                  return [
+                    card,
+                    <InGridAdCard
+                      key={`browse-ad-${category}`}
+                      slotId={`browse-${category}`}
+                    />,
+                  ];
+                }
+                return [card];
+              })}
           </div>
         )}
 

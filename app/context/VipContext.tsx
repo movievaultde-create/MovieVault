@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { setVipMode } from "../lib/ads";
+import { setHilltopVipMuted } from "../lib/hilltopads";
 
 interface VipContextType {
   isVip: boolean;
@@ -28,6 +29,7 @@ export function VipProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setVipMode(isVip);
+    setHilltopVipMuted(isVip);
   }, [isVip]);
 
   async function verify(email: string): Promise<boolean> {

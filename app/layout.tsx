@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Tajawal, Cormorant_Garamond } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -7,6 +8,8 @@ import { AuthProvider } from "./context/AuthContext";
 import { WatchlistProvider } from "./context/WatchlistContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { AdChromeGuard } from "./components/ads/AdChromeGuard";
+import { InterstitialAdModal } from "./components/ads/InterstitialAdModal";
 import { SITE_URL } from "./lib/siteUrl";
 import "./globals.css";
 
@@ -27,6 +30,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   verification: {
     google: "vvzlyoUeRi-NsOvqsuiEfxmF-xu_57vNLItuAU8OVGM",
+    other: {
+      "7c34f1fda1289a48919ed9574d9f66c300246dec":
+        "7c34f1fda1289a48919ed9574d9f66c300246dec",
+    },
   },
   manifest: "/manifest.json",
   icons: {
@@ -46,37 +53,131 @@ export const metadata: Metadata = {
   description:
     "MovieVault — Watch the latest movies, TV series and anime in HD for free. Stream thousands of titles with subtitles in Arabic, English, German, French, Spanish & Turkish. شاهد أحدث الأفلام المترجمة والمسلسلات الحصرية والأنمي بجودة عالية HD مجاناً. Kostenlos Filme und Serien in HD ansehen. Regardez des films gratuits en HD. Películas gratis en línea. Ücretsiz film izle.",
   keywords: [
-    // Arabic العربية
-    "مشاهدة أفلام أونلاين", "أفلام مترجمة", "مسلسلات مجانية", "أحدث الأفلام 2026",
-    "سينما فور يو", "أفلام عربية", "مشاهدة أفلام اون لاين", "مسلسلات 2026",
-    "أنمي مترجم", "أفلام HD", "أفلام بجودة عالية", "مسلسلات تركية مترجمة",
-    "موقع أفلام عربي", "شاهد أفلام مجانا", "أفلام أكشن مترجمة", "مسلسلات حصرية",
-    "أفلام رعب مترجمة", "أفلام كوميدي", "مسلسلات كورية مترجمة", "أفلام هندية مترجمة",
-    "موقع مشاهدة مسلسلات", "أفلام جديدة 2026", "بديل ايجي بست", "بديل شاهد فور يو",
-    "افلام اون لاين بدون اعلانات", "مسلسلات رمضان 2026",
-    "بديل فاصل اعلاني", "بديل ماي سيما", "بديل عرب سيد", "بديل لاروز تي في",
-    "بديل اكوام", "بديل سيما كلوب", "بديل سيما لايت", "بديل موفيز لاند",
-    "افلام مصرية جديدة", "افلام خليجية", "مسلسلات سورية", "مسلسلات مصرية 2026",
-    "افلام اجنبية مترجمة 2026", "افلام رومانسية مترجمة", "افلام حرب مترجمة",
-    "مسلسلات اسيوية مترجمة", "مسلسلات يابانية مترجمة", "مسلسلات انمي مترجمة",
-    "تحميل افلام مجانا", "موقع افلام بدون تسجيل", "مسلسلات نتفلكس مجانا",
-    "افلام ديزني مترجمة", "افلام مارفل مترجمة", "مسلسلات HBO مترجمة",
-    "افلام 4K مترجمة", "موقع افلام سريع", "افلام بدون حجب",
+    // Arabic العربية — brands + core phrases first
+    "shahid4u",
+    "شاهد فور يو",
+    "شاهيد فور يو",
+    "ايجي ايد",
+    "ايجي ديد",
+    "egydead",
+    "افلام مترجمة",
+    "مسلسلات مترجمة",
+    "مشاهدة افلام مترجمة",
+    "مشاهدة مسلسلات مترجمة",
+    "افلام مترجمة اون لاين",
+    "مسلسلات مترجمة اون لاين",
+    "افلام مترجمة HD",
+    "مسلسلات مترجمة HD",
+    "افلام اجنبية مترجمة",
+    "مسلسلات اجنبية مترجمة",
+    "مشاهدة أفلام أونلاين",
+    "مسلسلات مجانية",
+    "أحدث الأفلام 2026",
+    "سينما فور يو",
+    "أفلام عربية",
+    "مشاهدة أفلام اون لاين",
+    "مسلسلات 2026",
+    "أنمي مترجم",
+    "أفلام HD",
+    "أفلام بجودة عالية",
+    "مسلسلات تركية مترجمة",
+    "موقع أفلام عربي",
+    "شاهد أفلام مجانا",
+    "أفلام أكشن مترجمة",
+    "مسلسلات حصرية",
+    "أفلام رعب مترجمة",
+    "أفلام كوميدي",
+    "مسلسلات كورية مترجمة",
+    "أفلام هندية مترجمة",
+    "موقع مشاهدة مسلسلات",
+    "أفلام جديدة 2026",
+    "بديل ايجي بست",
+    "بديل شاهد فور يو",
+    "بديل ايجي ديد",
+    "بديل shahid4u",
+    "افلام اون لاين بدون اعلانات",
+    "مسلسلات رمضان 2026",
+    "بديل فاصل اعلاني",
+    "بديل ماي سيما",
+    "بديل عرب سيد",
+    "بديل لاروز تي في",
+    "بديل اكوام",
+    "بديل سيما كلوب",
+    "بديل سيما لايت",
+    "بديل موفيز لاند",
+    "افلام مصرية جديدة",
+    "افلام خليجية",
+    "مسلسلات سورية",
+    "مسلسلات مصرية 2026",
+    "افلام اجنبية مترجمة 2026",
+    "افلام رومانسية مترجمة",
+    "افلام حرب مترجمة",
+    "مسلسلات اسيوية مترجمة",
+    "مسلسلات يابانية مترجمة",
+    "مسلسلات انمي مترجمة",
+    "تحميل افلام مجانا",
+    "موقع افلام بدون تسجيل",
+    "مسلسلات نتفلكس مجانا",
+    "افلام ديزني مترجمة",
+    "افلام مارفل مترجمة",
+    "مسلسلات HBO مترجمة",
+    "افلام 4K مترجمة",
+    "موقع افلام سريع",
+    "افلام بدون حجب",
 
     // English
-    "MovieVault", "watch movies free", "free cinema online", "stream movies HD",
-    "watch series online free", "anime subtitled free", "movies online free 2026",
-    "free movie streaming", "watch TV shows online", "best free movie site",
-    "watch movies without sign up", "free HD movies", "new movies 2026",
-    "watch anime online free", "movie streaming site", "top movies 2026",
-    "watch movies no account", "free streaming no ads", "123movies alternative",
-    "putlocker alternative", "fmovies alternative", "soap2day alternative",
-    "watch netflix free", "watch disney plus free", "watch HBO free",
-    "4K movies free", "watch bollywood movies online", "watch korean drama free",
-    "best movie website 2026", "free anime streaming site", "watch action movies free",
-    "watch horror movies online", "comedy movies free", "romance movies free",
-    "thriller movies streaming", "sci-fi movies free", "watch marvel movies free",
-    "new releases 2026 movies", "oscar movies 2026", "box office movies free",
+    "MovieVault",
+    "watch movies free",
+    "watch movies online free",
+    "free cinema online",
+    "stream movies HD",
+    "free movie streaming",
+    "movies with subtitles",
+    "watch movies with subtitles",
+    "subtitled movies online",
+    "watch series online free",
+    "watch TV shows online free",
+    "TV series with subtitles",
+    "watch series with subtitles",
+    "anime subtitled free",
+    "movies online free 2026",
+    "free HD movies",
+    "new movies 2026",
+    "best free movie site",
+    "watch movies without sign up",
+    "movie streaming site",
+    "top movies 2026",
+    "watch movies no account",
+    "free streaming no ads",
+    "123movies alternative",
+    "putlocker alternative",
+    "fmovies alternative",
+    "soap2day alternative",
+    "watch netflix free",
+    "watch disney plus free",
+    "watch HBO free",
+    "4K movies free",
+    "watch bollywood movies online",
+    "watch korean drama free",
+    "best movie website 2026",
+    "free anime streaming site",
+    "watch action movies free",
+    "watch horror movies online",
+    "comedy movies free",
+    "romance movies free",
+    "thriller movies streaming",
+    "sci-fi movies free",
+    "watch marvel movies free",
+    "new releases 2026 movies",
+    "oscar movies 2026",
+    "box office movies free",
+    "full movies online free",
+    "stream TV shows HD",
+    "watch anime online free",
+    "download movies free HD",
+    "movies in HD online",
+    "free subtitled movies",
+    "free subtitled series",
 
     // German Deutsch
     "Filme kostenlos ansehen", "Kostenlose Filme online", "Serien streamen kostenlos",
@@ -268,9 +369,15 @@ export default function RootLayout({
           <AuthProvider>
             <WatchlistProvider>
               <VipProvider>
-                <Navbar />
+                <div data-site-chrome="1">
+                  <Navbar />
+                </div>
                 <main>{children}</main>
                 <Footer />
+                <AdChromeGuard />
+                <Suspense fallback={null}>
+                  <InterstitialAdModal />
+                </Suspense>
                 <Analytics />
               </VipProvider>
             </WatchlistProvider>

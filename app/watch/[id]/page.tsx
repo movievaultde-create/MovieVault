@@ -10,7 +10,11 @@ import MediaCard from "../../components/MediaCard";
 import WatchHeroCard from "../../components/WatchHeroCard";
 import WatchDetailTabs from "../../components/WatchDetailTabs";
 import WatchStreamTabs from "../../components/WatchStreamTabs";
+import { WatchAdLocker } from "../../components/ads/WatchAdLocker";
+import { WatchServerLoadingAd } from "../../components/ads/WatchServerLoadingAd";
+import { WatchPageBottomAds } from "../../components/ads/WatchPageBottomAds";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
+import { parseWatchParam } from "../../lib/watchUrl";
 
 interface CastMember {
   name: string;
@@ -131,7 +135,8 @@ export default function WatchPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id: rawId } = use(params);
+  const id = parseWatchParam(rawId);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
   const SERVERS = useMemo(() => buildMovieServers(id, subLang), [id, subLang]);
@@ -273,32 +278,30 @@ export default function WatchPage({
             recommendedLabel={t("recommended")}
           />
           <div className="player-shell">
-            <div className="relative aspect-video w-full">
-              {currentServer.playerType === "direct" && currentServer.directUrl ? (
-                <VideoPlayer src={currentServer.directUrl} />
-              ) : (
-                <iframe
-                  key={`${activeServer}-${activeMirror}-${id}-${subLang}`}
-                  src={currentServerUrl}
-                  onError={handleIframeError}
-                  className="absolute inset-0 h-full w-full border-0"
-                  title="Movie player"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              )}
-            </div>
+            {switching ? (
+              <WatchServerLoadingAd lockKey={`movie-load-${id}-${activeServer}`} />
+            ) : (
+              <WatchAdLocker lockKey={`movie-${id}-${activeServer}`}>
+                <div className="relative aspect-video w-full">
+                  {currentServer.playerType === "direct" && currentServer.directUrl ? (
+                    <VideoPlayer src={currentServer.directUrl} />
+                  ) : (
+                    <iframe
+                      key={`${activeServer}-${activeMirror}-${id}-${subLang}`}
+                      src={currentServerUrl}
+                      onError={handleIframeError}
+                      className="absolute inset-0 h-full w-full border-0"
+                      title="Movie player"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  )}
+                </div>
+              </WatchAdLocker>
+            )}
           </div>
         </div>
-
-        {/* Checking server status */}
-        {switching && (
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-            {t("checkingServer")}
-          </div>
-        )}
 
         {/* Server busy toast */}
         {busyMsg && (
@@ -306,6 +309,8 @@ export default function WatchPage({
             <span className="me-2">⏳</span>{t("serverBusy")}
           </div>
         )}
+
+        <WatchPageBottomAds />
 
         {/* Download */}
         <DownloadSection id={id} t={t} isAr={isAr} />

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Advertisement</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 300px;
+        height: 250px;
+        overflow: hidden;
+        background: #0a0a10;
+      }
+      #slot {
+        width: 300px;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="slot"></div>
+    <script>
+      (function () {
+        var params = new URLSearchParams(location.search);
+        var src = params.get("src") || "";
+        if (!src) return;
+        if (src.indexOf("//") === 0) src = "https:" + src;
+        if (!/^https:\/\//i.test(src)) return;
+        var s = document.createElement("script");
+        s.async = true;
+        s.referrerPolicy = "no-referrer-when-downgrade";
+        s.src = src;
+        document.getElementById("slot").appendChild(s);
+      })();
+    </script>
+  </body>
+</html>

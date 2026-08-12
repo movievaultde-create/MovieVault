@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
+import { watchPath } from "../lib/watchUrl";
 
 interface SearchResult {
   id: number;
@@ -17,7 +18,7 @@ interface SearchResult {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { lang, setLang, t, isRtl, tmdbLang } = useLang();
+  const { lang, setLang, t, isRtl, tmdbLang, isAr } = useLang();
   const [searchOpen, setSearchOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -128,6 +129,7 @@ export default function Navbar() {
 
   return (
     <header
+      data-site-chrome="1"
       className={`nav-shell fixed inset-x-0 top-0 z-50 transition-transform duration-300 ease-out ${
         navHidden ? "-translate-y-full pointer-events-none" : "translate-y-0"
       }`}
@@ -271,7 +273,7 @@ export default function Navbar() {
                           {results.map((item) => (
                             <Link
                               key={`${item.type}-${item.id}`}
-                              href={item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`}
+                              href={watchPath(item.type, item.id, item.title)}
                               onClick={handleResultClick}
                               className="flex items-center gap-3.5 px-4 py-3 transition-colors hover:bg-[var(--nav-accent-soft)]"
                             >
@@ -285,7 +287,9 @@ export default function Navbar() {
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-base font-bold text-[var(--nav-text)]">{item.title}</p>
+                                <p className="truncate text-base font-bold text-[var(--nav-text)]">
+                                  {isAr ? `${item.title} ${t("subtitled")}` : item.title}
+                                </p>
                                 <div className="mt-1 flex items-center gap-2 text-xs text-[var(--nav-dim)]">
                                   <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${item.type === "movie" ? "bg-[var(--nav-accent-soft)] text-[var(--nav-accent)]" : "bg-white/10 text-sky-300"}`}>
                                     {item.type === "movie" ? t("movie") : t("tvShow")}
