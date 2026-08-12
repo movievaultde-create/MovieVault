@@ -2,42 +2,86 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLang } from "../context/LanguageContext";
 
-const FEATURED_MOVIE = {
+interface HeroItem {
+  id: number;
+  type: "movie" | "tv";
+  title: string;
+  overview: string;
+  year: string;
+  rating: string;
+  runtime: string | null;
+  genre: string;
+  backdrop: string;
+  poster: string | null;
+}
+
+const FALLBACK: HeroItem = {
   id: 693134,
+  type: "movie",
   title: "Dune: Part Two",
-  titleAr: "كثبان رملية: الجزء الثاني",
-  year: 2024,
-  rating: "8.6",
-  duration: "166 min",
-  genre: "Sci-Fi, Adventure",
-  genreAr: "خيال علمي، مغامرة",
-  description:
+  overview:
     "Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
-  descriptionAr:
-    "يتحد بول أتريدس مع الفريمن في مسار حرب انتقامية ضد المتآمرين الذين دمروا عائلته.",
+  year: "2024",
+  rating: "8.6",
+  runtime: "166 min",
+  genre: "Sci-Fi, Adventure",
   backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
   poster: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
 };
 
 export default function HeroSection() {
-  const { t, isAr } = useLang();
+  const { t, tmdbLang } = useLang();
+  const [hero, setHero] = useState<HeroItem>(FALLBACK);
+  const [loaded, setLoaded] = useState(false);
 
-  const title = isAr ? FEATURED_MOVIE.titleAr : FEATURED_MOVIE.title;
-  const subtitle = isAr ? FEATURED_MOVIE.title : "";
-  const genre = isAr ? FEATURED_MOVIE.genreAr : FEATURED_MOVIE.genre;
-  const description = isAr ? FEATURED_MOVIE.descriptionAr : FEATURED_MOVIE.description;
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/hero?lang=${encodeURIComponent(tmdbLang)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.backdrop || !data?.id) return;
+        setHero({
+          id: data.id,
+          type: data.type === "tv" ? "tv" : "movie",
+          title: data.title || FALLBACK.title,
+          overview: data.overview || FALLBACK.overview,
+          year: data.year || FALLBACK.year,
+          rating: data.rating || FALLBACK.rating,
+          runtime: data.runtime ?? null,
+          genre: data.genre || "",
+          backdrop: data.backdrop,
+          poster: data.poster ?? null,
+        });
+      })
+      .catch(() => {
+        /* keep fallback */
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tmdbLang]);
+
+  const href = hero.type === "tv" ? `/watch/tv/${hero.id}` : `/watch/${hero.id}`;
+
+  const metaParts = [hero.runtime, hero.genre, "HD"].filter(Boolean);
 
   return (
     <section className="relative h-[70vh] min-h-[420px] w-full overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src={FEATURED_MOVIE.backdrop}
-          alt={FEATURED_MOVIE.title}
+          key={hero.backdrop}
+          src={hero.backdrop}
+          alt={hero.title}
           fill
-          className="object-cover object-top opacity-90"
+          className={`object-cover object-top transition-opacity duration-500 ${loaded ? "opacity-90" : "opacity-70"}`}
           priority
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-base)]/85 via-[var(--bg-base)]/25 to-transparent rtl:bg-gradient-to-l" />
@@ -50,44 +94,50 @@ export default function HeroSection() {
               <span className="rounded-md bg-[var(--accent)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
                 {t("featured")}
               </span>
-              <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-muted)]">
-                {FEATURED_MOVIE.year}
-              </span>
-              <span className="flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-bold text-[var(--rating)]">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-                </svg>
-                {FEATURED_MOVIE.rating}
-              </span>
+              {hero.year && (
+                <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-muted)]">
+                  {hero.year}
+                </span>
+              )}
+              {parseFloat(hero.rating) > 0 && (
+                <span className="flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-bold text-[var(--rating)]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
+                  </svg>
+                  {hero.rating}
+                </span>
+              )}
             </div>
 
             <h1 className="mb-2 text-4xl font-black leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl md:text-6xl">
-              {title}
+              {hero.title}
             </h1>
-            {subtitle && (
-              <p className="mb-4 text-lg font-medium text-[var(--text-muted)]">{subtitle}</p>
+
+            {metaParts.length > 0 && (
+              <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-dim)]">
+                {metaParts.map((part, i) => (
+                  <span key={`${part}-${i}`} className="contents">
+                    {i > 0 && <span className="h-1 w-1 rounded-full bg-[var(--text-dim)]" />}
+                    <span>{part}</span>
+                  </span>
+                ))}
+              </div>
             )}
 
-            <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-dim)]">
-              <span>{FEATURED_MOVIE.duration}</span>
-              <span className="h-1 w-1 rounded-full bg-[var(--text-dim)]" />
-              <span>{genre}</span>
-              <span className="h-1 w-1 rounded-full bg-[var(--text-dim)]" />
-              <span>HD</span>
-            </div>
-
-            <p className="mb-8 max-w-lg text-sm leading-relaxed text-[var(--text-muted)] sm:text-base">
-              {description}
-            </p>
+            {hero.overview && (
+              <p className="mb-8 max-w-lg line-clamp-3 text-sm leading-relaxed text-[var(--text-muted)] sm:text-base">
+                {hero.overview}
+              </p>
+            )}
 
             <div className="flex flex-wrap gap-3">
-              <Link href={`/watch/${FEATURED_MOVIE.id}`} className="btn-primary">
+              <Link href={href} className="btn-primary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5,3 19,12 5,21" />
                 </svg>
                 {t("watchNow")}
               </Link>
-              <Link href={`/watch/${FEATURED_MOVIE.id}`} className="btn-ghost">
+              <Link href={href} className="btn-ghost">
                 <svg
                   width="18"
                   height="18"
