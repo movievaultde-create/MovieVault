@@ -4,10 +4,9 @@ import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLang, LANGUAGES, type TranslationKey } from "../../../context/LanguageContext";
-import { triggerPopunder, getAdUrl } from "../../../lib/ads";
-import VideoAdOverlay from "../../../components/VideoAdOverlay";
 import VideoPlayer from "../../../components/VideoPlayer";
 import FollowNotificationButton from "../../../components/FollowNotificationButton";
+import MediaCard from "../../../components/MediaCard";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
@@ -157,32 +156,15 @@ export default function WatchTVPage({
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [activeServer, setActiveServer] = useState(0);
   const [activeMirror, setActiveMirror] = useState(0);
-  const [adActive, setAdActive] = useState(true);
-  const [adSession, setAdSession] = useState(0);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
   const [busyMsg, setBusyMsg] = useState(false);
   const [switching, setSwitching] = useState(false);
   const episodeSelectAfterSeasonFetchRef = useRef<number | "last" | null>(null);
 
-  // Always require start-ad when opening another show.
   useEffect(() => {
     setActiveServer(0);
-    setAdActive(true);
-    setAdSession((v) => v + 1);
   }, [id]);
-
-  // Handle bfcache restore so start-ad appears again after returning.
-  useEffect(() => {
-    const onPageShow = (event: PageTransitionEvent) => {
-      if (!event.persisted) return;
-      setActiveServer(0);
-      setAdActive(true);
-      setAdSession((v) => v + 1);
-    };
-    window.addEventListener("pageshow", onPageShow);
-    return () => window.removeEventListener("pageshow", onPageShow);
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -254,9 +236,7 @@ export default function WatchTVPage({
 
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
-    setAdActive(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    triggerPopunder();
   };
 
   const sortedEpisodes = useMemo(
@@ -303,9 +283,7 @@ export default function WatchTVPage({
       playEpisode(episodeNum);
       return;
     }
-    setAdActive(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    triggerPopunder();
     if (seasonNum === selectedSeason && episodeNum === "last") {
       if (sortedEpisodes.length > 0) {
         setSelectedEpisode(sortedEpisodes[sortedEpisodes.length - 1].episode_number);
@@ -318,14 +296,14 @@ export default function WatchTVPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pt-20 pb-16">
+      <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
         <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
-          <div className="mb-4 h-4 w-32 animate-shimmer rounded" />
-          <div className="aspect-video w-full animate-shimmer rounded-xl" />
-          <div className="mt-6 h-8 w-64 animate-shimmer rounded" />
+          <div className="mb-4 h-4 w-32 rounded skeleton" />
+          <div className="aspect-video w-full rounded-xl skeleton" />
+          <div className="mt-6 h-8 w-64 rounded skeleton" />
           <div className="mt-4 flex gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 w-28 animate-shimmer rounded-lg" />
+              <div key={i} className="h-10 w-28 rounded-lg skeleton" />
             ))}
           </div>
         </div>
@@ -334,12 +312,12 @@ export default function WatchTVPage({
   }
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-16">
+    <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
         {/* Back */}
         <Link
           href="/"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-text-secondary transition-colors hover:text-white"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
         >
           <svg
             width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
@@ -352,10 +330,10 @@ export default function WatchTVPage({
 
         {/* Now Playing Badge */}
         {show && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
-            <span className="font-bold text-white">{show.name}</span>
-            <span className="text-text-muted">—</span>
-            <span className="text-primary">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
+            <span className="font-bold text-[var(--text-primary)]">{show.name}</span>
+            <span className="text-[var(--text-dim)]">—</span>
+            <span className="text-[var(--accent)]">
               {t("season")} {selectedSeason} · {t("episode")} {selectedEpisode}
             </span>
           </div>
@@ -375,34 +353,28 @@ export default function WatchTVPage({
         )}
 
         {/* Player */}
-        <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
+        <div className="player-shell">
           <div className="relative aspect-video w-full">
-            {!adActive && (
-              currentServer.playerType === "direct" && currentServer.directUrl ? (
-                <VideoPlayer src={currentServer.directUrl} />
-              ) : (
-                <iframe
-                  key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
-                  src={currentServerUrl}
-                  onError={handleIframeError}
-                  className="absolute inset-0 h-full w-full"
-                  allowFullScreen
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  referrerPolicy="no-referrer"
-                />
-              )
+            {currentServer.playerType === "direct" && currentServer.directUrl ? (
+              <VideoPlayer src={currentServer.directUrl} />
+            ) : (
+              <iframe
+                key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
+                src={currentServerUrl}
+                onError={handleIframeError}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture"
+                referrerPolicy="no-referrer"
+              />
             )}
-            <VideoAdOverlay
-              key={`${id}-${activeServer}-${selectedSeason}-${selectedEpisode}-${adSession}`}
-              onPhaseChange={(isAd) => setAdActive(isAd)}
-            />
           </div>
         </div>
 
         {/* Prev / Next episode — outside player so it stays visible (not lost in black frame) */}
         {show && show.seasons.length > 0 && (
           <div
-            className="mt-4 flex flex-wrap items-stretch justify-between gap-3 rounded-xl border-2 border-primary/35 bg-surface px-3 py-3 shadow-lg shadow-black/20 sm:px-4"
+            className="mt-4 flex flex-wrap items-stretch justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-3 shadow-sm sm:px-4"
             dir={isRtl ? "rtl" : "ltr"}
             role="navigation"
             aria-label={t("episodes")}
@@ -411,10 +383,10 @@ export default function WatchTVPage({
               type="button"
               disabled={epLoading || !episodeNav.prev}
               onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
-              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
+              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
                 !epLoading && episodeNav.prev
-                  ? "border-surface-border bg-surface-light text-white hover:border-primary/60 hover:bg-primary/10"
-                  : "cursor-not-allowed border-surface-border/50 text-text-muted opacity-40"
+                  ? "btn-ghost !rounded-xl"
+                  : "cursor-not-allowed border-[var(--border)] text-[var(--text-dim)] opacity-40"
               }`}
             >
               <svg
@@ -435,10 +407,10 @@ export default function WatchTVPage({
               type="button"
               disabled={epLoading || !episodeNav.next}
               onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
-              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
+              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
                 !epLoading && episodeNav.next
-                  ? "border-primary bg-primary/20 text-primary hover:bg-primary/30"
-                  : "cursor-not-allowed border-surface-border/50 text-text-muted opacity-40"
+                  ? "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                  : "cursor-not-allowed border-[var(--border)] text-[var(--text-dim)] opacity-40"
               }`}
             >
               <span className="truncate">{t("nextEpisode")}</span>
@@ -459,25 +431,20 @@ export default function WatchTVPage({
         )}
 
         {/* Subtitle language indicator */}
-        <div className="mt-3 flex items-center gap-2 text-sm text-text-muted">
+        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
           <span>{t("animeTranslation")}:</span>
-          <span className="rounded bg-surface-light px-2 py-1 font-medium text-white">{subLabel}</span>
+          <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 font-medium text-[var(--text-primary)]">{subLabel}</span>
         </div>
 
         {/* Servers */}
         <div className="mt-5">
-          <span className="mb-3 block text-sm font-medium text-text-muted">{t("servers")}</span>
+          <span className="mb-3 block text-sm font-medium text-[var(--text-muted)]">{t("servers")}</span>
           <div className="flex flex-wrap gap-2">
             {servers.map((server, i) => {
               const isActive = activeServer === i;
               const handleServerClick = () => {
                 if (isActive) return;
-                triggerPopunder();
-                if (server.premium) {
-                  setTimeout(() => triggerPopunder(), 1500);
-                }
                 setBusyMsg(false);
-                setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);
@@ -491,21 +458,19 @@ export default function WatchTVPage({
                   <button
                     key={i}
                     onClick={handleServerClick}
-                    className={`relative flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-bold transition-all ${
-                      isActive
-                        ? "border-amber-400 bg-gradient-to-r from-amber-500/15 to-primary/15 text-amber-300 shadow-lg shadow-amber-500/10"
-                        : "border-amber-500/40 bg-amber-500/5 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-md hover:shadow-amber-500/10"
+                    className={`relative flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
+                      isActive ? "server-btn-adfree" : "server-btn-default border-[var(--accent)]/40 text-[var(--accent)]"
                     }`}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-amber-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--accent)]">
                       <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
                     </svg>
                     {server.name}
-                    <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                    <span className="rounded bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent)]">
                       {server.label}
                     </span>
                     {!isActive && (
-                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-amber-500 px-1.5 text-[8px] font-bold text-black">
+                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-[var(--accent)] px-1.5 text-[8px] font-bold text-white">
                         {t("recommended")}
                       </span>
                     )}
@@ -517,10 +482,8 @@ export default function WatchTVPage({
                 <button
                   key={i}
                   onClick={handleServerClick}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                      : "border-surface-border bg-surface text-text-secondary hover:border-primary/40 hover:text-white"
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                    isActive ? "server-btn-active" : "server-btn-default"
                   }`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -528,7 +491,7 @@ export default function WatchTVPage({
                     <path d="M8 21h8M12 17v4" />
                   </svg>
                   {server.name}
-                  <span className="rounded bg-surface-light px-1.5 py-0.5 text-[10px] text-text-muted">{server.label}</span>
+                  <span className="rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-dim)]">{server.label}</span>
                 </button>
               );
             })}
@@ -537,15 +500,15 @@ export default function WatchTVPage({
 
         {/* Checking server status */}
         {switching && (
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-300">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
             {t("checkingServer")}
           </div>
         )}
 
         {/* Server busy toast */}
         {busyMsg && (
-          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-300">
+          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
             <span className="me-2">⏳</span>{t("serverBusy")}
           </div>
         )}
@@ -555,8 +518,8 @@ export default function WatchTVPage({
           <div className="mt-8">
             {/* Header with season dropdown */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-white">
-                <div className="h-6 w-1 rounded-full bg-primary" />
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
+                <div className="h-6 w-1 rounded-full bg-[var(--accent)]" />
                 {t("episodes")}
               </h2>
               <div className="relative">
@@ -566,7 +529,7 @@ export default function WatchTVPage({
                     episodeSelectAfterSeasonFetchRef.current = null;
                     setSelectedSeason(Number(e.target.value));
                   }}
-                  className="appearance-none rounded-lg border border-surface-border bg-surface px-4 py-2.5 pe-10 text-sm font-medium text-white outline-none transition-colors hover:border-primary/40 focus:border-primary"
+                  className="input-field appearance-none pe-10 text-sm font-medium"
                 >
                   {show.seasons.map((s) => (
                     <option key={s.season_number} value={s.season_number}>
@@ -574,7 +537,7 @@ export default function WatchTVPage({
                     </option>
                   ))}
                 </select>
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-text-muted">
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)]">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </div>
@@ -591,8 +554,8 @@ export default function WatchTVPage({
                   }}
                   className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
                     selectedSeason === s.season_number
-                      ? "bg-primary text-white shadow-md shadow-primary/20"
-                      : "bg-surface text-text-muted hover:bg-surface-light hover:text-white"
+                      ? "bg-[var(--accent)] text-white shadow-md"
+                      : "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   S{s.season_number}
@@ -604,7 +567,7 @@ export default function WatchTVPage({
             {epLoading ? (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-28 w-full animate-shimmer rounded-xl" />
+                  <div key={i} className="h-28 w-full rounded-xl skeleton" />
                 ))}
               </div>
             ) : (
@@ -617,46 +580,42 @@ export default function WatchTVPage({
                       onClick={() => playEpisode(ep.episode_number)}
                       className={`group flex w-full items-start gap-3 overflow-hidden rounded-xl border p-0 text-start transition-all active:scale-[0.98] ${
                         isActive
-                          ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                          : "border-surface-border bg-surface hover:border-primary/30 hover:bg-surface-light"
+                          ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/30"
+                          : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-surface)]"
                       }`}
                     >
-                      {/* Thumbnail */}
-                      <div className="relative h-24 w-40 shrink-0 overflow-hidden bg-surface-light sm:h-28 sm:w-48">
+                      <div className="relative h-24 w-40 shrink-0 overflow-hidden bg-[var(--bg-elevated)] sm:h-28 sm:w-48">
                         {ep.still ? (
                           <Image src={ep.still} alt={ep.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 640px) 160px, 192px" />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface to-surface-light text-text-muted">
+                          <div className="flex h-full w-full items-center justify-center bg-[var(--bg-surface)] text-[var(--text-dim)]">
                             <span className="text-2xl font-black opacity-20">{ep.episode_number}</span>
                           </div>
                         )}
-                        {/* Play overlay */}
-                        <div className={`absolute inset-0 flex items-center justify-center transition-all ${isActive ? "bg-primary/30" : "bg-black/0 group-hover:bg-black/40"}`}>
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isActive ? "scale-100 bg-primary text-white" : "scale-0 bg-white/80 text-black group-hover:scale-100"}`}>
+                        <div className={`absolute inset-0 flex items-center justify-center transition-all ${isActive ? "bg-[var(--accent)]/30" : "bg-black/0 group-hover:bg-black/20"}`}>
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isActive ? "scale-100 bg-[var(--accent)] text-white" : "scale-0 bg-white/90 text-[var(--text-primary)] group-hover:scale-100"}`}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                               <polygon points="5,3 19,12 5,21" />
                             </svg>
                           </div>
                         </div>
-                        {/* Episode number badge */}
-                        <span className={`absolute start-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold ${isActive ? "bg-primary text-white" : "bg-black/60 text-white/80"}`}>
+                        <span className={`absolute start-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold ${isActive ? "bg-[var(--accent)] text-white" : "bg-black/55 text-white/90"}`}>
                           {ep.episode_number}
                         </span>
                       </div>
 
-                      {/* Info */}
                       <div className="flex min-w-0 flex-1 flex-col justify-center py-2.5 pe-3">
-                        <p className={`truncate text-sm font-semibold ${isActive ? "text-primary" : "text-white"}`}>
+                        <p className={`truncate text-sm font-semibold ${isActive ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
                           {ep.name}
                         </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
                           {ep.runtime && <span>{ep.runtime} {t("minuteShort")}</span>}
                           {ep.vote_average > 0 && (
-                            <span className="flex items-center gap-0.5 text-yellow-400">★ {ep.vote_average.toFixed(1)}</span>
+                            <span className="flex items-center gap-0.5 text-[var(--rating)]">★ {ep.vote_average.toFixed(1)}</span>
                           )}
                         </div>
                         {ep.overview && (
-                          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-text-muted">
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
                             {ep.overview}
                           </p>
                         )}
@@ -693,10 +652,10 @@ function TrailerSection({
     "?autoplay=1&mute=1&playsinline=1&rel=0";
 
   return (
-    <section className="mb-5 overflow-hidden rounded-xl border border-surface-border bg-surface/40">
-      <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
-        <div className="h-5 w-1 rounded-full bg-primary" />
-        <h2 className="text-sm font-bold text-white sm:text-base">
+    <section className="mb-5 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
+      <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+        <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
+        <h2 className="text-sm font-bold text-[var(--text-primary)] sm:text-base">
           {isAr ? "تريلر المسلسل" : "Official Trailer"}
         </h2>
       </div>
@@ -756,17 +715,17 @@ function RelatedShowsSection({
   };
 
   return (
-    <section className="mt-10 overflow-hidden rounded-2xl border border-surface-border bg-surface/40 p-4 sm:p-5">
+    <section className="mt-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-base font-bold text-white sm:text-lg">
-          <div className="h-5 w-1 rounded-full bg-primary" />
+        <h2 className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)] sm:text-lg">
+          <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
           {isAr ? "مسلسلات مشابهة" : "More Like This"}
         </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => scrollByAmount("prev")}
             disabled={atStart}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white transition hover:border-white/30 disabled:opacity-35"
+            className="btn-ghost !h-9 !w-9 !rounded-full !p-0 disabled:opacity-35"
             aria-label={isAr ? "السابق" : "Previous"}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -776,7 +735,7 @@ function RelatedShowsSection({
           <button
             onClick={() => scrollByAmount("next")}
             disabled={atEnd}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition hover:bg-primary/20 disabled:opacity-35"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] transition hover:bg-[var(--accent-soft)] disabled:opacity-35"
             aria-label={isAr ? "التالي" : "Next"}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -788,41 +747,12 @@ function RelatedShowsSection({
 
       <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {related.map((item) => (
-          <Link
+          <MediaCard
             key={item.id}
-            href={`/watch/tv/${item.id}`}
-            onClick={() => triggerPopunder()}
-            className="group w-[165px] shrink-0 overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30 sm:w-[180px]"
-          >
-            <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-              {item.poster ? (
-                <Image
-                  src={item.poster}
-                  alt={item.title}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 220px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-text-muted">
-                  <svg width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8M12 17v4" />
-                  </svg>
-                </div>
-              )}
-              <span className="absolute end-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400">
-                ★ {item.rating}
-              </span>
-            </div>
-
-            <div className="p-2.5">
-              <p className="truncate text-[13px] font-semibold text-white transition-colors group-hover:text-primary">
-                {item.title}
-              </p>
-              <p className="mt-1 text-[11px] text-text-muted">{item.year || "—"}</p>
-            </div>
-          </Link>
+            item={item}
+            tvLabel={isAr ? "مسلسل" : "TV"}
+            className="w-[165px] shrink-0 sm:w-[180px]"
+          />
         ))}
       </div>
     </section>
@@ -843,22 +773,22 @@ function ShowInfo({
       {/* Title + Rating */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">{show.name}</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">{show.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {show.genres.slice(0, 3).map((g) => (
-              <span key={g} className="rounded-full border border-surface-border bg-surface px-3 py-1 text-xs text-text-secondary">
+              <span key={g} className="rounded-full border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1 text-xs text-[var(--text-muted)]">
                 {g}
               </span>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#facc15" className="shrink-0">
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--rating)" className="shrink-0">
             <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
           </svg>
           <div>
-            <p className="text-lg font-bold leading-none text-yellow-400">{show.vote_average.toFixed(1)}</p>
-            <p className="text-[10px] text-text-muted">{show.vote_count.toLocaleString()} {t("votes")}</p>
+            <p className="text-lg font-bold leading-none text-[var(--rating)]">{show.vote_average.toFixed(1)}</p>
+            <p className="text-[10px] text-[var(--text-dim)]">{show.vote_count.toLocaleString()} {t("votes")}</p>
           </div>
         </div>
       </div>
@@ -867,7 +797,7 @@ function ShowInfo({
       <div className="flex gap-6">
         {show.poster_path && (
           <div className="hidden shrink-0 sm:block">
-            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-surface-border shadow-lg">
+            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-[var(--border)] shadow-lg">
               <Image src={show.poster_path} alt={show.name} fill className="object-cover" sizes="192px" />
             </div>
           </div>
@@ -875,11 +805,11 @@ function ShowInfo({
         <div className="flex-1">
           {show.overview && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-white">
-                <div className="h-5 w-1 rounded-full bg-primary" />
+              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+                <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
                 {t("movieStory")}
               </h2>
-              <p className="text-sm leading-7 text-text-secondary">{show.overview}</p>
+              <p className="text-sm leading-7 text-[var(--text-muted)]">{show.overview}</p>
             </div>
           )}
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -893,18 +823,18 @@ function ShowInfo({
       {/* Cast */}
       {show.cast.length > 0 && (
         <div>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-white">
-            <div className="h-5 w-1 rounded-full bg-primary" />
+          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
             {t("cast")}
           </h2>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {show.cast.map((person) => (
               <div key={person.name} className="flex w-24 shrink-0 flex-col items-center gap-2">
-                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-surface-border bg-surface">
+                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-[var(--border)] bg-[var(--bg-surface)]">
                   {person.photo ? (
                     <Image src={person.photo} alt={person.name} fill className="object-cover" sizes="80px" />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-text-muted">
+                    <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
                       <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
@@ -913,8 +843,8 @@ function ShowInfo({
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium leading-tight text-white">{person.name}</p>
-                  <p className="mt-0.5 text-[10px] leading-tight text-text-muted">{person.character}</p>
+                  <p className="text-xs font-medium leading-tight text-[var(--text-primary)]">{person.name}</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-[var(--text-dim)]">{person.character}</p>
                 </div>
               </div>
             ))}
@@ -927,10 +857,10 @@ function ShowInfo({
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-surface-border bg-surface/50 p-3">
+    <div className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3">
       <div className="min-w-0">
-        <p className="text-[11px] font-medium text-text-muted">{label}</p>
-        <p className="truncate text-sm text-white">{value || "—"}</p>
+        <p className="text-[11px] font-medium text-[var(--text-dim)]">{label}</p>
+        <p className="truncate text-sm text-[var(--text-primary)]">{value || "—"}</p>
       </div>
     </div>
   );

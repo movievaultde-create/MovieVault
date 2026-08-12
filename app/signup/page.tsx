@@ -84,40 +84,40 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 pt-24 pb-10">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-surface/70 p-7 shadow-2xl">
-        <h1 className="text-3xl font-extrabold text-white">{text.title}</h1>
-        <p className="mt-2 text-sm text-text-secondary">{text.subtitle}</p>
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)] px-4 pt-24 pb-10">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--bg-card)] p-7 shadow-lg">
+        <h1 className="text-3xl font-extrabold text-[var(--text-primary)]">{text.title}</h1>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">{text.subtitle}</p>
         {referralCode && (
-          <p className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-300">
+          <p className="mt-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-600">
             {text.inviteTag} · {referralCode}
           </p>
         )}
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-text-muted">{text.name}</label>
+            <label className="mb-1.5 block text-xs font-semibold text-[var(--text-dim)]">{text.name}</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition focus:border-primary/40"
+              className="input-field"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-text-muted">{text.email}</label>
+            <label className="mb-1.5 block text-xs font-semibold text-[var(--text-dim)]">{text.email}</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition focus:border-primary/40"
+              className="input-field"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-text-muted">{text.password}</label>
+            <label className="mb-1.5 block text-xs font-semibold text-[var(--text-dim)]">{text.password}</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -125,13 +125,13 @@ export default function SignupPage() {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 pe-11 text-sm text-white outline-none transition focus:border-primary/40"
+                className="input-field pe-11"
                 dir="ltr"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-white"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] transition hover:text-[var(--text-primary)]"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
@@ -148,20 +148,20 @@ export default function SignupPage() {
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-text-muted">{text.confirm}</label>
+            <label className="mb-1.5 block text-xs font-semibold text-[var(--text-dim)]">{text.confirm}</label>
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 pe-11 text-sm text-white outline-none transition focus:border-primary/40"
+                className="input-field pe-11"
                 dir="ltr"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((v) => !v)}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-white"
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] transition hover:text-[var(--text-primary)]"
                 aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
                 {showConfirmPassword ? (
@@ -178,20 +178,16 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white transition hover:bg-primary-hover disabled:opacity-60"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
             {loading ? "..." : text.submit}
           </button>
         </form>
 
-        <p className="mt-5 text-sm text-text-secondary">
+        <p className="mt-5 text-sm text-[var(--text-muted)]">
           {text.haveAccount}{" "}
-          <Link href="/login" className="font-bold text-primary hover:text-primary-hover">
+          <Link href="/login" className="font-bold text-[var(--accent)] hover:text-[var(--accent-bright)]">
             {text.login}
           </Link>
         </p>

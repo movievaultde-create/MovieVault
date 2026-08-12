@@ -120,10 +120,10 @@ export default function SocialBar() {
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"
       }`}
     >
-      <div className="relative w-72 overflow-hidden rounded-xl border border-surface-border bg-surface shadow-2xl shadow-black/40 sm:w-80">
+      <div className="relative w-72 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-lg sm:w-80">
         <button
           onClick={(e) => { e.stopPropagation(); setVisible(false); }}
-          className="absolute end-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-surface-light text-text-muted transition-colors hover:bg-surface-border hover:text-white"
+          className="absolute end-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-surface)] text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
         >
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -131,19 +131,19 @@ export default function SocialBar() {
         </button>
 
         <div onClick={handleClick} className="flex cursor-pointer items-start gap-3 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xl">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-xl">
             {notif?.icon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-white">{notif?.title[lang]}</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-text-secondary">{notif?.body[lang]}</p>
-            <span className="mt-2 inline-block text-[10px] font-medium text-primary">{CTA_TEXT[lang]}</span>
+            <p className="text-sm font-bold text-[var(--text-primary)]">{notif?.title[lang]}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{notif?.body[lang]}</p>
+            <span className="mt-2 inline-block text-[10px] font-medium text-[var(--accent)]">{CTA_TEXT[lang]}</span>
           </div>
         </div>
 
         {visible && (
-          <div className="h-0.5 w-full bg-surface-light">
-            <div className="h-full bg-primary" style={{ animation: "shrink-bar 8s linear forwards" }} />
+          <div className="h-0.5 w-full bg-[var(--bg-elevated)]">
+            <div className="h-full bg-[var(--accent)]" style={{ animation: "shrink-bar 8s linear forwards" }} />
           </div>
         )}
 

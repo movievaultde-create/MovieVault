@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LanguageContext";
 import { useWatchlist } from "../context/WatchlistContext";
-import WatchlistButton from "../components/WatchlistButton";
+import MediaCard from "../components/MediaCard";
 
 export default function WatchlistPage() {
-  const { isAr } = useLang();
+  const { isAr, t } = useLang();
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { items, ready, clearWatchlist } = useWatchlist();
 
@@ -31,13 +30,10 @@ export default function WatchlistPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 pt-24">
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-surface/70 p-7 text-center shadow-2xl">
-          <h1 className="text-2xl font-bold text-white">{text.needLogin}</h1>
-          <Link
-            href="/login"
-            className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary-hover"
-          >
+      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)] px-4 pt-24">
+        <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--bg-card)] p-7 text-center shadow-lg">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{text.needLogin}</h1>
+          <Link href="/login" className="btn-primary mt-5 inline-flex">
             {text.goLogin}
           </Link>
         </div>
@@ -46,15 +42,15 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 pb-16 pt-24">
+    <div className="min-h-screen bg-[var(--bg-base)] px-4 pb-16 pt-24">
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-extrabold text-white">{text.title}</h1>
-            <p className="mt-1 text-sm text-text-secondary">{text.subtitle}</p>
+            <h1 className="text-3xl font-extrabold text-[var(--text-primary)]">{text.title}</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">{text.subtitle}</p>
           </div>
           <div className="flex items-center gap-2.5">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-text-muted">
+            <span className="rounded-full border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1 text-xs text-[var(--text-dim)]">
               {items.length} {text.count}
             </span>
             {items.length > 0 && (
@@ -63,7 +59,7 @@ export default function WatchlistPage() {
                 onClick={() => {
                   void clearWatchlist();
                 }}
-                className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/20"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-500/20"
               >
                 {text.clear}
               </button>
@@ -72,52 +68,16 @@ export default function WatchlistPage() {
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-surface/60 p-10 text-center">
-            <p className="text-lg font-semibold text-white">{text.empty}</p>
-            <Link
-              href="/"
-              className="mt-4 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary-hover"
-            >
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-10 text-center">
+            <p className="text-lg font-semibold text-[var(--text-primary)]">{text.empty}</p>
+            <Link href="/" className="btn-primary mt-4 inline-flex">
               {text.goHome}
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {items.map((item) => (
-              <Link
-                key={`${item.type}-${item.id}`}
-                href={item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`}
-                className="group relative flex flex-col overflow-hidden rounded-lg bg-surface transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-black/40"
-              >
-                <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-                  {item.poster ? (
-                    <Image
-                      src={item.poster}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-text-muted">N/A</div>
-                  )}
-
-                  <WatchlistButton item={item} />
-
-                  <span className="absolute end-2 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400 backdrop-blur-sm">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-                    </svg>
-                    {item.rating}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col gap-1 p-3">
-                  <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-primary">
-                    {item.title}
-                  </h3>
-                  <span className="text-[11px] text-text-muted">{item.year}</span>
-                </div>
-              </Link>
+              <MediaCard key={`${item.type}-${item.id}`} item={item} tvLabel={t("tvShow")} />
             ))}
           </div>
         )}

@@ -81,8 +81,8 @@ export default function FollowNotificationButton({
       onClick={() => void toggle()}
       className={`rounded-xl border px-4 py-2 text-xs font-bold transition ${
         following
-          ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300"
-          : "border-white/15 bg-white/5 text-white hover:bg-white/10"
+          ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-600"
+          : "btn-ghost !rounded-xl !px-4 !py-2 !text-xs"
       }`}
     >
       {loading ? "..." : following ? text.unfollow : text.follow}

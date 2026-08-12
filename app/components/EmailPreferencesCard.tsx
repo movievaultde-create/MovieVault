@@ -77,9 +77,9 @@ export default function EmailPreferencesCard({
   };
 
   return (
-    <div className="mt-6 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-4">
-      <h2 className="text-base font-bold text-cyan-300">{text.title}</h2>
-      <p className="mt-1 text-xs text-cyan-100/90">{text.subtitle}</p>
+    <div className="mt-6 rounded-2xl border border-[var(--accent)]/25 bg-[var(--accent-soft)] p-4">
+      <h2 className="text-base font-bold text-[var(--accent)]">{text.title}</h2>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">{text.subtitle}</p>
 
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
         <ToggleRow
@@ -107,7 +107,7 @@ export default function EmailPreferencesCard({
           offLabel={text.off}
         />
       </div>
-      <p className="mt-2 text-[11px] text-cyan-100/70">{loading ? "..." : text.saved}</p>
+      <p className="mt-2 text-[11px] text-[var(--text-dim)]">{loading ? "..." : text.saved}</p>
     </div>
   );
 }
@@ -117,8 +117,6 @@ function ToggleRow({
   value,
   disabled,
   onChange,
-  onLabel,
-  offLabel,
 }: {
   label: string;
   value: boolean;
@@ -128,17 +126,23 @@ function ToggleRow({
   offLabel: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3">
-      <p className="text-xs font-semibold text-text-muted">{label}</p>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-3">
+      <p className="text-xs font-semibold text-[var(--text-dim)]">{label}</p>
       <button
         type="button"
+        role="switch"
+        aria-checked={value}
         disabled={disabled}
         onClick={() => onChange(!value)}
-        className={`mt-2 rounded-lg px-3 py-1.5 text-xs font-bold ${
-          value ? "bg-cyan-400 text-black" : "bg-white/10 text-white"
-        } disabled:opacity-60`}
+        className={`mt-2 flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:ring-offset-2 disabled:opacity-60 ${
+          value ? "bg-[var(--accent)]" : "bg-[var(--bg-elevated)]"
+        }`}
       >
-        {value ? onLabel : offLabel}
+        <span
+          className={`h-5 w-5 shrink-0 rounded-full bg-white shadow-md transition-transform duration-200 ${
+            value ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
       </button>
     </div>
   );

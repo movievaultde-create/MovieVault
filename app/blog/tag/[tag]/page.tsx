@@ -7,8 +7,9 @@ import {
   formatBlogDate,
   humanizeBlogTag,
 } from "@/app/lib/blog";
+import { SITE_URL } from "@/app/lib/siteUrl";
 
-const BASE_URL = "https://movie-vault.dev";
+const BASE_URL = SITE_URL;
 
 type BlogTagPageProps = {
   params: Promise<{ tag: string }>;
@@ -60,11 +61,11 @@ export default async function BlogTagPage({ params }: BlogTagPageProps) {
   const label = humanizeBlogTag(tag);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-30 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-white/10 bg-surface/70 p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Topic Cluster</p>
-        <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">{label}</h1>
-        <p className="mt-3 text-sm text-gray-300 sm:text-base">
+    <div className="mx-auto w-full max-w-5xl bg-[var(--bg-base)] px-4 pb-20 pt-24 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-[var(--border)] bg-[var(--bg-card)] p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">Topic Cluster</p>
+        <h1 className="mt-2 text-3xl font-black text-[var(--text-primary)] sm:text-4xl">{label}</h1>
+        <p className="mt-3 text-sm text-[var(--text-muted)] sm:text-base">
           Articles under this topic are internally linked to strengthen SEO relevance and user navigation.
         </p>
       </div>
@@ -73,16 +74,16 @@ export default async function BlogTagPage({ params }: BlogTagPageProps) {
         {posts.map((post) => (
           <article
             key={post.slug}
-            className="rounded-2xl border border-white/10 bg-black/30 p-5 transition-colors hover:border-primary/40"
+            className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 transition-colors hover:border-[var(--accent)]/40"
           >
-            <p className="text-xs uppercase tracking-wide text-primary">{post.category}</p>
-            <h2 className="mt-2 text-xl font-bold text-white">
-              <Link href={`/blog/${post.slug}`} className="hover:text-primary">
+            <p className="text-xs uppercase tracking-wide text-[var(--accent)]">{post.category}</p>
+            <h2 className="mt-2 text-xl font-bold text-[var(--text-primary)]">
+              <Link href={`/blog/${post.slug}`} className="hover:text-[var(--accent)]">
                 {post.title}
               </Link>
             </h2>
-            <p className="mt-2 text-sm text-gray-300">{post.excerpt}</p>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-400">
+            <p className="mt-2 text-sm text-[var(--text-muted)]">{post.excerpt}</p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[var(--text-dim)]">
               <span>{formatBlogDate(post.publishedAt)}</span>
               <span>{post.readingMinutes} min read</span>
             </div>

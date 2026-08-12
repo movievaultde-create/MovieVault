@@ -3,11 +3,10 @@
 import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLang, type TranslationKey } from "../../context/LanguageContext";
-import { triggerPopunder, getAdUrl } from "../../lib/ads";
-import VideoAdOverlay from "../../components/VideoAdOverlay";
+import { useLang, LANGUAGES, type TranslationKey } from "../../context/LanguageContext";
 import VideoPlayer from "../../components/VideoPlayer";
 import FollowNotificationButton from "../../components/FollowNotificationButton";
+import MediaCard from "../../components/MediaCard";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
 
 interface CastMember {
@@ -65,6 +64,7 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       url: withLangParams(`https://autoembed.co/movie/tmdb/${id}`, subLang),
       mirrors: [
         withLangParams(`https://autoembed.cc/movie/tmdb/${id}`, subLang),
+        withLangParams(`https://2embed.cc/embed/tmdb/movie?id=${id}`, subLang),
       ],
     },
     {
@@ -75,6 +75,7 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       url: withLangParams(`https://vidsrc.to/embed/movie/${id}`, subLang),
       mirrors: [
         withLangParams(`https://vidsrc.su/embed/movie/${id}`, subLang),
+        withLangParams(`https://vidsrc.xyz/embed/movie/${id}`, subLang),
       ],
     },
     {
@@ -85,6 +86,7 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       url: withLangParams(`https://vidsrc.cc/v2/embed/movie/${id}`, subLang),
       mirrors: [
         withLangParams(`https://vidsrc.net/embed/movie/${id}`, subLang),
+        withLangParams(`https://vidsrc.xyz/embed/movie/${id}`, subLang),
       ],
     },
     {
@@ -139,6 +141,7 @@ export default function WatchPage({
   const { id } = use(params);
   const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
+  const subLabel = LANGUAGES.find((l) => l.code === lang)?.label ?? "English";
   const SERVERS = useMemo(() => buildMovieServers(id, subLang), [id, subLang]);
   const [activeServer, setActiveServer] = useState(0);
   const [activeMirror, setActiveMirror] = useState(0);
@@ -148,8 +151,6 @@ export default function WatchPage({
     [currentServer]
   );
   const currentServerUrl = currentServerUrls[Math.min(activeMirror, currentServerUrls.length - 1)] ?? currentServer.url;
-  const [adActive, setAdActive] = useState(true);
-  const [adSession, setAdSession] = useState(0);
   const [movie, setMovie] = useState<MovieData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -171,25 +172,9 @@ export default function WatchPage({
     setTimeout(() => setBusyMsg(false), 3500);
   };
 
-  // Always require start-ad when opening a movie page.
   useEffect(() => {
     setActiveServer(0);
-    setAdActive(true);
-    setAdSession((v) => v + 1);
   }, [id]);
-
-  // Firefox/Chromium may restore pages from bfcache (same component state).
-  // Force a fresh ad gate when coming back to this page.
-  useEffect(() => {
-    const onPageShow = (event: PageTransitionEvent) => {
-      if (!event.persisted) return;
-      setActiveServer(0);
-      setAdActive(true);
-      setAdSession((v) => v + 1);
-    };
-    window.addEventListener("pageshow", onPageShow);
-    return () => window.removeEventListener("pageshow", onPageShow);
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -212,12 +197,12 @@ export default function WatchPage({
   }, [id, tmdbLang]);
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-16">
+    <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
         {/* Back Button */}
         <Link
           href="/"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-text-secondary transition-colors hover:text-white"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
         >
           <svg
             width="16"
@@ -247,44 +232,39 @@ export default function WatchPage({
         )}
 
         {/* Player */}
-        <div className="relative overflow-hidden rounded-xl border border-surface-border bg-black shadow-2xl">
+        <div className="player-shell">
           <div className="relative aspect-video w-full">
-            {!adActive && (
-              currentServer.playerType === "direct" && currentServer.directUrl ? (
-                <VideoPlayer src={currentServer.directUrl} />
-              ) : (
-                <iframe
-                  key={`${activeServer}-${activeMirror}-${id}`}
-                  src={currentServerUrl}
-                  onError={handleIframeError}
-                  className="absolute inset-0 h-full w-full"
-                  allowFullScreen
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  referrerPolicy="no-referrer"
-                />
-              )
+            {currentServer.playerType === "direct" && currentServer.directUrl ? (
+              <VideoPlayer src={currentServer.directUrl} />
+            ) : (
+              <iframe
+                key={`${activeServer}-${activeMirror}-${id}-${subLang}`}
+                src={currentServerUrl}
+                onError={handleIframeError}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture"
+                referrerPolicy="no-referrer"
+              />
             )}
-            <VideoAdOverlay
-              key={`${id}-${activeServer}-${adSession}`}
-              onPhaseChange={(isAd) => setAdActive(isAd)}
-            />
           </div>
+        </div>
+
+        {/* Subtitle language indicator */}
+        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
+          <span>{t("animeTranslation")}:</span>
+          <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 font-medium text-[var(--text-primary)]">{subLabel}</span>
         </div>
 
         {/* Servers */}
         <div className="mt-5">
-          <span className="mb-3 block text-sm font-medium text-text-muted">{t("servers")}</span>
+          <span className="mb-3 block text-sm font-medium text-[var(--text-muted)]">{t("servers")}</span>
           <div className="flex flex-wrap gap-2">
             {SERVERS.map((server, i) => {
               const isActive = activeServer === i;
               const handleClick = () => {
                 if (isActive) return;
-                triggerPopunder();
-                if (server.premium) {
-                  setTimeout(() => triggerPopunder(), 1500);
-                }
                 setBusyMsg(false);
-                setAdActive(true);
                 setSwitching(true);
                 setTimeout(() => {
                   setActiveServer(i);
@@ -298,21 +278,19 @@ export default function WatchPage({
                   <button
                     key={i}
                     onClick={handleClick}
-                    className={`relative flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-bold transition-all ${
-                      isActive
-                        ? "border-amber-400 bg-gradient-to-r from-amber-500/15 to-primary/15 text-amber-300 shadow-lg shadow-amber-500/10"
-                        : "border-amber-500/40 bg-amber-500/5 text-amber-400 hover:border-amber-400 hover:bg-amber-500/10 hover:shadow-md hover:shadow-amber-500/10"
+                    className={`relative flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
+                      isActive ? "server-btn-adfree" : "server-btn-default border-[var(--accent)]/40 text-[var(--accent)]"
                     }`}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-amber-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--accent)]">
                       <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
                     </svg>
                     {server.name}
-                    <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                    <span className="rounded bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent)]">
                       {server.label}
                     </span>
                     {!isActive && (
-                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-amber-500 px-1.5 text-[8px] font-bold text-black">
+                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-[var(--accent)] px-1.5 text-[8px] font-bold text-white">
                         {t("recommended")}
                       </span>
                     )}
@@ -324,10 +302,8 @@ export default function WatchPage({
                 <button
                   key={i}
                   onClick={handleClick}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
-                      : "border-surface-border bg-surface text-text-secondary hover:border-primary/40 hover:text-white"
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                    isActive ? "server-btn-active" : "server-btn-default"
                   }`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -335,7 +311,7 @@ export default function WatchPage({
                     <path d="M8 21h8M12 17v4" />
                   </svg>
                   {server.name}
-                  <span className="rounded bg-surface-light px-1.5 py-0.5 text-[10px] text-text-muted">{server.label}</span>
+                  <span className="rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-dim)]">{server.label}</span>
                 </button>
               );
             })}
@@ -344,15 +320,15 @@ export default function WatchPage({
 
         {/* Checking server status */}
         {switching && (
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-300">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
             {t("checkingServer")}
           </div>
         )}
 
         {/* Server busy toast */}
         {busyMsg && (
-          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-300">
+          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
             <span className="me-2">⏳</span>{t("serverBusy")}
           </div>
         )}
@@ -388,10 +364,10 @@ function TrailerSection({
     "?autoplay=1&mute=1&playsinline=1&rel=0";
 
   return (
-    <section className="mb-5 overflow-hidden rounded-xl border border-surface-border bg-surface/40">
-      <div className="flex items-center gap-2 border-b border-surface-border px-4 py-3">
-        <div className="h-5 w-1 rounded-full bg-primary" />
-        <h2 className="text-sm font-bold text-white sm:text-base">
+    <section className="mb-5 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
+      <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+        <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
+        <h2 className="text-sm font-bold text-[var(--text-primary)] sm:text-base">
           {isAr ? "التريلر الرسمي" : "Official Trailer"}
         </h2>
       </div>
@@ -451,17 +427,17 @@ function RelatedMoviesSection({
   };
 
   return (
-    <section className="mt-10 overflow-hidden rounded-2xl border border-surface-border bg-surface/40 p-4 sm:p-5">
+    <section className="mt-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-base font-bold text-white sm:text-lg">
-          <div className="h-5 w-1 rounded-full bg-primary" />
+        <h2 className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)] sm:text-lg">
+          <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
           {isAr ? "مشابهات للمشاهدة" : "More Like This"}
         </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => scrollByAmount("prev")}
             disabled={atStart}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white transition hover:border-white/30 disabled:opacity-35"
+            className="btn-ghost !h-9 !w-9 !rounded-full !p-0 disabled:opacity-35"
             aria-label={isAr ? "السابق" : "Previous"}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -471,7 +447,7 @@ function RelatedMoviesSection({
           <button
             onClick={() => scrollByAmount("next")}
             disabled={atEnd}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition hover:bg-primary/20 disabled:opacity-35"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] transition hover:bg-[var(--accent-soft)] disabled:opacity-35"
             aria-label={isAr ? "التالي" : "Next"}
           >
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -483,41 +459,12 @@ function RelatedMoviesSection({
 
       <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {related.map((item) => (
-          <Link
+          <MediaCard
             key={item.id}
-            href={`/watch/${item.id}`}
-            onClick={() => triggerPopunder()}
-            className="group w-[165px] shrink-0 overflow-hidden rounded-lg border border-surface-border bg-surface transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg hover:shadow-black/30 sm:w-[180px]"
-          >
-            <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-              {item.poster ? (
-                <Image
-                  src={item.poster}
-                  alt={item.title}
-                  fill
-                  sizes="(max-width: 768px) 50vw, 220px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-text-muted">
-                  <svg width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8M12 17v4" />
-                  </svg>
-                </div>
-              )}
-              <span className="absolute end-2 top-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400">
-                ★ {item.rating}
-              </span>
-            </div>
-
-            <div className="p-2.5">
-              <p className="truncate text-[13px] font-semibold text-white transition-colors group-hover:text-primary">
-                {item.title}
-              </p>
-              <p className="mt-1 text-[11px] text-text-muted">{item.year || "—"}</p>
-            </div>
-          </Link>
+            item={item}
+            tvLabel={isAr ? "مسلسل" : "TV"}
+            className="w-[165px] shrink-0 sm:w-[180px]"
+          />
         ))}
       </div>
     </section>
@@ -549,7 +496,6 @@ function DownloadSection({
   }, [state, countdown]);
 
   const handleStart = () => {
-    window.open(getAdUrl(), "_blank", "noopener,noreferrer");
     setState("counting");
     setCountdown(15);
   };
@@ -558,9 +504,8 @@ function DownloadSection({
   const progress = ((15 - countdown) / 15) * 100;
 
   return (
-    <div className="mt-6 overflow-hidden rounded-xl border border-surface-border bg-surface">
-      {/* Header */}
-      <div className="flex items-center gap-3 border-b border-surface-border bg-surface-light/50 px-5 py-3">
+    <div className="mt-6 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
+      <div className="flex items-center gap-3 border-b border-[var(--border)] bg-[var(--bg-surface)] px-5 py-3">
         <svg
           width="18"
           height="18"
@@ -568,24 +513,24 @@ function DownloadSection({
           stroke="currentColor"
           strokeWidth="2"
           viewBox="0 0 24 24"
-          className="text-primary"
+          className="text-[var(--accent)]"
         >
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
         </svg>
-        <h3 className="text-sm font-bold text-white">{t("downloadMovie")}</h3>
+        <h3 className="text-sm font-bold text-[var(--text-primary)]">{t("downloadMovie")}</h3>
       </div>
 
       <div className="p-5">
         {state === "idle" && (
           <div className="flex flex-col items-center gap-4 py-2 sm:flex-row sm:justify-between">
             <div className="text-center sm:text-start">
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-[var(--text-muted)]">
                 {t("downloadNote")}
               </p>
             </div>
             <button
               onClick={handleStart}
-              className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover hover:shadow-primary/30 active:scale-[0.97]"
+              className="btn-primary flex shrink-0 items-center gap-2"
             >
               <svg
                 width="16"
@@ -612,7 +557,7 @@ function DownloadSection({
                   cy="50"
                   r="42"
                   fill="none"
-                  stroke="var(--surface-border)"
+                  stroke="var(--border)"
                   strokeWidth="6"
                 />
                 <circle
@@ -620,7 +565,7 @@ function DownloadSection({
                   cy="50"
                   r="42"
                   fill="none"
-                  stroke="var(--primary)"
+                  stroke="var(--accent)"
                   strokeWidth="6"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 42}`}
@@ -628,18 +573,18 @@ function DownloadSection({
                   className="transition-all duration-1000 ease-linear"
                 />
               </svg>
-              <span className="text-2xl font-bold tabular-nums text-white">
+              <span className="text-2xl font-bold tabular-nums text-[var(--text-primary)]">
                 {countdown}
               </span>
             </div>
 
             <div className="text-center">
-              <p className="text-sm font-medium text-white">
+              <p className="text-sm font-medium text-[var(--text-primary)]">
                 {t("downloadWait")}{" "}
-                <span className="text-primary">{countdown}</span>{" "}
+                <span className="text-[var(--accent)]">{countdown}</span>{" "}
                 {t("downloadSeconds")}
               </p>
-              <p className="mt-1 text-xs text-text-muted">
+              <p className="mt-1 text-xs text-[var(--text-dim)]">
                 {isAr
                   ? "جاري تجهيز رابط التحميل..."
                   : "Preparing your download link..."}
@@ -647,9 +592,9 @@ function DownloadSection({
             </div>
 
             {/* Progress Bar */}
-            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-surface-light">
+            <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-[var(--bg-elevated)]">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-1000 ease-linear"
+                className="h-full rounded-full bg-[var(--accent)] transition-all duration-1000 ease-linear"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -714,15 +659,15 @@ function MovieDetails({
   if (loading) {
     return (
       <div className="mt-8 space-y-4">
-        <div className="h-6 w-48 animate-shimmer rounded" />
+        <div className="h-6 w-48 rounded skeleton" />
         <div className="flex gap-6">
-          <div className="hidden h-72 w-48 shrink-0 animate-shimmer rounded-lg sm:block" />
+          <div className="hidden h-72 w-48 shrink-0 rounded-lg skeleton sm:block" />
           <div className="flex-1 space-y-3">
-            <div className="h-4 w-full animate-shimmer rounded" />
-            <div className="h-4 w-5/6 animate-shimmer rounded" />
-            <div className="h-4 w-4/6 animate-shimmer rounded" />
-            <div className="mt-6 h-4 w-3/6 animate-shimmer rounded" />
-            <div className="h-4 w-2/6 animate-shimmer rounded" />
+            <div className="h-4 w-full rounded skeleton" />
+            <div className="h-4 w-5/6 rounded skeleton" />
+            <div className="h-4 w-4/6 rounded skeleton" />
+            <div className="mt-6 h-4 w-3/6 rounded skeleton" />
+            <div className="h-4 w-2/6 rounded skeleton" />
           </div>
         </div>
       </div>
@@ -731,7 +676,7 @@ function MovieDetails({
 
   if (error) {
     return (
-      <div className="mt-8 rounded-xl border border-surface-border bg-surface p-6 text-center">
+      <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
         <svg
           width="32"
           height="32"
@@ -739,15 +684,15 @@ function MovieDetails({
           stroke="currentColor"
           strokeWidth="1.5"
           viewBox="0 0 24 24"
-          className="mx-auto mb-3 text-text-muted"
+          className="mx-auto mb-3 text-[var(--text-dim)]"
         >
           <circle cx="12" cy="12" r="10" />
           <path d="M12 8v4M12 16h.01" />
         </svg>
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-[var(--text-muted)]">
           {error.includes("not configured") ? t("noApiKey") : t("errorLoading")}
         </p>
-        <p className="mt-1 text-xs text-text-muted/60">
+        <p className="mt-1 text-xs text-[var(--text-dim)]">
           {error.includes("not configured")
             ? isAr
               ? "أضف TMDB_API_KEY في ملف .env.local"
@@ -803,35 +748,35 @@ function MovieDetails({
       {/* Title + Rating */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">
             {movie.title}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {movie.genres.slice(0, 3).map((g) => (
               <span
                 key={g}
-                className="rounded-full border border-surface-border bg-surface px-3 py-1 text-xs text-text-secondary"
+                className="rounded-full border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1 text-xs text-[var(--text-muted)]"
               >
                 {g}
               </span>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5">
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5">
           <svg
             width="22"
             height="22"
             viewBox="0 0 24 24"
-            fill="#facc15"
+            fill="var(--rating)"
             className="shrink-0"
           >
             <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
           </svg>
           <div>
-            <p className="text-lg font-bold leading-none text-yellow-400">
+            <p className="text-lg font-bold leading-none text-[var(--rating)]">
               {movie.vote_average.toFixed(1)}
             </p>
-            <p className="text-[10px] text-text-muted">
+            <p className="text-[10px] text-[var(--text-dim)]">
               {movie.vote_count.toLocaleString()} {t("votes")}
             </p>
           </div>
@@ -843,7 +788,7 @@ function MovieDetails({
         {/* Poster */}
         {movie.poster_path && (
           <div className="hidden shrink-0 sm:block">
-            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-surface-border shadow-lg">
+            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-[var(--border)] shadow-lg">
               <Image
                 src={movie.poster_path}
                 alt={movie.title}
@@ -859,11 +804,11 @@ function MovieDetails({
           {/* Synopsis */}
           {movie.overview && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-white">
-                <div className="h-5 w-1 rounded-full bg-primary" />
+              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+                <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
                 {t("movieStory")}
               </h2>
-              <p className="text-sm leading-7 text-text-secondary">
+              <p className="text-sm leading-7 text-[var(--text-muted)]">
                 {movie.overview}
               </p>
             </div>
@@ -871,15 +816,15 @@ function MovieDetails({
 
           {/* Info Grid */}
           <div>
-            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-white">
-              <div className="h-5 w-1 rounded-full bg-primary" />
+            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+              <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
               {t("movieInfo")}
             </h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {infoItems.map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-start gap-3 rounded-lg border border-surface-border bg-surface/50 p-3"
+                  className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3"
                 >
                   <svg
                     width="16"
@@ -888,16 +833,16 @@ function MovieDetails({
                     stroke="currentColor"
                     strokeWidth="1.5"
                     viewBox="0 0 24 24"
-                    className="mt-0.5 shrink-0 text-primary"
+                    className="mt-0.5 shrink-0 text-[var(--accent)]"
                   >
                     {item.icon}
                     {item.iconExtra}
                   </svg>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-medium text-text-muted">
+                    <p className="text-[11px] font-medium text-[var(--text-dim)]">
                       {item.label}
                     </p>
-                    <p className="truncate text-sm text-white">{item.value}</p>
+                    <p className="truncate text-sm text-[var(--text-primary)]">{item.value}</p>
                   </div>
                 </div>
               ))}
@@ -909,8 +854,8 @@ function MovieDetails({
       {/* Cast */}
       {movie.cast.length > 0 && (
         <div>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-white">
-            <div className="h-5 w-1 rounded-full bg-primary" />
+          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
             {t("cast")}
           </h2>
           <div className="flex gap-3 overflow-x-auto pb-2">
@@ -919,7 +864,7 @@ function MovieDetails({
                 key={person.name}
                 className="flex w-24 shrink-0 flex-col items-center gap-2"
               >
-                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-surface-border bg-surface">
+                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-[var(--border)] bg-[var(--bg-surface)]">
                   {person.photo ? (
                     <Image
                       src={person.photo}
@@ -929,7 +874,7 @@ function MovieDetails({
                       sizes="80px"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-text-muted">
+                    <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
                       <svg
                         width="28"
                         height="28"
@@ -945,10 +890,10 @@ function MovieDetails({
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium leading-tight text-white">
+                  <p className="text-xs font-medium leading-tight text-[var(--text-primary)]">
                     {person.name}
                   </p>
-                  <p className="mt-0.5 text-[10px] leading-tight text-text-muted">
+                  <p className="mt-0.5 text-[10px] leading-tight text-[var(--text-dim)]">
                     {person.character}
                   </p>
                 </div>

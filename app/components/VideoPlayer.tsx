@@ -78,11 +78,11 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
   }, [src, vastUrl]);
 
   return (
-    <div ref={containerRef} className="relative w-full overflow-hidden rounded-xl bg-black">
+    <div ref={containerRef} className="player-shell relative w-full">
       <div data-vjs-player>
         <video
           ref={videoRef}
-          className="video-js vjs-big-play-centered vjs-theme-dark"
+          className="video-js vjs-big-play-centered"
           playsInline
           poster={poster}
         >
@@ -91,7 +91,7 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
       </div>
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--accent)] border-t-transparent" />
         </div>
       )}
     </div>

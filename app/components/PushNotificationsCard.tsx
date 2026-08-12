@@ -100,13 +100,13 @@ export default function PushNotificationsCard({ email, isAr }: { email: string; 
   };
 
   return (
-    <div className="mt-6 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4">
-      <h2 className="text-base font-bold text-blue-300">{text.title}</h2>
-      <p className="mt-1 text-xs text-blue-100/90">{text.subtitle}</p>
+    <div className="mt-6 rounded-2xl border border-[var(--accent)]/25 bg-[var(--accent-soft)] p-4">
+      <h2 className="text-base font-bold text-[var(--accent)]">{text.title}</h2>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">{text.subtitle}</p>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        {!supported && <span className="text-xs text-yellow-300">{text.notSupported}</span>}
-        {supported && permission === "denied" && <span className="text-xs text-red-300">{text.blocked}</span>}
+        {!supported && <span className="text-xs text-yellow-700">{text.notSupported}</span>}
+        {supported && permission === "denied" && <span className="text-xs text-red-500">{text.blocked}</span>}
         {supported && permission !== "denied" && (
           <>
             {subscribed ? (
@@ -114,7 +114,7 @@ export default function PushNotificationsCard({ email, isAr }: { email: string; 
                 type="button"
                 onClick={() => void disable()}
                 disabled={loading}
-                className="rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white hover:bg-white/20 disabled:opacity-60"
+                className="btn-ghost !px-4 !py-2 !text-xs disabled:opacity-60"
               >
                 {loading ? "..." : text.disable}
               </button>
@@ -123,12 +123,12 @@ export default function PushNotificationsCard({ email, isAr }: { email: string; 
                 type="button"
                 onClick={() => void enable()}
                 disabled={loading}
-                className="rounded-xl bg-blue-500 px-4 py-2 text-xs font-bold text-black hover:bg-blue-400 disabled:opacity-60"
+                className="btn-primary !px-4 !py-2 !text-xs disabled:opacity-60"
               >
                 {loading ? "..." : text.enable}
               </button>
             )}
-            {subscribed && <span className="text-xs text-emerald-300">{text.enabled}</span>}
+            {subscribed && <span className="text-xs text-emerald-600">{text.enabled}</span>}
           </>
         )}
       </div>

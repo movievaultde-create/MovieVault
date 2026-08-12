@@ -45,7 +45,7 @@ export default function WatchlistButton({
       className={`absolute start-2 bottom-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-sm transition ${
         saved
           ? "border-red-400/60 bg-red-500/85 text-white"
-          : "border-white/30 bg-black/60 text-white hover:bg-black/80"
+          : "border-[var(--border)] bg-[var(--bg-card)]/90 text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
       } ${className}`}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">

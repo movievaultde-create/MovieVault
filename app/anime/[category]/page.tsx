@@ -33,37 +33,32 @@ export default function AnimeCategoryPage({ params }: { params: Promise<{ catego
   const isInfoPage = normalized === "servers" || normalized === "translation";
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-16">
+    <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-        {/* Back to Anime categories */}
         <div className="mb-6 flex items-center gap-3">
-          <Link
-            href="/anime"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-border text-text-secondary transition-colors hover:bg-surface-light hover:text-white"
-          >
+          <Link href="/anime" className="btn-ghost !h-9 !w-9 !rounded-full !p-0">
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </Link>
-          <div className="h-8 w-1 rounded-full bg-primary" />
-          <h1 className="text-2xl font-bold text-white sm:text-3xl">
+          <div className="h-8 w-1 rounded-full bg-[var(--accent)]" />
+          <h1 className="text-2xl font-black text-[var(--text-primary)] sm:text-3xl">
             {isValid ? t(config.titleKey) : t("allAnime")}
           </h1>
         </div>
 
-        {/* Info banner for Servers / Translation / 18+ */}
         {normalized === "servers" && (
-          <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-sm text-white">
+          <div className="mb-6 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-5 py-4 text-sm text-[var(--text-primary)]">
             <p className={isAr ? "text-right" : "text-left"}>{t("animeServersInfo")}</p>
           </div>
         )}
         {normalized === "translation" && (
-          <div className="mb-6 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-sm text-white">
+          <div className="mb-6 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-5 py-4 text-sm text-[var(--text-primary)]">
             <p className={isAr ? "text-right" : "text-left"}>{t("animeTranslationInfo")}</p>
           </div>
         )}
         {normalized === "18" && (
-          <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-200">
+          <div className="mb-6 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-5 py-4 text-sm text-[var(--accent)]">
             <p className={isAr ? "text-right" : "text-left"}>{t("anime18Info")}</p>
           </div>
         )}

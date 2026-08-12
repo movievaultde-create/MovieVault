@@ -255,9 +255,8 @@ export default function VipCelebration() {
       style={{ willChange: "transform, opacity" }}
     >
       <div
-        className="relative w-[280px] overflow-hidden rounded-2xl border border-amber-500/25 shadow-2xl sm:w-[310px]"
+        className="relative w-[280px] overflow-hidden rounded-2xl border border-[var(--accent)]/25 bg-[var(--bg-card)] shadow-lg sm:w-[310px]"
         style={{
-          background: "linear-gradient(135deg, #1a1408 0%, #0d0d0d 100%)",
           animation: visible ? "vip-pulse 2s ease-in-out infinite" : "none",
         }}
       >
@@ -278,7 +277,7 @@ export default function VipCelebration() {
 
         <button
           onClick={() => setVisible(false)}
-          className={`absolute top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-gray-500 transition-colors hover:bg-white/10 hover:text-white ${isRtl ? "left-2.5" : "right-2.5"}`}
+          className={`absolute top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-surface)] text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] ${isRtl ? "left-2.5" : "right-2.5"}`}
         >
           <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -287,32 +286,31 @@ export default function VipCelebration() {
 
         <div className="p-4">
           <div className="mb-3 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-lg">👑</span>
-            <span className="text-[11px] font-extrabold tracking-widest text-amber-400 uppercase">VIP Member</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-lg">👑</span>
+            <span className="text-[11px] font-extrabold tracking-widest text-[var(--accent)] uppercase">VIP Member</span>
           </div>
 
           <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse text-right" : ""}`}>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500/25 to-amber-700/10 text-2xl ring-1 ring-amber-500/25">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-2xl ring-1 ring-[var(--accent)]/25">
               {country.flag}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[15px] font-bold text-white">{displayName}</p>
-              <p className="mt-0.5 text-xs font-medium text-amber-400/80">{JOINED_TEXT[lang]}</p>
+              <p className="truncate text-[15px] font-bold text-[var(--text-primary)]">{displayName}</p>
+              <p className="mt-0.5 text-xs font-medium text-[var(--accent)]">{JOINED_TEXT[lang]}</p>
             </div>
           </div>
 
-          <div className={`mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-[10px] text-gray-500 ${isRtl ? "flex-row-reverse" : ""}`}>
+          <div className={`mt-3 flex items-center justify-between border-t border-[var(--border)] pt-2.5 text-[10px] text-[var(--text-dim)] ${isRtl ? "flex-row-reverse" : ""}`}>
             <span className="flex items-center gap-1">{country.flag} {countryName}</span>
             <span>{timeAgo}</span>
           </div>
         </div>
 
         {visible && (
-          <div className="h-[3px] w-full bg-amber-900/20">
+          <div className="h-[3px] w-full bg-[var(--accent-soft)]">
             <div
-              className="h-full rounded-full"
+              className="h-full rounded-full bg-[var(--accent)]"
               style={{
-                background: "linear-gradient(90deg, #f59e0b, #d97706)",
                 animation: "vip-shrink 6s linear forwards",
               }}
             />

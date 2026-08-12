@@ -10,7 +10,7 @@ interface BlogCardProps {
 export default function BlogCard({ post, featured = false }: BlogCardProps) {
   return (
     <article
-      className={`group overflow-hidden rounded-2xl border border-white/10 bg-surface/70 transition-colors hover:border-primary/40 ${
+      className={`group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] transition-colors hover:border-[var(--accent)]/40 ${
         featured ? "p-0" : "p-4"
       }`}
     >
@@ -25,43 +25,43 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-r from-zinc-900 to-black" />
+            <div className="h-full w-full bg-[var(--bg-elevated)]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
               {post.category}
             </p>
-            <h3 className="mt-2 text-xl font-bold text-white">
-              <Link href={`/blog/${post.slug}`} className="hover:text-primary">
+            <h3 className="mt-2 text-xl font-bold text-[var(--text-primary)]">
+              <Link href={`/blog/${post.slug}`} className="hover:text-[var(--accent)]">
                 {post.title}
               </Link>
             </h3>
-            <p className="mt-2 line-clamp-2 text-sm text-gray-200">{post.excerpt}</p>
+            <p className="mt-2 line-clamp-2 text-sm text-[var(--text-muted)]">{post.excerpt}</p>
           </div>
         </div>
       ) : (
         <>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
             {post.category}
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-white">
-            <Link href={`/blog/${post.slug}`} className="hover:text-primary">
+          <h3 className="mt-2 text-lg font-semibold text-[var(--text-primary)]">
+            <Link href={`/blog/${post.slug}`} className="hover:text-[var(--accent)]">
               {post.title}
             </Link>
           </h3>
-          <p className="mt-2 line-clamp-2 text-sm text-gray-300">{post.excerpt}</p>
+          <p className="mt-2 line-clamp-2 text-sm text-[var(--text-muted)]">{post.excerpt}</p>
         </>
       )}
 
-      <div className={`${featured ? "p-5 pt-4" : "mt-3"} flex flex-wrap items-center gap-2 text-xs text-gray-400`}>
+      <div className={`${featured ? "p-5 pt-4" : "mt-3"} flex flex-wrap items-center gap-2 text-xs text-[var(--text-dim)]`}>
         <span>{formatBlogDate(post.publishedAt)}</span>
         <span>•</span>
         <span>{post.readingMinutes} min read</span>
         {post.source === "auto" ? (
           <>
             <span>•</span>
-            <span className="rounded-full border border-primary/30 px-2 py-0.5 text-primary">
+            <span className="rounded-full border border-[var(--accent)]/30 px-2 py-0.5 text-[var(--accent)]">
               Auto Daily
             </span>
           </>
@@ -73,7 +73,7 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
           <Link
             key={`${post.slug}-${tag}`}
             href={`/blog/tag/${tag}`}
-            className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-gray-200 transition-colors hover:border-primary/40 hover:text-primary"
+            className="rounded-full border border-[var(--border)] px-2.5 py-1 text-xs text-[var(--text-muted)] transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
           >
             #{humanizeBlogTag(tag)}
           </Link>
