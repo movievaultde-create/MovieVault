@@ -11,10 +11,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold">
-              <span className="text-[var(--accent)]">Movie</span>
-              <span className="text-[var(--text-primary)]">Vault</span>
-            </span>
+            <span className="nav-brand-mark text-[1.75rem]">MovieVault</span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--text-dim)]">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Tajawal } from "next/font/google";
+import { Tajawal, Cormorant_Garamond } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "./context/LanguageContext";
 import { VipProvider } from "./context/VipContext";
@@ -14,6 +14,13 @@ const tajawal = Tajawal({
   variable: "--font-tajawal",
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "700", "800", "900"],
+});
+
+const brandFont = Cormorant_Garamond({
+  variable: "--font-brand",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -240,7 +247,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="ar" dir="rtl" className={`${tajawal.variable} h-full`} suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${tajawal.variable} ${brandFont.variable} h-full`} suppressHydrationWarning>
       <head>
         <meta name="6a97888e-site-verification" content="e84c90fd1f6d68a8c466b0ea5a1d8874" />
         <meta property="og:url" content={`${SITE_URL}/`} />
@@ -256,7 +263,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body className={`${tajawal.variable} min-h-screen bg-background text-foreground antialiased`}>
+      <body className={`${tajawal.variable} ${brandFont.variable} min-h-screen bg-background text-foreground antialiased`}>
         <LanguageProvider>
           <AuthProvider>
             <WatchlistProvider>

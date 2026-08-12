@@ -120,20 +120,16 @@ body {
 }
 
 .nav-brand-mark {
-  letter-spacing: -0.03em;
+  font-family: var(--font-brand), "Palatino Linotype", Palatino, Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1;
-}
-
-.nav-brand-movie {
-  background: linear-gradient(135deg, #fb923c 0%, #f97316 45%, #ea580c 100%);
+  background: linear-gradient(135deg, #fdba74 0%, #fb923c 35%, #f97316 70%, #ea580c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-.nav-brand-vault {
-  color: var(--nav-text);
-  font-weight: 800;
+  -webkit-text-fill-color: transparent;
 }
 
 .nav-link {
