@@ -2,6 +2,8 @@ export type WatchServer = {
   name: string;
   label: string;
   premium: boolean;
+  /** Highlighted as the default recommended public server. */
+  recommended?: boolean;
   url: string;
   mirrors?: string[];
   playerType: "iframe" | "direct";

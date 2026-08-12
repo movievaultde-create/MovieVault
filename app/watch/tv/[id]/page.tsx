@@ -64,8 +64,8 @@ function withLangParams(baseUrl: string, subLang: string): string {
   return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
 }
 
-/** Primary public server: 2Embed player source labeled Vcr (default on play). */
-const PRIMARY_SERVER_LABEL = "Vcr";
+/** Primary public server: VidLink (default + recommended on play). */
+const PRIMARY_SERVER_LABEL = "VidLink";
 
 function primaryServerIndex(servers: WatchServer[]): number {
   const i = servers.findIndex((s) => s.label === PRIMARY_SERVER_LABEL);
@@ -92,20 +92,21 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
     },
     {
       name: "Server 1",
-      label: "Vcr",
-      premium: false,
-      playerType: "iframe",
-      url: twoEmbedTv,
-    },
-    {
-      name: "Server 2",
       label: "VidLink",
       premium: false,
+      recommended: true,
       playerType: "iframe",
       url: withLangParams(
         `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,
         subLang
       ),
+    },
+    {
+      name: "Server 2",
+      label: "Vcr",
+      premium: false,
+      playerType: "iframe",
+      url: twoEmbedTv,
     },
     {
       name: "Server 3",

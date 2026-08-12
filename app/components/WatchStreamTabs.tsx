@@ -57,18 +57,19 @@ export default function WatchStreamTabs({
           {servers.map((server, i) => {
             const active = activeServer === i;
             const title = server.premium ? "MovieVault" : server.label;
+            const showRecommended = Boolean(server.recommended) && !active;
             return (
               <button
                 key={`${server.name}-${i}`}
                 type="button"
                 onClick={() => onSelectServer(i)}
                 className={`watch-stream-tab ${active ? "watch-stream-tab-active" : ""} ${
-                  server.premium && !active ? "watch-stream-tab-premium" : ""
+                  server.recommended && !active ? "watch-stream-tab-premium" : ""
                 }`}
-                title={server.premium ? `${server.name} · ${server.label}` : `${server.name} · ${server.label}`}
+                title={`${server.name} · ${server.label}`}
               >
                 {title}
-                {server.premium && !active && (
+                {showRecommended && (
                   <span className="ms-1.5 rounded bg-white/15 px-1 py-0.5 text-[9px] font-bold uppercase">
                     {recommendedLabel}
                   </span>
