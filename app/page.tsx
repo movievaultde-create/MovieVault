@@ -201,17 +201,14 @@ function TrendingSection({
 
   return (
     <section className="mx-auto max-w-[1400px] scroll-mt-20 px-4 py-8 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-7 w-1 rounded-full bg-gradient-to-b from-orange-400 to-red-600" />
-          <h2 className="text-xl font-bold text-white sm:text-2xl">{title}</h2>
-        </div>
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-xl font-black text-[var(--text-primary)] sm:text-2xl">{title}</h2>
         {hasOverflow && (
           <div className="flex items-center gap-2">
             <button
               onClick={scrollPrev}
               disabled={atStart}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition-all hover:border-white/20 hover:bg-white/10 disabled:pointer-events-none disabled:opacity-25"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] transition hover:border-[var(--border-hover)] hover:text-[var(--text-primary)] disabled:pointer-events-none disabled:opacity-25"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M15 18l-6-6 6-6" />
@@ -220,7 +217,7 @@ function TrendingSection({
             <button
               onClick={scrollNext}
               disabled={atEnd}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary transition-all hover:bg-primary/20 disabled:pointer-events-none disabled:opacity-25"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] transition hover:bg-[var(--accent-soft)] disabled:pointer-events-none disabled:opacity-25"
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M9 18l6-6-6-6" />
@@ -233,24 +230,21 @@ function TrendingSection({
       {items.length === 0 ? (
         <div className="flex gap-3 overflow-hidden">
           {skeletons.map((_, i) => (
-            <div key={i} className="w-36 shrink-0 overflow-hidden rounded-lg bg-surface sm:w-44">
-              <div className="aspect-[2/3] w-full animate-shimmer" />
-              <div className="space-y-2 p-2.5">
-                <div className="h-3.5 w-3/4 animate-shimmer rounded" />
-                <div className="h-3 w-1/2 animate-shimmer rounded" />
-              </div>
+            <div key={i} className="w-36 shrink-0 sm:w-44">
+              <div className="aspect-[2/3] w-full rounded-xl skeleton" />
+              <div className="mt-2 h-3.5 w-3/4 rounded skeleton" />
+              <div className="mt-1.5 h-3 w-1/2 rounded skeleton" />
             </div>
           ))}
         </div>
       ) : (
         <div className="relative">
-          {/* Left gradient overlay with arrow */}
           {!atStart && (
             <button
               onClick={scrollPrev}
-              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} from-background via-background/70 to-transparent`}
+              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "right-0 bg-gradient-to-l" : "left-0 bg-gradient-to-r"} from-[var(--bg-base)] via-[var(--bg-base)]/70 to-transparent`}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-110 hover:bg-black/80">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-md transition hover:border-[var(--border-hover)]">
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
@@ -258,13 +252,12 @@ function TrendingSection({
             </button>
           )}
 
-          {/* Right gradient overlay with arrow */}
           {!atEnd && hasOverflow && (
             <button
               onClick={scrollNext}
-              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "left-0 bg-gradient-to-r" : "right-0 bg-gradient-to-l"} from-background via-background/70 to-transparent`}
+              className={`absolute top-0 z-10 flex h-[calc(100%-16px)] w-14 items-center justify-center ${isRtl ? "left-0 bg-gradient-to-r" : "right-0 bg-gradient-to-l"} from-[var(--bg-base)] via-[var(--bg-base)]/70 to-transparent`}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 bg-primary/20 text-white shadow-lg shadow-primary/10 backdrop-blur-sm transition-all hover:scale-110 hover:bg-primary/30">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] shadow-md transition hover:bg-[var(--accent-soft)]">
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
@@ -277,64 +270,49 @@ function TrendingSection({
               <Link
                 key={`${item.type}-${item.id}`}
                 href={item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`}
-                className="group relative w-36 shrink-0 overflow-hidden rounded-lg bg-surface transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-black/40 sm:w-44"
+                className="group block w-36 shrink-0 sm:w-44"
               >
-                <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-                  {item.poster ? (
-                    <Image
-                      src={item.poster}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 144px, 176px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-text-muted">
-                      <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <rect x="2" y="3" width="20" height="14" rx="2" />
-                        <path d="M8 21h8M12 17v4" />
-                      </svg>
-                    </div>
-                  )}
+                <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-[var(--border-hover)] group-hover:shadow-md">
+                  <div className="relative aspect-[2/3] w-full bg-[var(--bg-elevated)]">
+                    {item.poster ? (
+                      <Image
+                        src={item.poster}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 144px, 176px"
+                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <rect x="2" y="3" width="20" height="14" rx="2" />
+                          <path d="M8 21h8M12 17v4" />
+                        </svg>
+                      </div>
+                    )}
 
-                  {/* Rank badge */}
-                  <span className="absolute start-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-600 text-[11px] font-black text-white shadow-lg">
-                    {i + 1}
-                  </span>
-
-                  {/* Type badge for TV */}
-                  {item.type === "tv" && (
-                    <span className="absolute end-2 top-2 rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow">
-                      {tvLabel}
+                    <span className="absolute start-2 top-2 flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[11px] font-black text-white shadow">
+                      {i + 1}
                     </span>
-                  )}
 
-                  {/* Rating */}
-                  <span className="absolute end-2 bottom-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400 backdrop-blur-sm">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-                    </svg>
-                    {item.rating}
-                  </span>
+                    {item.type === "tv" && (
+                      <span className="absolute end-2 top-2 rounded-md bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+                        {tvLabel}
+                      </span>
+                    )}
 
-                  <WatchlistButton item={item} />
+                    {parseFloat(item.rating) > 0 && (
+                      <span className="absolute end-2 bottom-2 flex items-center gap-0.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-[var(--rating)]">
+                        ★ {item.rating}
+                      </span>
+                    )}
 
-                  {/* Hover play */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/50">
-                    <div className="flex h-10 w-10 scale-0 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100 sm:h-12 sm:w-12">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5,3 19,12 5,21" />
-                      </svg>
-                    </div>
+                    <WatchlistButton item={item} />
                   </div>
                 </div>
 
-                <div className="p-2.5">
-                  <h3 className="truncate text-[13px] font-semibold text-white transition-colors group-hover:text-primary">
-                    {item.title}
-                  </h3>
-                  <span className="text-[11px] text-text-muted">{item.year}</span>
-                </div>
+                <p className="mt-2 line-clamp-2 text-sm font-bold text-[var(--text-primary)]">{item.title}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--text-dim)]">{item.year}</p>
               </Link>
             ))}
           </div>
@@ -368,14 +346,11 @@ function ContentSection({
       id={id}
       className={`mx-auto max-w-[1400px] scroll-mt-20 px-4 py-8 sm:px-6 ${isLast ? "pb-16" : ""}`}
     >
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-7 w-1 rounded-full bg-primary" />
-          <h2 className="text-xl font-bold text-white sm:text-2xl">{title}</h2>
-        </div>
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-xl font-black text-[var(--text-primary)] sm:text-2xl">{title}</h2>
         <Link
           href={viewAllHref ?? "#"}
-          className="flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+          className="flex items-center gap-1 text-sm font-semibold text-[var(--accent)] transition-colors hover:text-[var(--accent-bright)]"
         >
           {viewAllLabel}
           <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -387,12 +362,10 @@ function ContentSection({
       {items.length === 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {skeletons.map((_, i) => (
-            <div key={i} className="overflow-hidden rounded-lg bg-surface">
-              <div className="aspect-[2/3] w-full animate-shimmer" />
-              <div className="space-y-2 p-3">
-                <div className="h-3.5 w-3/4 animate-shimmer rounded" />
-                <div className="h-3 w-1/2 animate-shimmer rounded" />
-              </div>
+            <div key={i}>
+              <div className="aspect-[2/3] w-full rounded-xl skeleton" />
+              <div className="mt-2 h-3.5 w-3/4 rounded skeleton" />
+              <div className="mt-1.5 h-3 w-1/2 rounded skeleton" />
             </div>
           ))}
         </div>
@@ -409,64 +382,46 @@ function ContentSection({
 
 function MediaCard({ item, tvLabel }: { item: BrowseItem; tvLabel: string }) {
   const href = item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`;
-  const typeBadge = item.type === "tv";
 
   return (
-    <Link
-      href={href}
-      className="group relative flex flex-col overflow-hidden rounded-lg bg-surface transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-black/40"
-    >
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-surface-light">
-        {item.poster ? (
-          <Image
-            src={item.poster}
-            alt={item.title}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-text-muted">
-            <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-          </div>
-        )}
+    <Link href={href} className="group block">
+      <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-[var(--border-hover)] group-hover:shadow-md">
+        <div className="relative aspect-[2/3] w-full bg-[var(--bg-elevated)]">
+          {item.poster ? (
+            <Image
+              src={item.poster}
+              alt={item.title}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+              className="object-cover transition duration-500 group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
+              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+            </div>
+          )}
 
-        {/* Type badge for TV */}
-        {typeBadge && (
-          <span className="absolute start-2 top-2 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow">
-            {tvLabel}
-          </span>
-        )}
+          {item.type === "tv" && (
+            <span className="absolute start-2 top-2 rounded-md bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
+              {tvLabel}
+            </span>
+          )}
 
-        {/* Rating */}
-        <span className="absolute end-2 top-2 flex items-center gap-0.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-yellow-400 backdrop-blur-sm">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-          </svg>
-          {item.rating}
-        </span>
+          {parseFloat(item.rating) > 0 && (
+            <span className="absolute end-2 top-2 flex items-center gap-0.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-[var(--rating)]">
+              ★ {item.rating}
+            </span>
+          )}
 
-        <WatchlistButton item={item} />
-
-        {/* Hover play */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/50">
-          <div className="flex h-12 w-12 scale-0 items-center justify-center rounded-full bg-primary/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-100">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5,3 19,12 5,21" />
-            </svg>
-          </div>
+          <WatchlistButton item={item} />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3">
-        <h3 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-primary">
-          {item.title}
-        </h3>
-        <span className="text-[11px] text-text-muted">{item.year}</span>
-      </div>
+      <p className="mt-2 line-clamp-2 text-sm font-bold text-[var(--text-primary)]">{item.title}</p>
+      <p className="mt-0.5 text-[11px] text-[var(--text-dim)]">{item.year}</p>
     </Link>
   );
 }

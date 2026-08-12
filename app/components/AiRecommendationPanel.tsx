@@ -106,18 +106,18 @@ export default function AiRecommendationPanel() {
 
   return (
     <section className="mx-auto mt-6 max-w-[1400px] px-4 sm:px-6">
-      <div className="overflow-hidden rounded-3xl border border-amber-500/20 bg-gradient-to-b from-amber-500/10 via-white/[0.03] to-transparent p-5 sm:p-7">
+      <div className="card overflow-hidden p-5 sm:p-7">
         <div className={`mb-4 flex items-start justify-between gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
           <div>
-            <p className="mb-1 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+            <p className="mb-1 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent)]">
               <span>AI</span>
               <span>•</span>
               <span>{copy.vipTag}</span>
             </p>
-            <h2 className="text-2xl font-extrabold text-white">{copy.title}</h2>
-            <p className="mt-1 text-sm text-gray-300">{copy.subtitle}</p>
+            <h2 className="text-xl font-black text-[var(--text-primary)] sm:text-2xl">{copy.title}</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">{copy.subtitle}</p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-gray-300">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-xs text-[var(--text-muted)]">
             {isVip ? copy.vipActive : copy.teaser}
           </div>
         </div>
@@ -127,10 +127,10 @@ export default function AiRecommendationPanel() {
             <button
               key={entry.key}
               onClick={() => setMood(entry.key)}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 mood === entry.key
-                  ? "border-amber-400 bg-amber-500/20 text-amber-200"
-                  : "border-white/15 bg-white/[0.03] text-gray-300 hover:border-white/25 hover:text-white"
+                  ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                  : "border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
               }`}
             >
               {entry.emoji} {isAr ? entry.ar : entry.en}
@@ -139,13 +139,13 @@ export default function AiRecommendationPanel() {
         </div>
 
         {loading && (
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-8 text-center text-gray-300">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-8 text-center text-[var(--text-muted)]">
             {copy.loading}
           </div>
         )}
 
         {error && !loading && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-8 text-center text-red-300">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-8 text-center text-red-600">
             {copy.retry}
           </div>
         )}
@@ -156,51 +156,51 @@ export default function AiRecommendationPanel() {
               <Link
                 key={`${item.type}-${item.id}`}
                 href={item.type === "movie" ? `/watch/${item.id}` : `/watch/tv/${item.id}`}
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-black/25 transition-all hover:-translate-y-1 hover:border-amber-400/30"
+                className="group block"
               >
-                <div className="relative aspect-[2/3] overflow-hidden bg-black/40">
-                  {item.poster ? (
-                    <Image
-                      src={item.poster}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-gray-500">N/A</div>
-                  )}
-                  <WatchlistButton item={item} />
+                <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] shadow-sm transition group-hover:-translate-y-0.5 group-hover:border-[var(--border-hover)] group-hover:shadow-md">
+                  <div className="relative aspect-[2/3] bg-[var(--bg-elevated)]">
+                    {item.poster ? (
+                      <Image
+                        src={item.poster}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 220px"
+                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[var(--text-dim)]">N/A</div>
+                    )}
+                    {parseFloat(item.rating) > 0 && (
+                      <span className="absolute start-2 top-2 flex items-center gap-0.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-[var(--rating)]">
+                        ★ {item.rating}
+                      </span>
+                    )}
+                    <WatchlistButton item={item} />
+                  </div>
                 </div>
-                <div className="space-y-1.5 p-3">
-                  <h3 className="truncate text-sm font-bold text-white">{item.title}</h3>
-                  <p className="text-[11px] text-gray-400">
-                    ⭐ {item.rating} {item.year ? `• ${item.year}` : ""}
-                  </p>
-                  <p className="text-[11px] font-semibold text-amber-300">
-                    {copy.confidence}: {item.confidence}%
-                  </p>
-                  <p className="line-clamp-2 text-[11px] text-gray-300">
-                    <span className="font-semibold">{copy.reason}: </span>
-                    {item.reason}
-                  </p>
-                </div>
+                <p className="mt-2 line-clamp-2 text-sm font-bold text-[var(--text-primary)]">{item.title}</p>
+                <p className="mt-0.5 text-[11px] text-[var(--text-dim)]">
+                  {item.year ? `${item.year} · ` : ""}
+                  {copy.confidence}: {item.confidence}%
+                </p>
+                <p className="line-clamp-2 text-[11px] text-[var(--text-muted)]">
+                  <span className="font-semibold">{copy.reason}: </span>
+                  {item.reason}
+                </p>
               </Link>
             ))}
           </div>
         )}
 
         {payload?.locked && (
-          <div className="mt-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-            <p className="mb-3 text-sm text-amber-200">
+          <div className="mt-5 rounded-2xl border border-[var(--border)] bg-[var(--accent-soft)] p-4">
+            <p className="mb-3 text-sm text-[var(--text-muted)]">
               {isAr
                 ? "افتح القائمة الكاملة (10 توصيات ذكية يومية) مع VIP."
                 : (payload.upgradeMessage ?? copy.unlock)}
             </p>
-            <Link
-              href="/vip"
-              className="inline-flex rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-black transition hover:bg-amber-400"
-            >
+            <Link href="/vip" className="btn-primary text-sm">
               {copy.goVip}
             </Link>
           </div>

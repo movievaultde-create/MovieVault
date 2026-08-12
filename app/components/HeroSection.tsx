@@ -30,34 +30,30 @@ export default function HeroSection() {
   const description = isAr ? FEATURED_MOVIE.descriptionAr : FEATURED_MOVIE.description;
 
   return (
-    <section className="relative h-[85vh] min-h-[500px] w-full overflow-hidden">
-      {/* Background Image */}
+    <section className="relative h-[70vh] min-h-[420px] w-full overflow-hidden">
       <div className="absolute inset-0">
         <Image
           src={FEATURED_MOVIE.backdrop}
           alt={FEATURED_MOVIE.title}
           fill
-          className="object-cover object-top"
+          className="object-cover object-top opacity-90"
           priority
         />
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/80 via-transparent to-transparent rtl:bg-gradient-to-l" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-base)]/85 via-[var(--bg-base)]/25 to-transparent rtl:bg-gradient-to-l" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex h-full items-end pb-20 sm:pb-28">
+      <div className="relative z-10 flex h-full items-end pb-16 sm:pb-20">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6">
           <div className="max-w-2xl animate-fade-in-up">
-            {/* Badges */}
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="rounded bg-primary px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
+              <span className="rounded-md bg-[var(--accent)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-white">
                 {t("featured")}
               </span>
-              <span className="rounded border border-surface-border bg-surface/80 px-2.5 py-1 text-xs font-medium text-text-secondary">
+              <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-medium text-[var(--text-muted)]">
                 {FEATURED_MOVIE.year}
               </span>
-              <span className="flex items-center gap-1 rounded border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1 text-xs font-bold text-yellow-400">
+              <span className="flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2.5 py-1 text-xs font-bold text-[var(--rating)]">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
                 </svg>
@@ -65,43 +61,33 @@ export default function HeroSection() {
               </span>
             </div>
 
-            {/* Title */}
-            <h1 className="mb-2 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
+            <h1 className="mb-2 text-4xl font-black leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl md:text-6xl">
               {title}
             </h1>
             {subtitle && (
-              <p className="mb-4 text-lg font-medium text-text-secondary">{subtitle}</p>
+              <p className="mb-4 text-lg font-medium text-[var(--text-muted)]">{subtitle}</p>
             )}
 
-            {/* Meta */}
-            <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-text-muted">
+            <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-[var(--text-dim)]">
               <span>{FEATURED_MOVIE.duration}</span>
-              <span className="h-1 w-1 rounded-full bg-text-muted" />
+              <span className="h-1 w-1 rounded-full bg-[var(--text-dim)]" />
               <span>{genre}</span>
-              <span className="h-1 w-1 rounded-full bg-text-muted" />
+              <span className="h-1 w-1 rounded-full bg-[var(--text-dim)]" />
               <span>HD</span>
             </div>
 
-            {/* Description */}
-            <p className="mb-8 max-w-lg text-sm leading-relaxed text-text-secondary sm:text-base">
+            <p className="mb-8 max-w-lg text-sm leading-relaxed text-[var(--text-muted)] sm:text-base">
               {description}
             </p>
 
-            {/* Actions */}
             <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/watch/${FEATURED_MOVIE.id}`}
-                className="flex items-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-hover hover:shadow-primary/40 active:scale-[0.97]"
-              >
+              <Link href={`/watch/${FEATURED_MOVIE.id}`} className="btn-primary">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5,3 19,12 5,21" />
                 </svg>
                 {t("watchNow")}
               </Link>
-              <Link
-                href={`/watch/${FEATURED_MOVIE.id}`}
-                className="flex items-center gap-2 rounded-lg border border-surface-border bg-surface/60 px-6 py-3.5 text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-surface-light"
-              >
+              <Link href={`/watch/${FEATURED_MOVIE.id}`} className="btn-ghost">
                 <svg
                   width="18"
                   height="18"
