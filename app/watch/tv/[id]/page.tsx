@@ -65,6 +65,8 @@ function withLangParams(baseUrl: string, subLang: string): string {
 
 function buildServers(id: string, season: number, episode: number, subLang: string): WatchServer[] {
   const directUrl = resolveDirectTvUrl(id, season, episode);
+  // Same path as watch-clashanime (`/embedtv/{id}&s=&e=`), written with `?` so withLangParams stays valid.
+  const twoEmbedTv = `https://www.2embed.cc/embedtv/${id}?s=${season}&e=${episode}`;
   return [
     {
       name: "MovieVault Server",
@@ -72,73 +74,58 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: withLangParams(`https://autoembed.co/tv/tmdb/${id}-${season}-${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://autoembed.cc/tv/tmdb/${id}-${season}-${episode}`, subLang),
-        withLangParams(`https://2embed.cc/embedtv/${id}?s=${season}&e=${episode}`, subLang),
-      ],
+      url: withLangParams(twoEmbedTv, subLang),
     },
     {
       name: "Server 1",
-      label: "VidSrc",
+      label: "2Embed",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://vidsrc.to/embed/tv/${id}/${season}/${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://vidsrc.su/embed/tv/${id}/${season}/${episode}`, subLang),
-        withLangParams(`https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`, subLang),
-      ],
+      url: withLangParams(twoEmbedTv, subLang),
     },
     {
       name: "Server 2",
-      label: "VidSrc Pro",
+      label: "VidLink",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://vidsrc.net/embed/tv/${id}/${season}/${episode}`, subLang),
-        withLangParams(`https://vidsrc.xyz/embed/tv/${id}/${season}/${episode}`, subLang),
-      ],
+      url: withLangParams(
+        `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,
+        subLang
+      ),
     },
     {
       name: "Server 3",
-      label: "Embed",
+      label: "VidCore",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://embed.su/embed/tv/${id}/${season}/${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`, subLang),
-      ],
+      url: withLangParams(`https://vidcore.org/embed/tv/${id}/${season}/${episode}`, subLang),
     },
     {
       name: "Server 4",
-      label: "Multi",
+      label: "MultiEmbed",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://multiembed.stream/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`, subLang),
-      ],
+      url: withLangParams(
+        `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${season}&e=${episode}`,
+        subLang
+      ),
     },
     {
       name: "Server 5",
-      label: "Videasy",
+      label: "AutoEmbed",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://player.videasy.net/tv/${id}/${season}/${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://player.autoembed.cc/tv/${id}/${season}/${episode}`, subLang),
-      ],
+      url: withLangParams(
+        `https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}`,
+        subLang
+      ),
     },
     {
       name: "Server 6",
-      label: "NonTongo",
+      label: "Videasy",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://nontongo.win/embed/tv/${id}/${season}/${episode}`, subLang),
-      mirrors: [
-        withLangParams(`https://nontongo.me/embed/tv/${id}/${season}/${episode}`, subLang),
-      ],
+      url: withLangParams(`https://player.videasy.to/tv/${id}/${season}/${episode}`, subLang),
     },
   ];
 }

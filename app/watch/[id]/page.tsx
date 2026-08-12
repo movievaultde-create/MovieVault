@@ -63,73 +63,52 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: withLangParams(`https://autoembed.co/movie/tmdb/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://autoembed.cc/movie/tmdb/${id}`, subLang),
-        withLangParams(`https://2embed.cc/embed/tmdb/movie?id=${id}`, subLang),
-      ],
+      url: withLangParams(`https://www.2embed.cc/embed/${id}`, subLang),
     },
     {
       name: "Server 1",
-      label: "VidSrc",
+      label: "2Embed",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://vidsrc.to/embed/movie/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://vidsrc.su/embed/movie/${id}`, subLang),
-        withLangParams(`https://vidsrc.xyz/embed/movie/${id}`, subLang),
-      ],
+      url: withLangParams(`https://www.2embed.cc/embed/${id}`, subLang),
     },
     {
       name: "Server 2",
-      label: "VidSrc Pro",
+      label: "VidLink",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://vidsrc.cc/v2/embed/movie/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://vidsrc.net/embed/movie/${id}`, subLang),
-        withLangParams(`https://vidsrc.xyz/embed/movie/${id}`, subLang),
-      ],
+      url: withLangParams(
+        `https://vidlink.pro/movie/${id}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,
+        subLang
+      ),
     },
     {
       name: "Server 3",
-      label: "Embed",
+      label: "VidCore",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://embed.su/embed/movie/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://embed.smashystream.com/playere.php?tmdb=${id}`, subLang),
-      ],
+      url: withLangParams(`https://vidcore.org/embed/movie/${id}`, subLang),
     },
     {
       name: "Server 4",
-      label: "Multi",
+      label: "MultiEmbed",
       premium: false,
       playerType: "iframe",
       url: withLangParams(`https://multiembed.mov/?video_id=${id}&tmdb=1`, subLang),
-      mirrors: [
-        withLangParams(`https://multiembed.stream/?video_id=${id}&tmdb=1`, subLang),
-      ],
     },
     {
       name: "Server 5",
-      label: "Videasy",
+      label: "AutoEmbed",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://player.videasy.net/movie/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://player.autoembed.cc/movie/${id}`, subLang),
-      ],
+      url: withLangParams(`https://player.autoembed.cc/embed/movie/${id}`, subLang),
     },
     {
       name: "Server 6",
-      label: "NonTongo",
+      label: "Videasy",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://nontongo.win/embed/movie/${id}`, subLang),
-      mirrors: [
-        withLangParams(`https://nontongo.me/embed/movie/${id}`, subLang),
-      ],
+      url: withLangParams(`https://player.videasy.to/movie/${id}`, subLang),
     },
   ];
 }
