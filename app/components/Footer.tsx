@@ -3,11 +3,6 @@
 import Link from "next/link";
 import { useLang } from "../context/LanguageContext";
 
-const PARTNER_SITE_URL =
-  process.env.NEXT_PUBLIC_PARTNER_SITE_URL?.trim() || "https://shaheiid4u.net";
-const PARTNER_SITE_LABEL =
-  process.env.NEXT_PUBLIC_PARTNER_SITE_LABEL?.trim() || "شاهد فور يو";
-
 export default function Footer() {
   const { t } = useLang();
 
@@ -33,15 +28,6 @@ export default function Footer() {
             >
               Blog
             </Link>
-            <span className="text-[var(--border)]">|</span>
-            <a
-              href={PARTNER_SITE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-colors hover:text-[var(--accent)]"
-            >
-              {PARTNER_SITE_LABEL}
-            </a>
             <span className="text-[var(--border)]">|</span>
             <Link href="/impressum" className="transition-colors hover:text-[var(--accent)]">
               Impressum
