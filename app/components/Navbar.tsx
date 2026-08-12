@@ -143,8 +143,9 @@ export default function Navbar() {
               className="h-12 w-12 object-contain drop-shadow-[0_4px_12px_rgba(249,115,22,0.35)] sm:h-14 sm:w-14 lg:h-16 lg:w-16"
               priority
             />
-            <span className="nav-brand-mark text-[1.65rem] sm:text-[1.9rem] lg:text-[2.15rem]">
-              MovieVault
+            <span className="nav-brand-mark text-[1.85rem] sm:text-[2.1rem] lg:text-[2.35rem]">
+              <span className="nav-brand-movie">Movie</span>
+              <span className="nav-brand-vault">Vault</span>
             </span>
           </Link>
 

@@ -120,16 +120,28 @@ body {
 }
 
 .nav-brand-mark {
+  display: inline-block;
   font-family: var(--font-brand), "Palatino Linotype", Palatino, Georgia, serif;
   font-style: italic;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
   line-height: 1;
-  background: linear-gradient(135deg, #fdba74 0%, #fb923c 35%, #f97316 70%, #ea580c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  transform: scaleX(1.12);
+  transform-origin: left center;
+  color: #fff;
+}
+
+[dir="rtl"] .nav-brand-mark {
+  transform-origin: right center;
+}
+
+.nav-brand-movie {
+  color: #f57c00;
+}
+
+.nav-brand-vault {
+  color: #ffffff;
 }
 
 .nav-link {
