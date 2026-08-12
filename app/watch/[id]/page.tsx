@@ -3,7 +3,7 @@
 import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLang, LANGUAGES, type TranslationKey } from "../../context/LanguageContext";
+import { useLang, type TranslationKey } from "../../context/LanguageContext";
 import VideoPlayer from "../../components/VideoPlayer";
 import FollowNotificationButton from "../../components/FollowNotificationButton";
 import MediaCard from "../../components/MediaCard";
