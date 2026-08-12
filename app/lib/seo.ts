@@ -298,254 +298,6 @@ export function englishTitleKeywords(title: string, kind: "movie" | "tv"): strin
   ];
 }
 
-export function hindiTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  if (kind === "movie") {
-    return [
-      `${name} हिंदी में`,
-      `${name} ऑनलाइन`,
-      `${name} फ्री`,
-      `${name} फुल मूवी`,
-    ];
-  }
-  return [
-    `${name} हिंदी में`,
-    `${name} ऑनलाइन`,
-    `${name} वेब सीरीज`,
-    `${name} फ्री`,
-  ];
-}
-
-export function portugueseTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  if (kind === "movie") {
-    return [
-      `${name} legendado`,
-      `assistir ${name} online`,
-      `filme ${name} grátis`,
-      `${name} legendado HD`,
-    ];
-  }
-  return [
-    `${name} legendado`,
-    `assistir ${name} online`,
-    `série ${name} grátis`,
-    `${name} episódios`,
-  ];
-}
-
-export const GERMAN_SEO_KEYWORDS = [
-  "MovieVault",
-  "Filme gratis streamen",
-  "Serien gratis online",
-  "Filme mit Untertiteln",
-  "Anime gratis schauen",
-  "Filme HD gratis",
-  "neue Filme 2026",
-  "Serien mit Untertiteln",
-  "Filme online schauen",
-  "kostenlos Filme streamen",
-] as const;
-
-export const FRENCH_SEO_KEYWORDS = [
-  "MovieVault",
-  "films gratuits en streaming",
-  "séries gratuites en ligne",
-  "films sous-titrés",
-  "anime gratuit",
-  "films HD gratuits",
-  "nouveaux films 2026",
-  "regarder films en ligne",
-  "séries sous-titrées",
-  "streaming films gratuit",
-] as const;
-
-export const SPANISH_SEO_KEYWORDS = [
-  "MovieVault",
-  "ver películas gratis",
-  "series gratis online",
-  "películas subtituladas",
-  "anime gratis",
-  "películas HD gratis",
-  "películas nuevas 2026",
-  "ver series online",
-  "streaming películas gratis",
-  "películas extranjeras subtituladas",
-] as const;
-
-export const TURKISH_SEO_KEYWORDS = [
-  "MovieVault",
-  "ücretsiz film izle",
-  "dizi izle ücretsiz",
-  "altyazılı film",
-  "anime izle",
-  "HD film izle",
-  "yeni filmler 2026",
-  "online dizi izle",
-  "yabancı film izle",
-  "türkçe altyazılı film",
-] as const;
-
-export function germanTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  return kind === "movie"
-    ? [`${name} streamen`, `${name} gratis`, `${name} mit Untertiteln`, `${name} HD`]
-    : [`${name} Serie`, `${name} streamen`, `${name} Folgen`, `${name} mit Untertiteln`];
-}
-
-export function frenchTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  return kind === "movie"
-    ? [`${name} streaming`, `regarder ${name}`, `${name} sous-titré`, `${name} HD`]
-    : [`série ${name}`, `regarder ${name}`, `${name} épisodes`, `${name} sous-titrée`];
-}
-
-export function spanishTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  return kind === "movie"
-    ? [`ver ${name}`, `${name} online`, `${name} subtitulada`, `${name} HD`]
-    : [`serie ${name}`, `ver ${name}`, `${name} capítulos`, `${name} subtitulada`];
-}
-
-export function turkishTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  const name = title.trim();
-  if (!name) return [];
-  return kind === "movie"
-    ? [`${name} izle`, `${name} full`, `${name} altyazılı`, `${name} HD`]
-    : [`${name} dizi`, `${name} izle`, `${name} bölümleri`, `${name} altyazılı`];
-}
-
-/** All language banks used on watch pages + hubs. */
-export function allLanguageKeywords(): string[] {
-  return [
-    ...ARABIC_SEO_KEYWORDS,
-    ...ENGLISH_SEO_KEYWORDS,
-    ...PORTUGUESE_SEO_KEYWORDS,
-    ...HINDI_SEO_KEYWORDS,
-    ...GERMAN_SEO_KEYWORDS,
-    ...FRENCH_SEO_KEYWORDS,
-    ...SPANISH_SEO_KEYWORDS,
-    ...TURKISH_SEO_KEYWORDS,
-  ];
-}
-
-export function allTitleKeywords(title: string, kind: "movie" | "tv"): string[] {
-  return [
-    ...arabicTitleKeywords(title, kind),
-    ...englishTitleKeywords(title, kind),
-    ...portugueseTitleKeywords(title, kind),
-    ...hindiTitleKeywords(title, kind),
-    ...germanTitleKeywords(title, kind),
-    ...frenchTitleKeywords(title, kind),
-    ...spanishTitleKeywords(title, kind),
-    ...turkishTitleKeywords(title, kind),
-  ];
-}
-
-export type CategorySeoKey =
-  | "movies"
-  | "tv-series"
-  | "arab-movies"
-  | "arab-series"
-  | "turkish-series"
-  | "korean-series"
-  | "indian-movies"
-  | "indian-series"
-  | "foreign-movies"
-  | "foreign-series";
-
-const CATEGORY_SEO: Record<
-  CategorySeoKey,
-  { title: string; description: string; path: string; extra: string[] }
-> = {
-  movies: {
-    path: "/movies",
-    title: "أفلام مترجمة اون لاين HD — MovieVault",
-    description:
-      "شاهد أحدث الأفلام المترجمة اون لاين بجودة HD على MovieVault. Watch translated movies online free.",
-    extra: ["افلام مترجمة", "افلام اجنبية مترجمة", "watch movies free", "Filme gratis"],
-  },
-  "tv-series": {
-    path: "/tv-series",
-    title: "مسلسلات مترجمة اون لاين HD — MovieVault",
-    description:
-      "مسلسلات مترجمة اون لاين بجودة HD مع تحديث مستمر. Watch TV series with subtitles on MovieVault.",
-    extra: ["مسلسلات مترجمة", "مسلسلات اجنبية", "watch series free", "Serien gratis"],
-  },
-  "arab-movies": {
-    path: "/arab-movies",
-    title: "أفلام عربية مترجمة — MovieVault",
-    description: "أحدث الأفلام العربية للمشاهدة اون لاين على خزنة الأفلام. Arabic movies on MovieVault.",
-    extra: ["افلام عربية", "افلام عربية اون لاين", "arabic movies", "أفلام عربية"],
-  },
-  "arab-series": {
-    path: "/arab-series",
-    title: "مسلسلات عربية — MovieVault",
-    description: "مسلسلات عربية اون لاين بجودة HD على خزنة الأفلام. Arabic series streaming.",
-    extra: ["مسلسلات عربية", "مسلسلات عربية اون لاين", "arabic series"],
-  },
-  "turkish-series": {
-    path: "/turkish-series",
-    title: "مسلسلات تركية مترجمة — MovieVault",
-    description: "مسلسلات تركية مترجمة اون لاين HD. Turkish diziler altyazılı — MovieVault.",
-    extra: ["مسلسلات تركية مترجمة", "turkish series", "türkçe dizi izle", "diziler"],
-  },
-  "korean-series": {
-    path: "/korean-series",
-    title: "مسلسلات كورية مترجمة — MovieVault",
-    description: "دراما كورية مترجمة اون لاين HD. Korean drama with subtitles on MovieVault.",
-    extra: ["مسلسلات كورية مترجمة", "korean drama", "K-drama", "دراما كورية"],
-  },
-  "indian-movies": {
-    path: "/indian-movies",
-    title: "أفلام هندية مترجمة — MovieVault",
-    description: "أفلام بوليوود وهندي مترجمة اون لاين. Bollywood movies Hindi — MovieVault.",
-    extra: ["افلام هندية", "بوليوود", "bollywood movies", "हिंदी फिल्में"],
-  },
-  "indian-series": {
-    path: "/indian-series",
-    title: "مسلسلات هندية مترجمة — MovieVault",
-    description: "مسلسلات هندية مترجمة اون لاين HD. Indian web series on MovieVault.",
-    extra: ["مسلسلات هندية", "indian series", "वेब सीरीज हिंदी"],
-  },
-  "foreign-movies": {
-    path: "/foreign-movies",
-    title: "أفلام أجنبية مترجمة — MovieVault",
-    description: "أفلام أجنبية وهوليوود مترجمة اون لاين HD. Foreign/Hollywood movies — MovieVault.",
-    extra: ["افلام اجنبية مترجمة", "هوليوود", "hollywood movies", "Hollywood movies"],
-  },
-  "foreign-series": {
-    path: "/foreign-series",
-    title: "مسلسلات أجنبية مترجمة — MovieVault",
-    description: "مسلسلات أجنبية مترجمة اون لاين HD. Foreign TV series with subtitles.",
-    extra: ["مسلسلات اجنبية مترجمة", "foreign series", "TV shows subtitles"],
-  },
-};
-
-export function buildCategoryMetadata(key: CategorySeoKey): Metadata {
-  const cat = CATEGORY_SEO[key];
-  return {
-    title: { absolute: cat.title },
-    description: cat.description,
-    keywords: [...cat.extra, ...allLanguageKeywords()],
-    alternates: { canonical: cat.path },
-    openGraph: {
-      title: cat.title,
-      description: cat.description,
-      url: `${SITE_URL}${cat.path}`,
-      siteName: "MovieVault",
-      type: "website",
-      locale: "ar_SA",
-    },
-    robots: { index: true, follow: true },
-  };
-}
-
 type TmdbMovieSeo = {
   id: number;
   title: string;
@@ -609,7 +361,7 @@ export function buildMovieMetadata(id: string, movie: TmdbMovieSeo | null): Meta
       title: `Watch Movie #${numericId} Online HD - MovieVault`,
       description:
         "Watch movies online in HD on MovieVault. مشاهدة افلام مترجمة اون لاين بجودة عالية HD.",
-      keywords: allLanguageKeywords(),
+      keywords: [...ARABIC_SEO_KEYWORDS, ...ENGLISH_SEO_KEYWORDS, ...PORTUGUESE_SEO_KEYWORDS, ...HINDI_SEO_KEYWORDS],
       alternates: { canonical: watchPath("movie", numericId) },
       robots: { index: true, follow: true },
     };
@@ -628,7 +380,14 @@ export function buildMovieMetadata(id: string, movie: TmdbMovieSeo | null): Meta
   return {
     title,
     description,
-    keywords: [...allTitleKeywords(movie.title, "movie"), ...allLanguageKeywords()],
+    keywords: [
+      ...arabicTitleKeywords(movie.title, "movie"),
+      ...englishTitleKeywords(movie.title, "movie"),
+      ...ARABIC_SEO_KEYWORDS,
+      ...ENGLISH_SEO_KEYWORDS,
+      ...PORTUGUESE_SEO_KEYWORDS,
+      ...HINDI_SEO_KEYWORDS,
+    ],
     alternates: { canonical: path },
     openGraph: {
       title,
@@ -654,7 +413,7 @@ export function buildTvMetadata(id: string, tv: TmdbTvSeo | null): Metadata {
       title: `Watch TV Show #${numericId} Online HD - MovieVault`,
       description:
         "Watch TV series online in HD on MovieVault. مشاهدة المسلسلات مترجمة اون لاين بجودة عالية.",
-      keywords: allLanguageKeywords(),
+      keywords: [...ARABIC_SEO_KEYWORDS, ...ENGLISH_SEO_KEYWORDS, ...PORTUGUESE_SEO_KEYWORDS, ...HINDI_SEO_KEYWORDS],
       alternates: { canonical: watchPath("tv", numericId) },
       robots: { index: true, follow: true },
     };
@@ -673,7 +432,14 @@ export function buildTvMetadata(id: string, tv: TmdbTvSeo | null): Metadata {
   return {
     title,
     description,
-    keywords: [...allTitleKeywords(tv.name, "tv"), ...allLanguageKeywords()],
+    keywords: [
+      ...arabicTitleKeywords(tv.name, "tv"),
+      ...englishTitleKeywords(tv.name, "tv"),
+      ...ARABIC_SEO_KEYWORDS,
+      ...ENGLISH_SEO_KEYWORDS,
+      ...PORTUGUESE_SEO_KEYWORDS,
+      ...HINDI_SEO_KEYWORDS,
+    ],
     alternates: { canonical: path },
     openGraph: {
       title,
