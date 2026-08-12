@@ -7,6 +7,7 @@ import { useLang, LANGUAGES, type TranslationKey } from "../../../context/Langua
 import VideoPlayer from "../../../components/VideoPlayer";
 import FollowNotificationButton from "../../../components/FollowNotificationButton";
 import MediaCard from "../../../components/MediaCard";
+import WatchHeroCard from "../../../components/WatchHeroCard";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
@@ -42,6 +43,7 @@ interface ShowData {
   vote_average: number;
   vote_count: number;
   poster_path: string | null;
+  backdrop_path: string | null;
   genres: string[];
   number_of_seasons: number;
   seasons: Season[];
@@ -314,7 +316,6 @@ export default function WatchTVPage({
   return (
     <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
-        {/* Back */}
         <Link
           href="/"
           className="mb-4 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
@@ -328,14 +329,106 @@ export default function WatchTVPage({
           {t("backToHome")}
         </Link>
 
-        {/* Now Playing Badge */}
+        {show && (
+          <WatchHeroCard
+            data={{
+              id: show.id,
+              title: show.name,
+              year: show.first_air_date?.slice(0, 4) ?? "",
+              poster: show.poster_path,
+              backdrop: show.backdrop_path,
+              rating: show.vote_average.toFixed(1),
+              type: "tv",
+              meta: [
+                t("tvShow"),
+                show.number_of_seasons
+                  ? `${show.number_of_seasons} ${t("seasons")}`
+                  : null,
+                episodes.length
+                  ? `${episodes.length} ${t("episodes")}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" | "),
+            }}
+            onStartWatching={() => {
+              document.getElementById("watch-player")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
+        )}
+
         {show && (
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
             <span className="font-bold text-[var(--text-primary)]">{show.name}</span>
-            <span className="text-[var(--text-dim)]">—</span>
-            <span className="text-[var(--accent)]">
-              {t("season")} {selectedSeason} · {t("episode")} {selectedEpisode}
+            <span className="text-[var(--text-dim)]">·</span>
+            <span>
+              {t("episode")} {selectedEpisode}
+              {episodes.length > 0 ? ` / ${episodes.length}` : ""}
             </span>
+          </div>
+        )}
+
+        {/* Prev / Next episode — ABOVE player (clashanime style) */}
+        {show && show.seasons.length > 0 && (
+          <div
+            className="mb-4 flex items-stretch gap-2 sm:gap-3"
+            dir={isRtl ? "rtl" : "ltr"}
+            role="navigation"
+            aria-label={t("episodes")}
+          >
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.prev}
+              onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
+              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
+                !epLoading && episodeNav.prev ? "" : "episode-nav-btn-disabled"
+              }`}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span className="hidden truncate sm:inline">{t("prevEpisode")}</span>
+            </button>
+
+            <div className="flex min-w-[5.5rem] flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-center">
+              <span className="text-[10px] text-[var(--text-dim)]">{t("episode")}</span>
+              <span className="text-sm font-black text-[var(--text-primary)]">
+                {selectedEpisode}
+                {episodes.length > 0 ? ` / ${Math.max(...episodes.map((e) => e.episode_number))}` : ""}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.next}
+              onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
+              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
+                !epLoading && episodeNav.next ? "episode-nav-btn-primary" : "episode-nav-btn-disabled"
+              }`}
+            >
+              <span className="hidden truncate sm:inline">{t("nextEpisode")}</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
           </div>
         )}
 
@@ -351,7 +444,7 @@ export default function WatchTVPage({
         )}
 
         {/* Player */}
-        <div className="player-shell">
+        <div id="watch-player" className="player-shell scroll-mt-24">
           <div className="relative aspect-video w-full">
             {currentServer.playerType === "direct" && currentServer.directUrl ? (
               <VideoPlayer src={currentServer.directUrl} />
@@ -373,65 +466,6 @@ export default function WatchTVPage({
             <div aria-hidden className="pointer-events-auto absolute bottom-0 end-0 z-[2] h-10 w-36 bg-black" />
           </div>
         </div>
-
-        {/* Prev / Next episode — outside player so it stays visible (not lost in black frame) */}
-        {show && show.seasons.length > 0 && (
-          <div
-            className="mt-4 flex flex-wrap items-stretch justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-3 shadow-sm sm:px-4"
-            dir={isRtl ? "rtl" : "ltr"}
-            role="navigation"
-            aria-label={t("episodes")}
-          >
-            <button
-              type="button"
-              disabled={epLoading || !episodeNav.prev}
-              onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
-              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
-                !epLoading && episodeNav.prev
-                  ? "btn-ghost !rounded-xl"
-                  : "cursor-not-allowed border-[var(--border)] text-[var(--text-dim)] opacity-40"
-              }`}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className={isRtl ? "rotate-180" : ""}
-                aria-hidden
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              <span className="truncate">{t("prevEpisode")}</span>
-            </button>
-            <button
-              type="button"
-              disabled={epLoading || !episodeNav.next}
-              onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
-              className={`flex min-h-[48px] min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition-all sm:max-w-[calc(50%-6px)] ${
-                !epLoading && episodeNav.next
-                  ? "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[var(--accent-soft)]"
-                  : "cursor-not-allowed border-[var(--border)] text-[var(--text-dim)] opacity-40"
-              }`}
-            >
-              <span className="truncate">{t("nextEpisode")}</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className={isRtl ? "rotate-180" : ""}
-                aria-hidden
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        )}
 
         {/* Subtitle language indicator */}
         <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
@@ -731,7 +765,6 @@ function RelatedShowsSection({
 function ShowInfo({
   show,
   t,
-  isAr,
 }: {
   show: ShowData;
   t: (key: TranslationKey) => string;
@@ -739,57 +772,24 @@ function ShowInfo({
 }) {
   return (
     <div className="mt-8 space-y-6">
-      {/* Title + Rating */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">{show.name}</h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {show.genres.slice(0, 3).map((g) => (
-              <span key={g} className="rounded-full border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1 text-xs text-[var(--text-muted)]">
-                {g}
-              </span>
-            ))}
-          </div>
+      {show.overview && (
+        <div className="card p-4 sm:p-5">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
+            {t("movieStory")}
+          </h2>
+          <p className="text-sm leading-7 text-[var(--text-muted)]">{show.overview}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--rating)" className="shrink-0">
-            <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-          </svg>
-          <div>
-            <p className="text-lg font-bold leading-none text-[var(--rating)]">{show.vote_average.toFixed(1)}</p>
-            <p className="text-[10px] text-[var(--text-dim)]">{show.vote_count.toLocaleString()} {t("votes")}</p>
-          </div>
+      )}
+
+      <div className="card p-4 sm:p-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <InfoItem label={t("releaseDate")} value={show.first_air_date} />
+          <InfoItem label={t("genre")} value={show.genres.join("، ")} />
+          <InfoItem label={t("seasons")} value={String(show.number_of_seasons)} />
         </div>
       </div>
 
-      {/* Poster + Synopsis */}
-      <div className="flex gap-6">
-        {show.poster_path && (
-          <div className="hidden shrink-0 sm:block">
-            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-[var(--border)] shadow-lg">
-              <Image src={show.poster_path} alt={show.name} fill className="object-cover" sizes="192px" />
-            </div>
-          </div>
-        )}
-        <div className="flex-1">
-          {show.overview && (
-            <div>
-              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-                <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-                {t("movieStory")}
-              </h2>
-              <p className="text-sm leading-7 text-[var(--text-muted)]">{show.overview}</p>
-            </div>
-          )}
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <InfoItem label={t("releaseDate")} value={show.first_air_date} />
-            <InfoItem label={t("genre")} value={show.genres.join("، ")} />
-            <InfoItem label={t("seasons")} value={String(show.number_of_seasons)} />
-          </div>
-        </div>
-      </div>
-
-      {/* Cast */}
       {show.cast.length > 0 && (
         <div>
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">

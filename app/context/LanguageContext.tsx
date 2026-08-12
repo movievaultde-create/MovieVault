@@ -57,7 +57,11 @@ const translations = {
   // Hero
   featured: { EN: "Featured", AR: "مميز", DE: "Empfohlen", FR: "À la une", ES: "Destacado", TR: "Öne Çıkan" },
   watchNow: { EN: "Watch Now", AR: "شاهد الآن", DE: "Jetzt ansehen", FR: "Regarder", ES: "Ver ahora", TR: "Şimdi İzle" },
+  startWatching: { EN: "Start Watching", AR: "ابدأ المشاهدة", DE: "Wiedergabe starten", FR: "Commencer", ES: "Empezar a ver", TR: "İzlemeye Başla" },
+  addToMyList: { EN: "Add to my list", AR: "أضف لقائمتي", DE: "Zur Liste", FR: "Ajouter à ma liste", ES: "Añadir a mi lista", TR: "Listeme ekle" },
+  inMyList: { EN: "In my list", AR: "في قائمتي", DE: "In meiner Liste", FR: "Dans ma liste", ES: "En mi lista", TR: "Listemde" },
   movieDetails: { EN: "Movie Details", AR: "تفاصيل الفيلم", DE: "Filmdetails", FR: "Détails du film", ES: "Detalles", TR: "Film Detayları" },
+  subtitled: { EN: "Subbed", AR: "مترجم", DE: "Untertitelt", FR: "Sous-titré", ES: "Subtitulado", TR: "Altyazılı" },
 
   // Sections
   latestMovies: { EN: "Latest Movies", AR: "أحدث الأفلام", DE: "Neueste Filme", FR: "Derniers films", ES: "Últimas películas", TR: "Son Filmler" },
@@ -93,6 +97,8 @@ const translations = {
   season: { EN: "Season", AR: "الموسم", DE: "Staffel", FR: "Saison", ES: "Temporada", TR: "Sezon" },
   episode: { EN: "Episode", AR: "الحلقة", DE: "Folge", FR: "Épisode", ES: "Episodio", TR: "Bölüm" },
   episodes: { EN: "Episodes", AR: "الحلقات", DE: "Folgen", FR: "Épisodes", ES: "Episodios", TR: "Bölümler" },
+  prevEpisode: { EN: "Previous episode", AR: "الحلقة السابقة", DE: "Vorherige Folge", FR: "Épisode précédent", ES: "Episodio anterior", TR: "Önceki bölüm" },
+  nextEpisode: { EN: "Next episode", AR: "الحلقة التالية", DE: "Nächste Folge", FR: "Épisode suivant", ES: "Siguiente episodio", TR: "Sonraki bölüm" },
   selectSeason: { EN: "Select Season", AR: "اختر الموسم", DE: "Staffel wählen", FR: "Choisir la saison", ES: "Elegir temporada", TR: "Sezon Seç" },
   selectEpisode: { EN: "Select Episode", AR: "اختر الحلقة", DE: "Folge wählen", FR: "Choisir l'épisode", ES: "Elegir episodio", TR: "Bölüm Seç" },
   nowPlayingStatus: { EN: "Now Playing", AR: "يعرض الآن", DE: "Läuft jetzt", FR: "En cours", ES: "Reproduciendo", TR: "Şimdi Oynatılıyor" },

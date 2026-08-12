@@ -180,6 +180,41 @@ body {
   color: var(--text-dim);
 }
 
+.episode-nav-btn {
+  min-height: 3rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.episode-nav-btn:hover:not(:disabled) {
+  border-color: var(--border-hover);
+  background: var(--bg-elevated);
+}
+
+.episode-nav-btn-primary {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.episode-nav-btn-primary:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.episode-nav-btn-disabled,
+.episode-nav-btn:disabled {
+  cursor: not-allowed;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  opacity: 0.55;
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;

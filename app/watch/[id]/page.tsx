@@ -7,6 +7,7 @@ import { useLang, LANGUAGES, type TranslationKey } from "../../context/LanguageC
 import VideoPlayer from "../../components/VideoPlayer";
 import FollowNotificationButton from "../../components/FollowNotificationButton";
 import MediaCard from "../../components/MediaCard";
+import WatchHeroCard from "../../components/WatchHeroCard";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
 
 interface CastMember {
@@ -199,7 +200,6 @@ export default function WatchPage({
   return (
     <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
-        {/* Back Button */}
         <Link
           href="/"
           className="mb-4 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]"
@@ -219,6 +219,30 @@ export default function WatchPage({
         </Link>
 
         {movie && (
+          <WatchHeroCard
+            data={{
+              id: movie.id,
+              title: movie.title,
+              year: movie.release_date?.slice(0, 4) ?? "",
+              poster: movie.poster_path,
+              backdrop: movie.backdrop_path,
+              rating: movie.vote_average.toFixed(1),
+              type: "movie",
+              meta: [
+                t("movie"),
+                movie.runtime ? `${movie.runtime} ${t("minutes")}` : null,
+                movie.genres.slice(0, 2).join(", ") || null,
+              ]
+                .filter(Boolean)
+                .join(" | "),
+            }}
+            onStartWatching={() => {
+              document.getElementById("watch-player")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
+        )}
+
+        {movie && (
           <div className="mb-4 flex items-center justify-end">
             <FollowNotificationButton
               type="movie"
@@ -230,7 +254,7 @@ export default function WatchPage({
         )}
 
         {/* Player */}
-        <div className="player-shell">
+        <div id="watch-player" className="player-shell scroll-mt-24">
           <div className="relative aspect-video w-full">
             {currentServer.playerType === "direct" && currentServer.directUrl ? (
               <VideoPlayer src={currentServer.directUrl} />
@@ -714,65 +738,12 @@ function MovieDetails({
 
   return (
     <div className="mt-8 space-y-6">
-      {/* Title + Rating */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)] sm:text-3xl">
-            {movie.title}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {movie.genres.slice(0, 3).map((g) => (
-              <span
-                key={g}
-                className="rounded-full border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-1 text-xs text-[var(--text-muted)]"
-              >
-                {g}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-4 py-2.5">
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="var(--rating)"
-            className="shrink-0"
-          >
-            <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-          </svg>
-          <div>
-            <p className="text-lg font-bold leading-none text-[var(--rating)]">
-              {movie.vote_average.toFixed(1)}
-            </p>
-            <p className="text-[10px] text-[var(--text-dim)]">
-              {movie.vote_count.toLocaleString()} {t("votes")}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Poster + Synopsis + Info */}
+      {/* Synopsis + Info (title/poster shown in hero above) */}
       <div className="flex gap-6">
-        {/* Poster */}
-        {movie.poster_path && (
-          <div className="hidden shrink-0 sm:block">
-            <div className="relative h-72 w-48 overflow-hidden rounded-lg border border-[var(--border)] shadow-lg">
-              <Image
-                src={movie.poster_path}
-                alt={movie.title}
-                fill
-                className="object-cover"
-                sizes="192px"
-              />
-            </div>
-          </div>
-        )}
-
         <div className="flex-1 space-y-6">
           {/* Synopsis */}
           {movie.overview && (
-            <div>
+            <div className="card p-4 sm:p-5">
               <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
                 <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
                 {t("movieStory")}
@@ -784,7 +755,7 @@ function MovieDetails({
           )}
 
           {/* Info Grid */}
-          <div>
+          <div className="card p-4 sm:p-5">
             <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
               <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
               {t("movieInfo")}

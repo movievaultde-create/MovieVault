@@ -42,6 +42,7 @@ export async function GET(
       vote_average: 0,
       vote_count: 0,
       poster_path: null,
+      backdrop_path: null,
       genres: [],
       number_of_seasons: 1,
       seasons: [{ season_number: 1, name: "Season 1", episode_count: 10, poster: null }],
@@ -154,6 +155,9 @@ export async function GET(
       vote_count: show.vote_count,
       poster_path: show.poster_path
         ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+        : null,
+      backdrop_path: show.backdrop_path
+        ? `https://image.tmdb.org/t/p/original${show.backdrop_path}`
         : null,
       genres: show.genres?.map((g: { name: string }) => g.name) ?? [],
       number_of_seasons: show.number_of_seasons,
