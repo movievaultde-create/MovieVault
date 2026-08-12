@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Tajawal } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "./context/LanguageContext";
 import { VipProvider } from "./context/VipContext";
@@ -8,20 +8,13 @@ import { AuthProvider } from "./context/AuthContext";
 import { WatchlistProvider } from "./context/WatchlistContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Popunder from "./components/Popunder";
-import AdsContainer from "./components/AdsContainer";
-import AntiAdblock from "./components/AntiAdblock";
 import { SITE_URL } from "./lib/siteUrl";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -239,7 +232,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className={`${tajawal.variable} h-full`} suppressHydrationWarning>
       <head>
         <meta name="6a97888e-site-verification" content="e84c90fd1f6d68a8c466b0ea5a1d8874" />
         <meta property="og:url" content={`${SITE_URL}/`} />
@@ -255,19 +248,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background text-foreground antialiased`}
-      >
+      <body className={`${tajawal.variable} min-h-screen bg-background text-foreground antialiased`}>
         <LanguageProvider>
           <AuthProvider>
             <WatchlistProvider>
               <VipProvider>
-                <Popunder />
-                <AntiAdblock />
                 <Suspense fallback={null}>
                   <Navbar />
                 </Suspense>
-                <AdsContainer />
                 <main>{children}</main>
                 <Footer />
                 <Analytics />
