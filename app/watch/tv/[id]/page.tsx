@@ -364,10 +364,15 @@ export default function WatchTVPage({
                 onError={handleIframeError}
                 className="absolute inset-0 h-full w-full"
                 allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture"
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 referrerPolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-fullscreen"
+                loading="lazy"
               />
             )}
+            {/* Cover embed tracker badges (e.g. histats) without blocking center controls */}
+            <div aria-hidden className="pointer-events-auto absolute bottom-0 start-0 z-[2] h-10 w-36 bg-black" />
+            <div aria-hidden className="pointer-events-auto absolute bottom-0 end-0 z-[2] h-10 w-36 bg-black" />
           </div>
         </div>
 

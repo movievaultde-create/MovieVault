@@ -2,14 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// HilltopAds VAST tag URL
-export const HILLTOP_VAST_URL =
-  "https://shiny-fortune.com/d.mHF/zHdDGqNDvrZYGNUk/beXmD9EuDZeUelRkwPjTjY_4JMojhEnzZOUDgkytWNCjjgDyBMoTzMS5wMEy/Z/siaWWC1Wp/doDc0cxy";
-
 interface VideoPlayerProps {
   src: string;
   poster?: string;
-  vastUrl?: string;
 }
 
 function getSourceType(src: string): string {
@@ -19,7 +14,7 @@ function getSourceType(src: string): string {
   return "video/mp4";
 }
 
-export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) {
+export default function VideoPlayer({ src, poster }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<ReturnType<typeof import("video.js")["default"]> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,7 +28,6 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
 
       const videojs = (await import("video.js")).default;
 
-      // Load Video.js CSS
       if (!document.querySelector('link[href*="video-js.css"]')) {
         const link = document.createElement("link");
         link.rel = "stylesheet";
@@ -57,25 +51,22 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
 
       playerRef.current = player;
       setReady(true);
-
-      // VAST/VPAID ad integration
-      const adTag = vastUrl || HILLTOP_VAST_URL;
-      if (adTag && adTag !== "YOUR_HILLTOP_VAST_TAG_URL_HERE") {
-        loadVastAd(player, adTag);
-      }
     };
 
-    // Delay initialization slightly for better page load
     const timer = setTimeout(init, 500);
 
     return () => {
       clearTimeout(timer);
       if (playerRef.current) {
-        try { playerRef.current.dispose(); } catch {}
+        try {
+          playerRef.current.dispose();
+        } catch {
+          /* ignore */
+        }
         playerRef.current = null;
       }
     };
-  }, [src, vastUrl]);
+  }, [src]);
 
   return (
     <div ref={containerRef} className="player-shell relative w-full">
@@ -96,82 +87,4 @@ export default function VideoPlayer({ src, poster, vastUrl }: VideoPlayerProps) 
       )}
     </div>
   );
-}
-
-function loadVastAd(
-  player: ReturnType<typeof import("video.js")["default"]>,
-  vastUrl: string
-) {
-  // Load IMA SDK for VAST/VPAID support
-  if (!document.querySelector('script[src*="ima3.js"]')) {
-    const script = document.createElement("script");
-    script.src = "https://imasdk.googleapis.com/js/sdkloader/ima3.js";
-    script.async = true;
-    script.onload = () => initIma(player, vastUrl);
-    document.head.appendChild(script);
-  } else {
-    initIma(player, vastUrl);
-  }
-}
-
-function initIma(
-  player: ReturnType<typeof import("video.js")["default"]>,
-  vastUrl: string
-) {
-  const w = window as typeof window & { google?: { ima?: unknown } };
-  if (!w.google?.ima) return;
-
-  try {
-    const google = w.google as {
-      ima: {
-        AdDisplayContainer: new (el: Element, vid: HTMLVideoElement) => { initialize: () => void };
-        AdsLoader: new (container: { initialize: () => void }) => {
-          addEventListener: (event: unknown, fn: (e: { getAdsManager: (vid: HTMLVideoElement, settings: unknown) => { init: (w: number, h: number, mode: unknown) => void; start: () => void; addEventListener: (event: unknown, fn: () => void) => void } }) => void) => void;
-          requestAds: (req: unknown) => void;
-        };
-        AdsRequest: new () => { adTagUrl: string; linearAdSlotWidth: number; linearAdSlotHeight: number };
-        AdsManagerLoadedEvent: { Type: { ADS_MANAGER_LOADED: unknown } };
-        AdEvent: { Type: { ALL_ADS_COMPLETED: unknown; COMPLETE: unknown } };
-        ViewMode: { NORMAL: unknown };
-        AdsRenderingSettings: new () => unknown;
-      };
-    };
-
-    const videoEl = player.el().querySelector("video") as HTMLVideoElement;
-    if (!videoEl) return;
-
-    const adContainer = document.createElement("div");
-    adContainer.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;";
-    player.el().appendChild(adContainer);
-
-    const adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoEl);
-    adDisplayContainer.initialize();
-
-    const adsLoader = new google.ima.AdsLoader(adDisplayContainer);
-    const adsRequest = new google.ima.AdsRequest();
-    adsRequest.adTagUrl = vastUrl;
-    adsRequest.linearAdSlotWidth = videoEl.clientWidth || 640;
-    adsRequest.linearAdSlotHeight = videoEl.clientHeight || 360;
-
-    adsLoader.addEventListener(
-      google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-      (e) => {
-        const adsManager = e.getAdsManager(videoEl, new google.ima.AdsRenderingSettings());
-        adsManager.init(videoEl.clientWidth || 640, videoEl.clientHeight || 360, google.ima.ViewMode.NORMAL);
-        adsManager.start();
-        adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, () => {
-          adContainer.style.pointerEvents = "none";
-        });
-        adsManager.addEventListener(google.ima.AdEvent.Type.COMPLETE, () => {
-          adContainer.style.pointerEvents = "none";
-        });
-      }
-    );
-
-    player.on("play", () => {
-      try { adsLoader.requestAds(adsRequest); } catch {}
-    });
-  } catch {
-    // IMA not available
-  }
 }
