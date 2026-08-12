@@ -64,10 +64,23 @@ function withLangParams(baseUrl: string, subLang: string): string {
   return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
 }
 
+/** Primary public server: 2Embed player source labeled Vcr (default on play). */
+const PRIMARY_SERVER_LABEL = "Vcr";
+
+function primaryServerIndex(servers: WatchServer[]): number {
+  const i = servers.findIndex((s) => s.label === PRIMARY_SERVER_LABEL);
+  if (i >= 0) return i;
+  const firstPublic = servers.findIndex((s) => !s.premium);
+  return firstPublic >= 0 ? firstPublic : 0;
+}
+
 function buildServers(id: string, season: number, episode: number, subLang: string): WatchServer[] {
   const directUrl = resolveDirectTvUrl(id, season, episode);
   // Same path as watch-clashanime (`/embedtv/{id}&s=&e=`), written with `?` so withLangParams stays valid.
-  const twoEmbedTv = `https://www.2embed.cc/embedtv/${id}?s=${season}&e=${episode}`;
+  const twoEmbedTv = withLangParams(
+    `https://www.2embed.cc/embedtv/${id}?s=${season}&e=${episode}`,
+    subLang
+  );
   return [
     {
       name: "MovieVault Server",
@@ -75,14 +88,14 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: withLangParams(twoEmbedTv, subLang),
+      url: twoEmbedTv,
     },
     {
       name: "Server 1",
-      label: "2Embed",
+      label: "Vcr",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(twoEmbedTv, subLang),
+      url: twoEmbedTv,
     },
     {
       name: "Server 2",
@@ -144,7 +157,6 @@ export default function WatchTVPage({
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
-  const [activeServer, setActiveServer] = useState(0);
   const [activeMirror, setActiveMirror] = useState(0);
   const [loading, setLoading] = useState(true);
   const [epLoading, setEpLoading] = useState(false);
@@ -152,9 +164,16 @@ export default function WatchTVPage({
   const [switching, setSwitching] = useState(false);
   const episodeSelectAfterSeasonFetchRef = useRef<number | "last" | null>(null);
 
+  const servers = useMemo(
+    () => buildServers(id, selectedSeason, selectedEpisode, subLang),
+    [id, selectedSeason, selectedEpisode, subLang]
+  );
+  const defaultServer = useMemo(() => primaryServerIndex(servers), [servers]);
+  const [activeServer, setActiveServer] = useState(defaultServer);
+
   useEffect(() => {
-    setActiveServer(0);
-  }, [id]);
+    setActiveServer(defaultServer);
+  }, [id, defaultServer]);
 
   useEffect(() => {
     setLoading(true);
@@ -198,10 +217,6 @@ export default function WatchTVPage({
       .finally(() => setEpLoading(false));
   }, [id, show, selectedSeason, tmdbLang]);
 
-  const servers = useMemo(
-    () => buildServers(id, selectedSeason, selectedEpisode, subLang),
-    [id, selectedSeason, selectedEpisode, subLang]
-  );
   const currentServer = servers[activeServer];
   const currentServerUrls = useMemo(
     () => [currentServer.url, ...(currentServer.mirrors ?? [])],

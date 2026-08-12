@@ -55,8 +55,19 @@ function withLangParams(baseUrl: string, subLang: string): string {
   return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
 }
 
+/** Primary public server: 2Embed player source labeled Vcr (default on play). */
+const PRIMARY_SERVER_LABEL = "Vcr";
+
+function primaryServerIndex(servers: WatchServer[]): number {
+  const i = servers.findIndex((s) => s.label === PRIMARY_SERVER_LABEL);
+  if (i >= 0) return i;
+  const firstPublic = servers.findIndex((s) => !s.premium);
+  return firstPublic >= 0 ? firstPublic : 0;
+}
+
 function buildMovieServers(id: string, subLang: string): WatchServer[] {
   const directUrl = resolveDirectMovieUrl(id);
+  const twoEmbed = withLangParams(`https://www.2embed.cc/embed/${id}`, subLang);
   return [
     {
       name: "MovieVault Server",
@@ -64,14 +75,14 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       premium: true,
       playerType: directUrl ? "direct" : "iframe",
       directUrl,
-      url: withLangParams(`https://www.2embed.cc/embed/${id}`, subLang),
+      url: twoEmbed,
     },
     {
       name: "Server 1",
-      label: "2Embed",
+      label: "Vcr",
       premium: false,
       playerType: "iframe",
-      url: withLangParams(`https://www.2embed.cc/embed/${id}`, subLang),
+      url: twoEmbed,
     },
     {
       name: "Server 2",
@@ -124,7 +135,8 @@ export default function WatchPage({
   const { lang, setLang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
   const SERVERS = useMemo(() => buildMovieServers(id, subLang), [id, subLang]);
-  const [activeServer, setActiveServer] = useState(0);
+  const defaultServer = useMemo(() => primaryServerIndex(SERVERS), [SERVERS]);
+  const [activeServer, setActiveServer] = useState(defaultServer);
   const [activeMirror, setActiveMirror] = useState(0);
   const currentServer = SERVERS[activeServer];
   const currentServerUrls = useMemo(
@@ -154,8 +166,8 @@ export default function WatchPage({
   };
 
   useEffect(() => {
-    setActiveServer(0);
-  }, [id]);
+    setActiveServer(defaultServer);
+  }, [id, defaultServer]);
 
   useEffect(() => {
     setLoading(true);
