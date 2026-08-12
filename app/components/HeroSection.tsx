@@ -125,7 +125,7 @@ export default function HeroSection() {
             )}
 
             {hero.overview && (
-              <p className="mb-8 max-w-lg line-clamp-3 text-sm leading-relaxed text-[var(--text-muted)] sm:text-base">
+              <p className="mb-8 max-w-lg line-clamp-3 text-sm font-medium leading-relaxed text-[var(--text-primary)] sm:text-base">
                 {hero.overview}
               </p>
             )}

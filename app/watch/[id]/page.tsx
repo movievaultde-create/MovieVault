@@ -685,7 +685,7 @@ function MovieDetails({
         details: (
           <div>
             <h2 className="mb-3 text-base font-black text-[var(--text-primary)]">{t("movieStory")}</h2>
-            <p className="text-sm leading-7 text-[var(--text-muted)]">
+            <p className="text-sm leading-7 font-medium text-[var(--text-primary)]">
               {movie.overview || (isAr ? "لا توجد قصة متاحة." : "No synopsis available.")}
             </p>
             {movie.genres.length > 0 && (
