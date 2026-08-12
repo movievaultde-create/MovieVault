@@ -1,8 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useWatchlist } from "../context/WatchlistContext";
 import { useLang } from "../context/LanguageContext";
 
@@ -15,7 +13,7 @@ interface WatchlistItem {
   type: "movie" | "tv";
 }
 
-/** ClashAnime-style “Add to my list” CTA (text button, not heart icon). */
+/** ClashAnime-style “Add to my list” CTA — no login required. */
 export default function WatchlistCtaButton({
   item,
   className = "",
@@ -23,19 +21,13 @@ export default function WatchlistCtaButton({
   item: WatchlistItem;
   className?: string;
 }) {
-  const router = useRouter();
   const { t } = useLang();
-  const { isAuthenticated } = useAuth();
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const saved = isInWatchlist(item.id, item.type);
 
   const onClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     void toggleWatchlist(item);
   };
 

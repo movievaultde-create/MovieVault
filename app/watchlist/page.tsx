@@ -2,40 +2,36 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LanguageContext";
 import { useWatchlist } from "../context/WatchlistContext";
 import MediaCard from "../components/MediaCard";
 
 export default function WatchlistPage() {
   const { isAr, t } = useLang();
-  const { isAuthenticated, loading: authLoading } = useAuth();
   const { items, ready, clearWatchlist } = useWatchlist();
 
   const text = useMemo(
     () => ({
-      title: isAr ? "قائمة المفضلة" : "Your Watchlist",
-      subtitle: isAr ? "كل الأفلام والمسلسلات التي حفظتها" : "All your saved movies and shows",
+      title: isAr ? "قائمتي" : "My List",
+      subtitle: isAr ? "المفضلات المحفوظة على هذا الجهاز" : "Favorites saved on this device",
       empty: isAr ? "لم تقم بحفظ أي عنوان بعد." : "You have not saved anything yet.",
       goHome: isAr ? "استكشاف المحتوى" : "Explore content",
-      needLogin: isAr ? "سجّل الدخول للوصول إلى قائمة المفضلة." : "Login to access your watchlist.",
-      goLogin: isAr ? "الذهاب لتسجيل الدخول" : "Go to Login",
-      clear: isAr ? "مسح القائمة" : "Clear watchlist",
+      clear: isAr ? "مسح القائمة" : "Clear list",
       count: isAr ? "عنصر محفوظ" : "saved titles",
     }),
     [isAr]
   );
 
-  if (authLoading || !ready) return null;
-
-  if (!isAuthenticated) {
+  if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)] px-4 pt-24">
-        <div className="w-full max-w-md rounded-3xl border border-[var(--border)] bg-[var(--bg-card)] p-7 text-center shadow-lg">
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{text.needLogin}</h1>
-          <Link href="/login" className="btn-primary mt-5 inline-flex">
-            {text.goLogin}
-          </Link>
+      <div className="min-h-screen bg-[var(--bg-base)] px-4 pb-16 pt-24">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="mb-7 h-10 w-48 rounded skeleton" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-[2/3] rounded-xl skeleton" />
+            ))}
+          </div>
         </div>
       </div>
     );

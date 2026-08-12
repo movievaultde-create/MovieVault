@@ -215,6 +215,20 @@ body {
   opacity: 0.55;
 }
 
+.tab-active {
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+.tab-inactive {
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+}
+
+.tab-inactive:hover {
+  color: var(--text-primary);
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;

@@ -1,8 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useWatchlist } from "../context/WatchlistContext";
 
 interface WatchlistButtonItem {
@@ -21,18 +19,12 @@ export default function WatchlistButton({
   item: WatchlistButtonItem;
   className?: string;
 }) {
-  const router = useRouter();
-  const { isAuthenticated } = useAuth();
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const saved = isInWatchlist(item.id, item.type);
 
   const onClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     void toggleWatchlist(item);
   };
 

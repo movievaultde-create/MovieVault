@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useAuth } from "./AuthContext";
 
 export interface WatchlistItem {
   id: number;
@@ -22,116 +21,68 @@ interface WatchlistContextType {
   clearWatchlist: () => Promise<void>;
 }
 
+const STORAGE_KEY = "movievault_favorites";
+
 const WatchlistContext = createContext<WatchlistContextType | null>(null);
 
+function readLocal(): WatchlistItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as WatchlistItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocal(items: WatchlistItem[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+/** Favorites / My List — localStorage only, no login required. */
 export function WatchlistProvider({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [ready, setReady] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const email = useMemo(() => user?.email?.trim().toLowerCase() ?? "", [user?.email]);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!email) {
-      setItems([]);
-      setReady(true);
-      return;
-    }
-
-    let active = true;
-    setReady(false);
-    fetch(`/api/watchlist?email=${encodeURIComponent(email)}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { ok?: boolean; items?: WatchlistItem[] } | null) => {
-        if (!active) return;
-        if (data?.ok && Array.isArray(data.items)) {
-          setItems(data.items);
-        } else {
-          setItems([]);
-        }
-      })
-      .catch(() => {
-        if (active) setItems([]);
-      })
-      .finally(() => {
-        if (active) setReady(true);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [authLoading, email]);
+    setItems(readLocal());
+    setReady(true);
+  }, []);
 
   const isInWatchlist = useCallback(
     (id: number, type: "movie" | "tv") => items.some((item) => item.id === id && item.type === type),
     [items]
   );
 
-  const toggleWatchlist = useCallback(
-    async (item: Omit<WatchlistItem, "addedAt">) => {
-      if (!email || busy) return { ok: false, added: false };
-      const exists = items.some((entry) => entry.id === item.id && entry.type === item.type);
+  const toggleWatchlist = useCallback(async (item: Omit<WatchlistItem, "addedAt">) => {
+    const prev = readLocal();
+    const exists = prev.some((entry) => entry.id === item.id && entry.type === item.type);
+    const next = exists
+      ? prev.filter((entry) => !(entry.id === item.id && entry.type === item.type))
+      : [{ ...item, addedAt: new Date().toISOString() }, ...prev];
+    writeLocal(next);
+    setItems(next);
+    return { ok: true, added: !exists };
+  }, []);
 
-      try {
-        setBusy(true);
-        if (exists) {
-          const res = await fetch("/api/watchlist", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, id: item.id, type: item.type }),
-          });
-          if (!res.ok) return { ok: false, added: false };
-          setItems((prev) => prev.filter((entry) => !(entry.id === item.id && entry.type === item.type)));
-          return { ok: true, added: false };
-        }
-
-        const res = await fetch("/api/watchlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, item }),
-        });
-        if (!res.ok) return { ok: false, added: false };
-        setItems((prev) => [
-          { ...item, addedAt: new Date().toISOString() },
-          ...prev.filter((entry) => !(entry.id === item.id && entry.type === item.type)),
-        ]);
-        return { ok: true, added: true };
-      } catch {
-        return { ok: false, added: false };
-      } finally {
-        setBusy(false);
-      }
-    },
-    [busy, email, items]
-  );
-
-  const removeFromWatchlist = useCallback(
-    async (id: number, type: "movie" | "tv") => {
-      if (!email) return;
-      const res = await fetch("/api/watchlist", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, id, type }),
-      });
-      if (res.ok) {
-        setItems((prev) => prev.filter((entry) => !(entry.id === id && entry.type === type)));
-      }
-    },
-    [email]
-  );
+  const removeFromWatchlist = useCallback(async (id: number, type: "movie" | "tv") => {
+    setItems((prev) => {
+      const next = prev.filter((entry) => !(entry.id === id && entry.type === type));
+      writeLocal(next);
+      return next;
+    });
+  }, []);
 
   const clearWatchlist = useCallback(async () => {
-    if (!email) return;
-    const res = await fetch("/api/watchlist", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (res.ok) {
-      setItems([]);
-    }
-  }, [email]);
+    writeLocal([]);
+    setItems([]);
+  }, []);
 
   const value = useMemo<WatchlistContextType>(
     () => ({

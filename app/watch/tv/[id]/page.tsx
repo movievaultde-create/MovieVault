@@ -3,11 +3,12 @@
 import { useState, useEffect, use, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLang, LANGUAGES, type TranslationKey } from "../../../context/LanguageContext";
+import { useLang, LANGUAGES } from "../../../context/LanguageContext";
 import VideoPlayer from "../../../components/VideoPlayer";
 import FollowNotificationButton from "../../../components/FollowNotificationButton";
 import MediaCard from "../../../components/MediaCard";
 import WatchHeroCard from "../../../components/WatchHeroCard";
+import WatchDetailTabs from "../../../components/WatchDetailTabs";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
@@ -550,124 +551,202 @@ export default function WatchTVPage({
           </div>
         )}
 
-        {/* Netflix-style Seasons & Episodes */}
-        {show && show.seasons.length > 0 && (
-          <div className="mt-8">
-            {/* Header with season dropdown */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-[var(--text-primary)]">
-                <div className="h-6 w-1 rounded-full bg-[var(--accent)]" />
-                {t("episodes")}
-              </h2>
-              <div className="relative">
-                <select
-                  value={selectedSeason}
-                  onChange={(e) => {
-                    episodeSelectAfterSeasonFetchRef.current = null;
-                    setSelectedSeason(Number(e.target.value));
-                  }}
-                  className="input-field appearance-none pe-10 text-sm font-medium"
-                >
-                  {show.seasons.map((s) => (
-                    <option key={s.season_number} value={s.season_number}>
-                      {t("season")} {s.season_number} ({s.episode_count} {t("episodes")})
-                    </option>
-                  ))}
-                </select>
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)]">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </div>
-            </div>
-
-            {/* Season pill tabs (quick switch) */}
-            <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {show.seasons.map((s) => (
-                <button
-                  key={s.season_number}
-                  onClick={() => {
-                    episodeSelectAfterSeasonFetchRef.current = null;
-                    setSelectedSeason(s.season_number);
-                  }}
-                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
-                    selectedSeason === s.season_number
-                      ? "bg-[var(--accent)] text-white shadow-md"
-                      : "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  S{s.season_number}
-                </button>
-              ))}
-            </div>
-
-            {/* Episodes grid */}
-            {epLoading ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="h-28 w-full rounded-xl skeleton" />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {episodes.map((ep) => {
-                  const isActive = selectedEpisode === ep.episode_number;
-                  return (
-                    <button
-                      key={ep.episode_number}
-                      onClick={() => playEpisode(ep.episode_number)}
-                      className={`group flex w-full items-start gap-3 overflow-hidden rounded-xl border p-0 text-start transition-all active:scale-[0.98] ${
-                        isActive
-                          ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/30"
-                          : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-surface)]"
-                      }`}
-                    >
-                      <div className="relative h-24 w-40 shrink-0 overflow-hidden bg-[var(--bg-elevated)] sm:h-28 sm:w-48">
-                        {ep.still ? (
-                          <Image src={ep.still} alt={ep.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 640px) 160px, 192px" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-[var(--bg-surface)] text-[var(--text-dim)]">
-                            <span className="text-2xl font-black opacity-20">{ep.episode_number}</span>
-                          </div>
-                        )}
-                        <div className={`absolute inset-0 flex items-center justify-center transition-all ${isActive ? "bg-[var(--accent)]/30" : "bg-black/0 group-hover:bg-black/20"}`}>
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isActive ? "scale-100 bg-[var(--accent)] text-white" : "scale-0 bg-white/90 text-[var(--text-primary)] group-hover:scale-100"}`}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                              <polygon points="5,3 19,12 5,21" />
-                            </svg>
-                          </div>
-                        </div>
-                        <span className={`absolute start-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold ${isActive ? "bg-[var(--accent)] text-white" : "bg-black/55 text-white/90"}`}>
-                          {ep.episode_number}
+        {/* Details tabs: story / episodes / info / cast */}
+        {show && (
+          <WatchDetailTabs
+            defaultTab="details"
+            tabs={[
+              { id: "details", label: t("detailsTab") },
+              { id: "episodes", label: t("episodes") },
+              { id: "info", label: t("infoTab") },
+              { id: "cast", label: t("castTab") },
+            ]}
+            panels={{
+              details: (
+                <div>
+                  <h2 className="mb-3 text-base font-black text-[var(--text-primary)]">{t("movieStory")}</h2>
+                  <p className="text-sm leading-7 text-[var(--text-muted)]">
+                    {show.overview || (isAr ? "لا توجد قصة متاحة." : "No synopsis available.")}
+                  </p>
+                  {show.genres.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {show.genres.map((g) => (
+                        <span
+                          key={g}
+                          className="rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs font-semibold text-[var(--text-muted)]"
+                        >
+                          {g}
                         </span>
-                      </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ),
+              episodes: show.seasons.length > 0 ? (
+                <div>
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-base font-black text-[var(--text-primary)]">{t("episodes")}</h2>
+                    <div className="relative">
+                      <select
+                        value={selectedSeason}
+                        onChange={(e) => {
+                          episodeSelectAfterSeasonFetchRef.current = null;
+                          setSelectedSeason(Number(e.target.value));
+                        }}
+                        className="input-field appearance-none pe-10 text-sm font-medium"
+                      >
+                        {show.seasons.map((s) => (
+                          <option key={s.season_number} value={s.season_number}>
+                            {t("season")} {s.season_number} ({s.episode_count} {t("episodes")})
+                          </option>
+                        ))}
+                      </select>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)]">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
 
-                      <div className="flex min-w-0 flex-1 flex-col justify-center py-2.5 pe-3">
-                        <p className={`truncate text-sm font-semibold ${isActive ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
-                          {ep.name}
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
-                          {ep.runtime && <span>{ep.runtime} {t("minuteShort")}</span>}
-                          {ep.vote_average > 0 && (
-                            <span className="flex items-center gap-0.5 text-[var(--rating)]">★ {ep.vote_average.toFixed(1)}</span>
+                  <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                    {show.seasons.map((s) => (
+                      <button
+                        key={s.season_number}
+                        onClick={() => {
+                          episodeSelectAfterSeasonFetchRef.current = null;
+                          setSelectedSeason(s.season_number);
+                        }}
+                        className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                          selectedSeason === s.season_number
+                            ? "bg-[var(--accent)] text-white shadow-md"
+                            : "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        S{s.season_number}
+                      </button>
+                    ))}
+                  </div>
+
+                  {epLoading ? (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="h-28 w-full rounded-xl skeleton" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {episodes.map((ep) => {
+                        const isActive = selectedEpisode === ep.episode_number;
+                        return (
+                          <button
+                            key={ep.episode_number}
+                            onClick={() => playEpisode(ep.episode_number)}
+                            className={`group flex w-full items-start gap-3 overflow-hidden rounded-xl border p-0 text-start transition-all active:scale-[0.98] ${
+                              isActive
+                                ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/30"
+                                : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-surface)]"
+                            }`}
+                          >
+                            <div className="relative h-24 w-40 shrink-0 overflow-hidden bg-[var(--bg-elevated)] sm:h-28 sm:w-48">
+                              {ep.still ? (
+                                <Image src={ep.still} alt={ep.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 640px) 160px, 192px" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-[var(--bg-surface)] text-[var(--text-dim)]">
+                                  <span className="text-2xl font-black opacity-20">{ep.episode_number}</span>
+                                </div>
+                              )}
+                              <div className={`absolute inset-0 flex items-center justify-center transition-all ${isActive ? "bg-[var(--accent)]/30" : "bg-black/0 group-hover:bg-black/20"}`}>
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isActive ? "scale-100 bg-[var(--accent)] text-white" : "scale-0 bg-white/90 text-[var(--text-primary)] group-hover:scale-100"}`}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5,3 19,12 5,21" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <span className={`absolute start-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold ${isActive ? "bg-[var(--accent)] text-white" : "bg-black/55 text-white/90"}`}>
+                                {ep.episode_number}
+                              </span>
+                            </div>
+
+                            <div className="flex min-w-0 flex-1 flex-col justify-center py-2.5 pe-3">
+                              <p className={`truncate text-sm font-semibold ${isActive ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+                                {ep.name}
+                              </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
+                                {ep.runtime && <span>{ep.runtime} {t("minuteShort")}</span>}
+                                {ep.vote_average > 0 && (
+                                  <span className="flex items-center gap-0.5 text-[var(--rating)]">★ {ep.vote_average.toFixed(1)}</span>
+                                )}
+                              </div>
+                              {ep.overview && (
+                                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
+                                  {ep.overview}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--text-muted)]">{isAr ? "لا توجد حلقات." : "No episodes."}</p>
+              ),
+              info: (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+                    <p className="text-[11px] font-medium text-[var(--text-dim)]">{t("releaseDate")}</p>
+                    <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{show.first_air_date || "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+                    <p className="text-[11px] font-medium text-[var(--text-dim)]">{t("genre")}</p>
+                    <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{show.genres.join("، ") || "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+                    <p className="text-[11px] font-medium text-[var(--text-dim)]">{t("seasons")}</p>
+                    <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">{show.number_of_seasons}</p>
+                  </div>
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+                    <p className="text-[11px] font-medium text-[var(--text-dim)]">{t("rating")}</p>
+                    <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">
+                      {show.vote_average.toFixed(1)}/10 · {show.vote_count.toLocaleString()} {t("votes")}
+                    </p>
+                  </div>
+                </div>
+              ),
+              cast:
+                show.cast.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {show.cast.map((person, index) => (
+                      <div
+                        key={person.name}
+                        className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-center"
+                      >
+                        <div className="relative aspect-square w-full bg-[var(--bg-elevated)]">
+                          {person.photo ? (
+                            <Image src={person.photo} alt={person.name} fill className="object-cover" sizes="160px" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
+                              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                            </div>
                           )}
                         </div>
-                        {ep.overview && (
-                          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
-                            {ep.overview}
+                        <div className="p-2.5">
+                          <p className="truncate text-xs font-bold text-[var(--text-primary)]">{person.name}</p>
+                          <p className="mt-0.5 truncate text-[10px] text-[var(--text-dim)]">
+                            {person.character || (index < 3 ? t("roleMain") : t("roleSupporting"))}
                           </p>
-                        )}
+                        </div>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Show Info */}
-        {show && (
-          <ShowInfo show={show} t={t} isAr={isAr} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[var(--text-muted)]">{isAr ? "لا يوجد طاقم متاح." : "No cast available."}</p>
+                ),
+            }}
+          />
         )}
 
         <RelatedShowsSection show={show} isAr={isAr} />
@@ -759,78 +838,5 @@ function RelatedShowsSection({
         ))}
       </div>
     </section>
-  );
-}
-
-function ShowInfo({
-  show,
-  t,
-}: {
-  show: ShowData;
-  t: (key: TranslationKey) => string;
-  isAr: boolean;
-}) {
-  return (
-    <div className="mt-8 space-y-6">
-      {show.overview && (
-        <div className="card p-4 sm:p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-            {t("movieStory")}
-          </h2>
-          <p className="text-sm leading-7 text-[var(--text-muted)]">{show.overview}</p>
-        </div>
-      )}
-
-      <div className="card p-4 sm:p-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <InfoItem label={t("releaseDate")} value={show.first_air_date} />
-          <InfoItem label={t("genre")} value={show.genres.join("، ")} />
-          <InfoItem label={t("seasons")} value={String(show.number_of_seasons)} />
-        </div>
-      </div>
-
-      {show.cast.length > 0 && (
-        <div>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-            {t("cast")}
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {show.cast.map((person) => (
-              <div key={person.name} className="flex w-24 shrink-0 flex-col items-center gap-2">
-                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-[var(--border)] bg-[var(--bg-surface)]">
-                  {person.photo ? (
-                    <Image src={person.photo} alt={person.name} fill className="object-cover" sizes="80px" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
-                      <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-medium leading-tight text-[var(--text-primary)]">{person.name}</p>
-                  <p className="mt-0.5 text-[10px] leading-tight text-[var(--text-dim)]">{person.character}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3">
-      <div className="min-w-0">
-        <p className="text-[11px] font-medium text-[var(--text-dim)]">{label}</p>
-        <p className="truncate text-sm text-[var(--text-primary)]">{value || "—"}</p>
-      </div>
-    </div>
   );
 }

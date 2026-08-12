@@ -311,6 +311,18 @@ export default function Navbar() {
               )}
             </div>
 
+            <Link
+              href="/watchlist"
+              className={`hidden h-10 items-center gap-1.5 px-4 text-sm font-semibold sm:inline-flex ${
+                pathname === "/watchlist" ? "btn-primary !rounded-xl" : "btn-ghost"
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={pathname === "/watchlist" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                <path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" />
+              </svg>
+              {t("navMyList")}
+            </Link>
+
             <button
               type="button"
               onClick={openBlogInNewTab}
@@ -453,6 +465,17 @@ export default function Navbar() {
             )}
 
             <div className="mx-4 my-1 border-t border-[var(--border)]" />
+
+            <Link
+              href="/watchlist"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`${pathname === "/watchlist" ? navLinkActive : navLinkInactive} flex items-center gap-3`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill={pathname === "/watchlist" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                <path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" />
+              </svg>
+              {t("navMyList")}
+            </Link>
 
             <button
               type="button"

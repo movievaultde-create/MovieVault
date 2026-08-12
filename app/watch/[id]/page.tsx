@@ -8,6 +8,7 @@ import VideoPlayer from "../../components/VideoPlayer";
 import FollowNotificationButton from "../../components/FollowNotificationButton";
 import MediaCard from "../../components/MediaCard";
 import WatchHeroCard from "../../components/WatchHeroCard";
+import WatchDetailTabs from "../../components/WatchDetailTabs";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
 
 interface CastMember {
@@ -737,111 +738,91 @@ function MovieDetails({
   ];
 
   return (
-    <div className="mt-8 space-y-6">
-      {/* Synopsis + Info (title/poster shown in hero above) */}
-      <div className="flex gap-6">
-        <div className="flex-1 space-y-6">
-          {/* Synopsis */}
-          {movie.overview && (
-            <div className="card p-4 sm:p-5">
-              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-                <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-                {t("movieStory")}
-              </h2>
-              <p className="text-sm leading-7 text-[var(--text-muted)]">
-                {movie.overview}
+    <WatchDetailTabs
+      tabs={[
+        { id: "details", label: t("detailsTab") },
+        { id: "info", label: t("infoTab") },
+        { id: "cast", label: t("castTab") },
+      ]}
+      panels={{
+        details: (
+          <div>
+            <h2 className="mb-3 text-base font-black text-[var(--text-primary)]">{t("movieStory")}</h2>
+            <p className="text-sm leading-7 text-[var(--text-muted)]">
+              {movie.overview || (isAr ? "لا توجد قصة متاحة." : "No synopsis available.")}
+            </p>
+            {movie.genres.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {movie.genres.map((g) => (
+                  <span
+                    key={g}
+                    className="rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1 text-xs font-semibold text-[var(--text-muted)]"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ),
+        info: (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {infoItems.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5"
+              >
+                <p className="text-[11px] font-medium text-[var(--text-dim)]">{item.label}</p>
+                <p className="mt-1 truncate text-sm font-bold text-[var(--text-primary)]">{item.value}</p>
+              </div>
+            ))}
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-3.5">
+              <p className="text-[11px] font-medium text-[var(--text-dim)]">{t("rating")}</p>
+              <p className="mt-1 text-sm font-bold text-[var(--text-primary)]">
+                {movie.vote_average.toFixed(1)}/10 · {movie.vote_count.toLocaleString()} {t("votes")}
               </p>
             </div>
-          )}
-
-          {/* Info Grid */}
-          <div className="card p-4 sm:p-5">
-            <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-              <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-              {t("movieInfo")}
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {infoItems.map((item) => (
+          </div>
+        ),
+        cast:
+          movie.cast.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {movie.cast.map((person, index) => (
                 <div
-                  key={item.label}
-                  className="flex items-start gap-3 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] p-3"
+                  key={person.name}
+                  className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-center"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    className="mt-0.5 shrink-0 text-[var(--accent)]"
-                  >
-                    {item.icon}
-                    {item.iconExtra}
-                  </svg>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-medium text-[var(--text-dim)]">
-                      {item.label}
+                  <div className="relative aspect-square w-full bg-[var(--bg-elevated)]">
+                    {person.photo ? (
+                      <Image
+                        src={person.photo}
+                        alt={person.name}
+                        fill
+                        className="object-cover"
+                        sizes="160px"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="truncate text-xs font-bold text-[var(--text-primary)]">{person.name}</p>
+                    <p className="mt-0.5 truncate text-[10px] text-[var(--text-dim)]">
+                      {person.character || (index < 3 ? t("roleMain") : t("roleSupporting"))}
                     </p>
-                    <p className="truncate text-sm text-[var(--text-primary)]">{item.value}</p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Cast */}
-      {movie.cast.length > 0 && (
-        <div>
-          <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-            <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-            {t("cast")}
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {movie.cast.map((person) => (
-              <div
-                key={person.name}
-                className="flex w-24 shrink-0 flex-col items-center gap-2"
-              >
-                <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-[var(--border)] bg-[var(--bg-surface)]">
-                  {person.photo ? (
-                    <Image
-                      src={person.photo}
-                      alt={person.name}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[var(--text-dim)]">
-                      <svg
-                        width="28"
-                        height="28"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-medium leading-tight text-[var(--text-primary)]">
-                    {person.name}
-                  </p>
-                  <p className="mt-0.5 text-[10px] leading-tight text-[var(--text-dim)]">
-                    {person.character}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">{isAr ? "لا يوجد طاقم متاح." : "No cast available."}</p>
+          ),
+      }}
+    />
   );
 }
