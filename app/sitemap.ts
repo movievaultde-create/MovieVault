@@ -1,36 +1,34 @@
 import type { MetadataRoute } from "next";
 import { getCombinedBlogPosts, getCombinedBlogTags } from "@/app/lib/blog";
+import { getWatchSitemapEntries } from "@/app/lib/sitemapCatalog";
+import { SITE_URL } from "@/app/lib/siteUrl";
 
-const BASE = "https://movie-vault.dev";
+const BASE = SITE_URL;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const blogPosts = await getCombinedBlogPosts();
-  const blogTags = await getCombinedBlogTags();
+  const [blogPosts, blogTags, watchPages] = await Promise.all([
+    getCombinedBlogPosts(),
+    getCombinedBlogTags(),
+    getWatchSitemapEntries(),
+  ]);
 
   return [
-    // Main pages
     { url: BASE, lastModified: now, changeFrequency: "hourly", priority: 1.0 },
     { url: `${BASE}/movies`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE}/tv-series`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE}/anime`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
-    { url: `${BASE}/anime/all`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
-    { url: `${BASE}/anime/action`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
-    { url: `${BASE}/anime/family`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
-    { url: `${BASE}/anime/18`, lastModified: now, changeFrequency: "hourly", priority: 0.85 },
-    { url: `${BASE}/anime/servers`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/anime/translation`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${BASE}/anime/anilist`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE}/anime/shounen`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE}/anime/seinen`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
 
-    // Category pages
     { url: `${BASE}/korean-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/indian-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/indian-movies`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/arab-movies`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/arab-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/turkish-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/foreign-movies`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE}/foreign-series`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/collections`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
 
-    // Legal pages
     { url: `${BASE}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE}/privacy-policy`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BASE}/terms`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
@@ -55,5 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.5,
     })),
+    ...watchPages,
   ];
 }
