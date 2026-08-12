@@ -55,14 +55,14 @@ function withLangParams(baseUrl: string, subLang: string): string {
   return `${baseUrl}${separator}sub=${subLang}&sub_lang=${subLang}&ds_lang=${subLang}&lang=${subLang}&audio_lang=${subLang}`;
 }
 
-/** Primary public server: VidLink (default + recommended on play). */
-const PRIMARY_SERVER_LABEL = "VidLink";
+/** Primary server on play: MovieVault (no "recommended" badge). */
+const PRIMARY_SERVER_LABEL = "MovieVault Server";
 
 function primaryServerIndex(servers: WatchServer[]): number {
-  const i = servers.findIndex((s) => s.label === PRIMARY_SERVER_LABEL);
-  if (i >= 0) return i;
-  const firstPublic = servers.findIndex((s) => !s.premium);
-  return firstPublic >= 0 ? firstPublic : 0;
+  const byName = servers.findIndex((s) => s.name === PRIMARY_SERVER_LABEL);
+  if (byName >= 0) return byName;
+  const premium = servers.findIndex((s) => s.premium);
+  return premium >= 0 ? premium : 0;
 }
 
 function buildMovieServers(id: string, subLang: string): WatchServer[] {
@@ -81,7 +81,6 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       name: "Server 1",
       label: "VidLink",
       premium: false,
-      recommended: true,
       playerType: "iframe",
       url: withLangParams(
         `https://vidlink.pro/movie/${id}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,

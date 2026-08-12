@@ -33,9 +33,7 @@ export default function WatchStreamTabs({
                 key={`${server.name}-${i}`}
                 type="button"
                 onClick={() => onSelectServer(i)}
-                className={`watch-stream-tab ${active ? "watch-stream-tab-active" : ""} ${
-                  server.recommended && !active ? "watch-stream-tab-premium" : ""
-                }`}
+                className={`watch-stream-tab ${active ? "watch-stream-tab-active" : ""}`}
                 title={`${server.name} · ${server.label}`}
               >
                 {title}
