@@ -25,7 +25,7 @@ export default function WatchDetailTabs({
   const current = available.some((t) => t.id === active) ? active : available[0].id;
 
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)]">
+    <div className="mt-4 mb-6 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)]">
       <div className="flex gap-0 overflow-x-auto border-b border-[var(--border)]">
         {available.map((tab) => (
           <button

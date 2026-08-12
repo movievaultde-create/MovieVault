@@ -243,6 +243,15 @@ export default function WatchPage({
           />
         )}
 
+        {/* Details / Info / Cast — directly under Start Watching */}
+        <MovieDetails
+          movie={movie}
+          loading={loading}
+          error={error}
+          t={t}
+          isAr={isAr}
+        />
+
         {movie && (
           <div className="mb-4 flex items-center justify-end">
             <FollowNotificationButton
@@ -363,15 +372,6 @@ export default function WatchPage({
 
         {/* Download */}
         <DownloadSection id={id} t={t} isAr={isAr} />
-
-        {/* Movie Details from TMDB */}
-        <MovieDetails
-          movie={movie}
-          loading={loading}
-          error={error}
-          t={t}
-          isAr={isAr}
-        />
 
         <RelatedMoviesSection movie={movie} isAr={isAr} />
       </div>
@@ -652,7 +652,7 @@ function MovieDetails({
 }) {
   if (loading) {
     return (
-      <div className="mt-8 space-y-4">
+      <div className="mt-4 space-y-4">
         <div className="h-6 w-48 rounded skeleton" />
         <div className="flex gap-6">
           <div className="hidden h-72 w-48 shrink-0 rounded-lg skeleton sm:block" />
@@ -670,7 +670,7 @@ function MovieDetails({
 
   if (error) {
     return (
-      <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
+      <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
         <svg
           width="32"
           height="32"

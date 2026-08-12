@@ -358,199 +358,6 @@ export default function WatchTVPage({
           />
         )}
 
-        {show && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
-            <span className="font-bold text-[var(--text-primary)]">{show.name}</span>
-            <span className="text-[var(--text-dim)]">·</span>
-            <span>
-              {t("episode")} {selectedEpisode}
-              {episodes.length > 0 ? ` / ${episodes.length}` : ""}
-            </span>
-          </div>
-        )}
-
-        {/* Prev / Next episode — ABOVE player (clashanime style) */}
-        {show && show.seasons.length > 0 && (
-          <div
-            className="mb-4 flex items-stretch gap-2 sm:gap-3"
-            dir={isRtl ? "rtl" : "ltr"}
-            role="navigation"
-            aria-label={t("episodes")}
-          >
-            <button
-              type="button"
-              disabled={epLoading || !episodeNav.prev}
-              onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
-              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
-                !epLoading && episodeNav.prev ? "" : "episode-nav-btn-disabled"
-              }`}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className={isRtl ? "rotate-180" : ""}
-                aria-hidden
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              <span className="hidden truncate sm:inline">{t("prevEpisode")}</span>
-            </button>
-
-            <div className="flex min-w-[5.5rem] flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-center">
-              <span className="text-[10px] text-[var(--text-dim)]">{t("episode")}</span>
-              <span className="text-sm font-black text-[var(--text-primary)]">
-                {selectedEpisode}
-                {episodes.length > 0 ? ` / ${Math.max(...episodes.map((e) => e.episode_number))}` : ""}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              disabled={epLoading || !episodeNav.next}
-              onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
-              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
-                !epLoading && episodeNav.next ? "episode-nav-btn-primary" : "episode-nav-btn-disabled"
-              }`}
-            >
-              <span className="hidden truncate sm:inline">{t("nextEpisode")}</span>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className={isRtl ? "rotate-180" : ""}
-                aria-hidden
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {show && (
-          <div className="mb-4 flex items-center justify-end">
-            <FollowNotificationButton
-              type="tv"
-              itemId={show.id}
-              title={show.name}
-              isAr={isAr}
-            />
-          </div>
-        )}
-
-        {/* Player */}
-        <div id="watch-player" className="player-shell scroll-mt-24">
-          <div className="relative aspect-video w-full">
-            {currentServer.playerType === "direct" && currentServer.directUrl ? (
-              <VideoPlayer src={currentServer.directUrl} />
-            ) : (
-              <iframe
-                key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
-                src={currentServerUrl}
-                onError={handleIframeError}
-                className="absolute inset-0 h-full w-full"
-                allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                referrerPolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-fullscreen"
-                loading="lazy"
-              />
-            )}
-            {/* Cover embed tracker badges (e.g. histats) without blocking center controls */}
-            <div aria-hidden className="pointer-events-auto absolute bottom-0 start-0 z-[2] h-10 w-36 bg-black" />
-            <div aria-hidden className="pointer-events-auto absolute bottom-0 end-0 z-[2] h-10 w-36 bg-black" />
-          </div>
-        </div>
-
-        {/* Subtitle language indicator */}
-        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-          <span>{t("animeTranslation")}:</span>
-          <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 font-medium text-[var(--text-primary)]">{subLabel}</span>
-        </div>
-
-        {/* Servers */}
-        <div className="mt-5">
-          <span className="mb-3 block text-sm font-medium text-[var(--text-muted)]">{t("servers")}</span>
-          <div className="flex flex-wrap gap-2">
-            {servers.map((server, i) => {
-              const isActive = activeServer === i;
-              const handleServerClick = () => {
-                if (isActive) return;
-                setBusyMsg(false);
-                setSwitching(true);
-                setTimeout(() => {
-                  setActiveServer(i);
-                  setActiveMirror(0);
-                  setSwitching(false);
-                }, 2000);
-              };
-
-              if (server.premium) {
-                return (
-                  <button
-                    key={i}
-                    onClick={handleServerClick}
-                    className={`relative flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
-                      isActive ? "server-btn-adfree" : "server-btn-default border-[var(--accent)]/40 text-[var(--accent)]"
-                    }`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--accent)]">
-                      <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-                    </svg>
-                    {server.name}
-                    <span className="rounded bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent)]">
-                      {server.label}
-                    </span>
-                    {!isActive && (
-                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-[var(--accent)] px-1.5 text-[8px] font-bold text-white">
-                        {t("recommended")}
-                      </span>
-                    )}
-                  </button>
-                );
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={handleServerClick}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive ? "server-btn-active" : "server-btn-default"
-                  }`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8M12 17v4" />
-                  </svg>
-                  {server.name}
-                  <span className="rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-dim)]">{server.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Checking server status */}
-        {switching && (
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
-            {t("checkingServer")}
-          </div>
-        )}
-
-        {/* Server busy toast */}
-        {busyMsg && (
-          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
-            <span className="me-2">⏳</span>{t("serverBusy")}
-          </div>
-        )}
-
         {/* Details tabs: story / episodes / info / cast */}
         {show && (
           <WatchDetailTabs
@@ -747,6 +554,200 @@ export default function WatchTVPage({
                 ),
             }}
           />
+        )}
+
+
+        {show && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
+            <span className="font-bold text-[var(--text-primary)]">{show.name}</span>
+            <span className="text-[var(--text-dim)]">·</span>
+            <span>
+              {t("episode")} {selectedEpisode}
+              {episodes.length > 0 ? ` / ${episodes.length}` : ""}
+            </span>
+          </div>
+        )}
+
+        {/* Prev / Next episode — ABOVE player (clashanime style) */}
+        {show && show.seasons.length > 0 && (
+          <div
+            className="mb-4 flex items-stretch gap-2 sm:gap-3"
+            dir={isRtl ? "rtl" : "ltr"}
+            role="navigation"
+            aria-label={t("episodes")}
+          >
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.prev}
+              onClick={() => episodeNav.prev && navigateToEpisode(episodeNav.prev.s, episodeNav.prev.e)}
+              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
+                !epLoading && episodeNav.prev ? "" : "episode-nav-btn-disabled"
+              }`}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span className="hidden truncate sm:inline">{t("prevEpisode")}</span>
+            </button>
+
+            <div className="flex min-w-[5.5rem] flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-center">
+              <span className="text-[10px] text-[var(--text-dim)]">{t("episode")}</span>
+              <span className="text-sm font-black text-[var(--text-primary)]">
+                {selectedEpisode}
+                {episodes.length > 0 ? ` / ${Math.max(...episodes.map((e) => e.episode_number))}` : ""}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={epLoading || !episodeNav.next}
+              onClick={() => episodeNav.next && navigateToEpisode(episodeNav.next.s, episodeNav.next.e)}
+              className={`episode-nav-btn flex flex-1 items-center justify-center gap-2 ${
+                !epLoading && episodeNav.next ? "episode-nav-btn-primary" : "episode-nav-btn-disabled"
+              }`}
+            >
+              <span className="hidden truncate sm:inline">{t("nextEpisode")}</span>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={isRtl ? "rotate-180" : ""}
+                aria-hidden
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {show && (
+          <div className="mb-4 flex items-center justify-end">
+            <FollowNotificationButton
+              type="tv"
+              itemId={show.id}
+              title={show.name}
+              isAr={isAr}
+            />
+          </div>
+        )}
+
+        {/* Player */}
+        <div id="watch-player" className="player-shell scroll-mt-24">
+          <div className="relative aspect-video w-full">
+            {currentServer.playerType === "direct" && currentServer.directUrl ? (
+              <VideoPlayer src={currentServer.directUrl} />
+            ) : (
+              <iframe
+                key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
+                src={currentServerUrl}
+                onError={handleIframeError}
+                className="absolute inset-0 h-full w-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                referrerPolicy="no-referrer"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-fullscreen"
+                loading="lazy"
+              />
+            )}
+            {/* Cover embed tracker badges (e.g. histats) without blocking center controls */}
+            <div aria-hidden className="pointer-events-auto absolute bottom-0 start-0 z-[2] h-10 w-36 bg-black" />
+            <div aria-hidden className="pointer-events-auto absolute bottom-0 end-0 z-[2] h-10 w-36 bg-black" />
+          </div>
+        </div>
+
+        {/* Subtitle language indicator */}
+        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
+          <span>{t("animeTranslation")}:</span>
+          <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 font-medium text-[var(--text-primary)]">{subLabel}</span>
+        </div>
+
+        {/* Servers */}
+        <div className="mt-5">
+          <span className="mb-3 block text-sm font-medium text-[var(--text-muted)]">{t("servers")}</span>
+          <div className="flex flex-wrap gap-2">
+            {servers.map((server, i) => {
+              const isActive = activeServer === i;
+              const handleServerClick = () => {
+                if (isActive) return;
+                setBusyMsg(false);
+                setSwitching(true);
+                setTimeout(() => {
+                  setActiveServer(i);
+                  setActiveMirror(0);
+                  setSwitching(false);
+                }, 2000);
+              };
+
+              if (server.premium) {
+                return (
+                  <button
+                    key={i}
+                    onClick={handleServerClick}
+                    className={`relative flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
+                      isActive ? "server-btn-adfree" : "server-btn-default border-[var(--accent)]/40 text-[var(--accent)]"
+                    }`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--accent)]">
+                      <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
+                    </svg>
+                    {server.name}
+                    <span className="rounded bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent)]">
+                      {server.label}
+                    </span>
+                    {!isActive && (
+                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-[var(--accent)] px-1.5 text-[8px] font-bold text-white">
+                        {t("recommended")}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  key={i}
+                  onClick={handleServerClick}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                    isActive ? "server-btn-active" : "server-btn-default"
+                  }`}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </svg>
+                  {server.name}
+                  <span className="rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-dim)]">{server.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Checking server status */}
+        {switching && (
+          <div className="mt-3 flex items-center gap-3 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-soft)] px-4 py-3 text-sm text-[var(--accent)]">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            {t("checkingServer")}
+          </div>
+        )}
+
+        {/* Server busy toast */}
+        {busyMsg && (
+          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
+            <span className="me-2">⏳</span>{t("serverBusy")}
+          </div>
         )}
 
         <RelatedShowsSection show={show} isAr={isAr} />
