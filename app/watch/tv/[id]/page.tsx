@@ -339,8 +339,6 @@ export default function WatchTVPage({
           </div>
         )}
 
-        <TrailerSection trailerYoutubeKey={show?.trailerYoutubeKey ?? null} isAr={isAr} />
-
         {show && (
           <div className="mb-4 flex items-center justify-end">
             <FollowNotificationButton
@@ -641,40 +639,6 @@ export default function WatchTVPage({
         <RelatedShowsSection show={show} isAr={isAr} />
       </div>
     </div>
-  );
-}
-
-function TrailerSection({
-  trailerYoutubeKey,
-  isAr,
-}: {
-  trailerYoutubeKey: string | null;
-  isAr: boolean;
-}) {
-  if (!trailerYoutubeKey) return null;
-  const trailerUrl =
-    `https://www.youtube-nocookie.com/embed/${trailerYoutubeKey}` +
-    "?autoplay=1&mute=1&playsinline=1&rel=0";
-
-  return (
-    <section className="mb-5 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
-      <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
-        <div className="h-5 w-1 rounded-full bg-[var(--accent)]" />
-        <h2 className="text-sm font-bold text-[var(--text-primary)] sm:text-base">
-          {isAr ? "تريلر المسلسل" : "Official Trailer"}
-        </h2>
-      </div>
-      <div className="relative aspect-video w-full bg-black">
-        <iframe
-          src={trailerUrl}
-          className="absolute inset-0 h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-          title={isAr ? "تريلر المسلسل" : "TV Trailer"}
-        />
-      </div>
-    </section>
   );
 }
 
