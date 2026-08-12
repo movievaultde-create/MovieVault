@@ -138,9 +138,9 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="MovieVault"
-              width={96}
-              height={96}
-              className="h-14 w-14 object-contain sm:h-16 sm:w-16 lg:h-[4.5rem] lg:w-[4.5rem]"
+              width={128}
+              height={128}
+              className="h-20 w-20 object-contain sm:h-24 sm:w-24 lg:h-28 lg:w-28"
               priority
             />
             <span className="text-xl font-black tracking-tight sm:text-2xl">
