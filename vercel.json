@@ -2,7 +2,25 @@
   "crons": [
     {
       "path": "/api/cron/notifications",
-      "schedule": "0 12 * * *"
+      "schedule": "0 17 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/favicon.ico",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/favicon(.*).png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/icon-(.*).png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    },
+    {
+      "source": "/apple-touch-icon.png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
     }
   ]
 }
