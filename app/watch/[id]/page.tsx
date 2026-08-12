@@ -259,9 +259,6 @@ export default function WatchPage({
                 referrerPolicy="no-referrer-when-downgrade"
               />
             )}
-            {/* Cover embed tracker badges (e.g. histats) without blocking center controls */}
-            <div aria-hidden className="pointer-events-auto absolute bottom-0 start-0 z-[2] h-10 w-36 bg-black" />
-            <div aria-hidden className="pointer-events-auto absolute bottom-0 end-0 z-[2] h-10 w-36 bg-black" />
           </div>
         </div>
 
