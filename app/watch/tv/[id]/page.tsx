@@ -9,6 +9,7 @@ import FollowNotificationButton from "../../../components/FollowNotificationButt
 import MediaCard from "../../../components/MediaCard";
 import WatchHeroCard from "../../../components/WatchHeroCard";
 import WatchDetailTabs from "../../../components/WatchDetailTabs";
+import WatchStreamTabs from "../../../components/WatchStreamTabs";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
 
 interface Season {
@@ -136,9 +137,8 @@ export default function WatchTVPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { lang, t, isAr, isRtl, tmdbLang } = useLang();
+  const { lang, setLang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
-  const subLabel = LANGUAGES.find((l) => l.code === lang)?.label ?? "English";
 
   const [show, setShow] = useState<ShowData | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -630,91 +630,44 @@ export default function WatchTVPage({
           </div>
         )}
 
-        {/* Player */}
-        <div id="watch-player" className="player-shell scroll-mt-24">
-          <div className="relative aspect-video w-full">
-            {currentServer.playerType === "direct" && currentServer.directUrl ? (
-              <VideoPlayer src={currentServer.directUrl} />
-            ) : (
-              <iframe
-                key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
-                src={currentServerUrl}
-                onError={handleIframeError}
-                className="absolute inset-0 h-full w-full border-0"
-                title="TV player"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Subtitle language indicator */}
-        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-          <span>{t("animeTranslation")}:</span>
-          <span className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] px-2 py-1 font-medium text-[var(--text-primary)]">{subLabel}</span>
-        </div>
-
-        {/* Servers */}
-        <div className="mt-5">
-          <span className="mb-3 block text-sm font-medium text-[var(--text-muted)]">{t("servers")}</span>
-          <div className="flex flex-wrap gap-2">
-            {servers.map((server, i) => {
-              const isActive = activeServer === i;
-              const handleServerClick = () => {
-                if (isActive) return;
-                setBusyMsg(false);
-                setSwitching(true);
-                setTimeout(() => {
-                  setActiveServer(i);
-                  setActiveMirror(0);
-                  setSwitching(false);
-                }, 2000);
-              };
-
-              if (server.premium) {
-                return (
-                  <button
-                    key={i}
-                    onClick={handleServerClick}
-                    className={`relative flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${
-                      isActive ? "server-btn-adfree" : "server-btn-default border-[var(--accent)]/40 text-[var(--accent)]"
-                    }`}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[var(--accent)]">
-                      <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-                    </svg>
-                    {server.name}
-                    <span className="rounded bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--accent)]">
-                      {server.label}
-                    </span>
-                    {!isActive && (
-                      <span className="absolute -end-1 -top-1 flex h-4 items-center rounded-full bg-[var(--accent)] px-1.5 text-[8px] font-bold text-white">
-                        {t("recommended")}
-                      </span>
-                    )}
-                  </button>
-                );
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={handleServerClick}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive ? "server-btn-active" : "server-btn-default"
-                  }`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                    <path d="M8 21h8M12 17v4" />
-                  </svg>
-                  {server.name}
-                  <span className="rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-dim)]">{server.label}</span>
-                </button>
-              );
-            })}
+        {/* Stream tabs (EgyDead-style) + Player */}
+        <div id="watch-player" className="scroll-mt-24">
+          <WatchStreamTabs
+            servers={servers}
+            activeServer={activeServer}
+            onSelectServer={(i) => {
+              if (i === activeServer) return;
+              setBusyMsg(false);
+              setSwitching(true);
+              setTimeout(() => {
+                setActiveServer(i);
+                setActiveMirror(0);
+                setSwitching(false);
+              }, 2000);
+            }}
+            lang={lang}
+            onSelectLang={setLang}
+            serversLabel={t("servers")}
+            subtitlesLabel={t("animeTranslation")}
+            recommendedLabel={t("recommended")}
+          />
+          <div className="player-shell">
+            <div className="relative aspect-video w-full">
+              {currentServer.playerType === "direct" && currentServer.directUrl ? (
+                <VideoPlayer src={currentServer.directUrl} />
+              ) : (
+                <iframe
+                  key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
+                  src={currentServerUrl}
+                  onError={handleIframeError}
+                  className="absolute inset-0 h-full w-full border-0"
+                  title="TV player"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              )}
+            </div>
           </div>
         </div>
 
