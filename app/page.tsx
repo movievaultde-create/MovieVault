@@ -91,16 +91,6 @@ export default function Home() {
         />
       )}
 
-      {/* New Anime Episodes */}
-      {(data?.newAnime?.length ?? 0) > 0 && (
-        <TrendingSection
-          items={data!.newAnime}
-          title={t("newAnime")}
-          isRtl={isRtl}
-          tvLabel={t("tvShow")}
-        />
-      )}
-
       {/* Daily categorized updates */}
       {(data?.dailyDigest?.movies?.length ?? 0) > 0 && (
         <TrendingSection
@@ -115,15 +105,6 @@ export default function Home() {
         <TrendingSection
           items={data!.dailyDigest.series}
           title={`${t("addedToday")} • ${t("tvShow")}`}
-          isRtl={isRtl}
-          tvLabel={t("tvShow")}
-        />
-      )}
-
-      {(data?.dailyDigest?.anime?.length ?? 0) > 0 && (
-        <TrendingSection
-          items={data!.dailyDigest.anime}
-          title={`${t("addedToday")} • ${t("navAnime")}`}
           isRtl={isRtl}
           tvLabel={t("tvShow")}
         />
@@ -160,15 +141,6 @@ export default function Home() {
         items={data?.series ?? []}
         viewAllLabel={t("viewAll")}
         viewAllHref="/tv-series"
-        tvLabel={t("tvShow")}
-      />
-
-      <ContentSection
-        id="anime"
-        title={t("latestAnime")}
-        items={data?.anime ?? []}
-        viewAllLabel={t("viewAll")}
-        viewAllHref="/anime"
         tvLabel={t("tvShow")}
         isLast
       />

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "./context/LanguageContext";
 import { VipProvider } from "./context/VipContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -7,10 +9,9 @@ import { WatchlistProvider } from "./context/WatchlistContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Popunder from "./components/Popunder";
-import SocialBar from "./components/SocialBar";
-import VipCelebration from "./components/VipCelebration";
 import AdsContainer from "./components/AdsContainer";
 import AntiAdblock from "./components/AntiAdblock";
+import { SITE_URL } from "./lib/siteUrl";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,9 +25,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://movie-vault.dev"),
+  metadataBase: new URL(SITE_URL),
   verification: {
-    google: "NanJYRAGdLciF_E2zvtNxgWO36Uy1OdYtH8YNfpGESQ",
+    google: "vvzlyoUeRi-NsOvqsuiEfxmF-xu_57vNLItuAU8OVGM",
   },
   manifest: "/manifest.json",
   icons: {
@@ -185,14 +186,14 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD",
     description:
       "Stream thousands of movies, TV series and anime in HD for free. Available in Arabic, English, German, French, Spanish & Turkish. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً.",
-    url: "https://movie-vault.dev",
+    url: SITE_URL,
     type: "website",
     locale: "en_US",
     alternateLocale: ["ar_SA", "de_DE", "fr_FR", "es_ES", "tr_TR"],
     siteName: "MovieVault",
     images: [
       {
-        url: "https://movie-vault.dev/og-image.jpg",
+        url: `${SITE_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: "MovieVault — Watch Movies, Series & Anime Free in HD",
@@ -205,7 +206,7 @@ export const metadata: Metadata = {
     title: "MovieVault — Watch Movies, Series & Anime Free HD | أفلام مترجمة",
     description:
       "Stream thousands of movies, series & anime in HD free. شاهد أحدث الأفلام والمسلسلات والأنمي مجاناً.",
-    images: ["https://movie-vault.dev/og-image.jpg"],
+    images: [`${SITE_URL}/og-image.jpg`],
   },
   robots: {
     index: true,
@@ -229,10 +230,10 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "MovieVault",
-    url: "https://movie-vault.dev",
+    url: SITE_URL,
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://movie-vault.dev/?q={search_term_string}",
+      target: `${SITE_URL}/?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
@@ -241,11 +242,11 @@ export default function RootLayout({
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
         <meta name="6a97888e-site-verification" content="e84c90fd1f6d68a8c466b0ea5a1d8874" />
-        <meta property="og:url" content="https://movie-vault.dev/" />
+        <meta property="og:url" content={`${SITE_URL}/`} />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="MovieVault — Watch Movies, Series & Anime Free HD" />
         <meta property="og:description" content="Stream thousands of movies, TV series and anime in HD for free. شاهد أحدث الأفلام والمسلسلات والأنمي بجودة عالية مجاناً." />
-        <meta property="og:image" content="https://movie-vault.dev/og-image.jpg" />
+        <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="MovieVault" />
@@ -262,13 +263,14 @@ export default function RootLayout({
             <WatchlistProvider>
               <VipProvider>
                 <Popunder />
-                <SocialBar />
                 <AntiAdblock />
-                <VipCelebration />
-                <Navbar />
+                <Suspense fallback={null}>
+                  <Navbar />
+                </Suspense>
                 <AdsContainer />
                 <main>{children}</main>
                 <Footer />
+                <Analytics />
               </VipProvider>
             </WatchlistProvider>
           </AuthProvider>

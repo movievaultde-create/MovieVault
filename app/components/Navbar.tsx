@@ -3,10 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
-import { useVip } from "../context/VipContext";
-import { useAuth } from "../context/AuthContext";
 import { triggerPopunder } from "../lib/ads";
 
 interface SearchResult {
@@ -20,10 +18,8 @@ interface SearchResult {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
-  const { isVip } = useVip();
-  const { isAuthenticated } = useAuth();
-  const dashboardHref = isAuthenticated ? "/dashboard" : "/login";
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
@@ -33,16 +29,14 @@ export default function Navbar() {
   const searchRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const appliedUrlSearchRef = useRef(false);
 
   const [moviesDropdown, setMoviesDropdown] = useState(false);
   const [seriesDropdown, setSeriesDropdown] = useState(false);
-  const [animeDropdown, setAnimeDropdown] = useState(false);
   const [mobileMoviesOpen, setMobileMoviesOpen] = useState(false);
   const [mobileSeriesOpen, setMobileSeriesOpen] = useState(false);
-  const [mobileAnimeOpen, setMobileAnimeOpen] = useState(false);
   const moviesRef = useRef<HTMLDivElement>(null);
   const seriesRef = useRef<HTMLDivElement>(null);
-  const animeRef = useRef<HTMLDivElement>(null);
 
   const currentLang = LANGUAGES.find((l) => l.code === lang)!;
 
@@ -64,13 +58,22 @@ export default function Navbar() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, doSearch]);
 
+  // Google SearchAction / shared links: open search with ?q= on homepage
+  useEffect(() => {
+    if (appliedUrlSearchRef.current) return;
+    const q = searchParams.get("q");
+    if (!q || q.trim().length < 2) return;
+    appliedUrlSearchRef.current = true;
+    setQuery(q);
+    setSearchOpen(true);
+  }, [searchParams]);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
       if (langRef.current && !langRef.current.contains(e.target as Node)) setLangMenuOpen(false);
       if (moviesRef.current && !moviesRef.current.contains(e.target as Node)) setMoviesDropdown(false);
       if (seriesRef.current && !seriesRef.current.contains(e.target as Node)) setSeriesDropdown(false);
-      if (animeRef.current && !animeRef.current.contains(e.target as Node)) setAnimeDropdown(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -196,51 +199,6 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Anime Dropdown */}
-            <div className="relative" ref={animeRef}>
-              <button
-                onClick={() => { setAnimeDropdown(!animeDropdown); setMoviesDropdown(false); setSeriesDropdown(false); }}
-                className={`flex items-center rounded-xl px-5 py-2.5 text-[17px] font-bold transition-colors hover:text-white ${pathname?.startsWith("/anime") ? "text-white" : "text-gray-300"}`}
-              >
-                {t("navAnime")}
-                {chevronDown}
-              </button>
-              {animeDropdown && (
-                <div className={`absolute top-full z-[100] mt-1 w-56 min-w-[14rem] ${isRtl ? "right-0 left-auto" : "left-0 right-auto"}`}>
-                  <div className="rounded-2xl border border-white/15 bg-[#0d0d0d] py-2 shadow-2xl shadow-black/70 ring-1 ring-white/5">
-                    <a href="/anime" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /></svg>
-                      {t("allAnime")}
-                    </a>
-                    <a href="/anime/action" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">⚔️</span> {t("animeAction")}
-                    </a>
-                    <a href="/anime/family" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">👨‍👩‍👧‍👦</span> {t("animeFamily")}
-                    </a>
-                    <a href="/anime/18" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">🔞</span> {t("anime18")}
-                    </a>
-                    <a href="/anime/anilist" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">📋</span> {t("anilistAnime")}
-                    </a>
-                    <a href="/anime/shounen" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">👦</span> {t("demographicShounen")}
-                    </a>
-                    <a href="/anime/seinen" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">🧑</span> {t("demographicSeinen")}
-                    </a>
-                    <div className="mx-4 my-1.5 border-t border-white/10" />
-                    <a href="/anime/servers" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">🖥️</span> {t("animeServers")}
-                    </a>
-                    <a href="/anime/translation" onClick={() => setAnimeDropdown(false)} className={`${dropdownItemClass} text-gray-200`}>
-                      <span className="text-lg">🌐</span> {t("animeTranslation")}
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* Right Actions */}
@@ -339,53 +297,6 @@ export default function Navbar() {
             >
               Blog
             </button>
-
-            {isAuthenticated ? (
-              <>
-                <Link
-                  href="/watchlist"
-                  className="hidden h-10 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-bold text-gray-300 transition hover:text-white sm:flex sm:h-11"
-                >
-                  {t("favorites")}
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="hidden h-10 items-center rounded-full border border-primary/30 bg-primary/10 px-4 text-sm font-bold text-primary transition hover:bg-primary/20 sm:flex sm:h-11"
-                >
-                  Dashboard
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden h-10 items-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-bold text-gray-300 transition hover:text-white sm:flex sm:h-11"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  className="hidden h-10 items-center rounded-full bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-hover sm:flex sm:h-11"
-                >
-                  Sign up
-                </Link>
-              </>
-            )}
-
-            {/* VIP */}
-            <Link
-              href="/vip"
-              className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-bold tracking-wide transition-all sm:h-11 sm:px-4 sm:text-sm ${
-                isVip
-                  ? "border border-amber-400/40 bg-amber-500/10 text-amber-400"
-                  : "border border-white/10 bg-white/5 text-gray-400 hover:border-amber-400/40 hover:text-amber-400"
-              }`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" />
-              </svg>
-              <span className="hidden sm:inline">{isVip ? "VIP ✓" : "VIP"}</span>
-            </Link>
 
             {/* Language - desktop only */}
             <div className="relative hidden sm:block" ref={langRef}>
@@ -517,52 +428,6 @@ export default function Navbar() {
 
             <div className="mx-4 my-1 border-t border-white/5" />
 
-            {/* Anime */}
-            <button
-              onClick={() => setMobileAnimeOpen(!mobileAnimeOpen)}
-              className="flex w-full items-center justify-between rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5"
-            >
-              <span className="flex items-center gap-3">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
-                {t("navAnime")}
-              </span>
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className={`text-gray-500 transition-transform duration-200 ${mobileAnimeOpen ? "rotate-180" : ""}`}>
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            {mobileAnimeOpen && (
-              <div className={`mb-1 flex flex-col gap-0.5 rounded-xl bg-white/[0.03] py-2 ${isRtl ? "mr-4 pr-4" : "ml-4 pl-4"}`}>
-                <a href="/anime" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" /></svg>
-                  {t("allAnime")}
-                </a>
-                <a href="/anime/action" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">⚔️</span> {t("animeAction")}
-                </a>
-                <a href="/anime/family" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">👨‍👩‍👧‍👦</span> {t("animeFamily")}
-                </a>
-                <a href="/anime/18" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">🔞</span> {t("anime18")}
-                </a>
-                <a href="/anime/anilist" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">📋</span> {t("anilistAnime")}
-                </a>
-                <a href="/anime/shounen" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">👦</span> {t("demographicShounen")}
-                </a>
-                <a href="/anime/seinen" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">🧑</span> {t("demographicSeinen")}
-                </a>
-                <a href="/anime/servers" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">🖥️</span> {t("animeServers")}
-                </a>
-                <a href="/anime/translation" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-medium text-gray-400 transition-colors active:bg-white/5 hover:text-white">
-                  <span className="text-lg">🌐</span> {t("animeTranslation")}
-                </a>
-              </div>
-            )}
-
             <button
               type="button"
               onClick={() => { setMobileMenuOpen(false); openBlogInNewTab(); }}
@@ -571,44 +436,6 @@ export default function Navbar() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
               Blog
             </button>
-            <a
-              href={dashboardHref}
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-primary transition-colors active:bg-white/5"
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" /><rect x="13" y="3" width="8" height="5" rx="1" /><rect x="13" y="10" width="8" height="11" rx="1" /><rect x="3" y="13" width="8" height="8" rx="1" /></svg>
-              Dashboard
-            </a>
-
-            {isAuthenticated ? (
-              <>
-                <a
-                  href="/watchlist"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-[17px] font-bold text-gray-300 transition-colors active:bg-white/5"
-                >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" /></svg>
-                  {t("favorites")}
-                </a>
-              </>
-            ) : (
-              <div className="grid grid-cols-2 gap-2 px-4 pt-2">
-                <a
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm font-bold text-white"
-                >
-                  Login
-                </a>
-                <a
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-white"
-                >
-                  Sign up
-                </a>
-              </div>
-            )}
           </nav>
 
           {/* Mobile Language Selector */}
