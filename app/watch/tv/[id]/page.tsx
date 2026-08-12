@@ -640,12 +640,11 @@ export default function WatchTVPage({
                 key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
                 src={currentServerUrl}
                 onError={handleIframeError}
-                className="absolute inset-0 h-full w-full"
+                className="absolute inset-0 h-full w-full border-0"
+                title="TV player"
                 allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                referrerPolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-fullscreen"
-                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                referrerPolicy="no-referrer-when-downgrade"
               />
             )}
             {/* Cover embed tracker badges (e.g. histats) without blocking center controls */}
