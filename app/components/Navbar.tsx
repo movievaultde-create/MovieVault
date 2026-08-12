@@ -135,16 +135,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between gap-3">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-            <div className="relative shrink-0 rounded-2xl bg-[var(--bg-elevated)] p-1.5 ring-1 ring-[var(--border)] shadow-md">
-              <Image
-                src="/favicon.png"
-                alt="MovieVault"
-                width={64}
-                height={64}
-                className="h-10 w-10 object-contain sm:h-12 sm:w-12"
-                priority
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="MovieVault"
+              width={64}
+              height={64}
+              className="h-11 w-11 object-contain sm:h-12 sm:w-12"
+              priority
+            />
             <span className="text-xl font-black tracking-tight sm:text-2xl">
               <span className="text-[var(--accent)]">Movie</span>
               <span className="text-[var(--text-primary)]">Vault</span>
