@@ -151,7 +151,7 @@ export default function WatchTVPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { lang, setLang, t, isAr, isRtl, tmdbLang } = useLang();
+  const { lang, t, isAr, isRtl, tmdbLang } = useLang();
   const subLang = SUB_LANG_MAP[lang] ?? "en";
 
   const [show, setShow] = useState<ShowData | null>(null);
@@ -661,10 +661,7 @@ export default function WatchTVPage({
                 setSwitching(false);
               }, 2000);
             }}
-            lang={lang}
-            onSelectLang={setLang}
             serversLabel={t("servers")}
-            subtitlesLabel={t("animeTranslation")}
             recommendedLabel={t("recommended")}
           />
           <div className="player-shell">
