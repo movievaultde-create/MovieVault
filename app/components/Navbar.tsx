@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
 
 interface SearchResult {
@@ -17,7 +17,6 @@ interface SearchResult {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { lang, setLang, t, isRtl, tmdbLang } = useLang();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,8 +33,10 @@ export default function Navbar() {
   const [seriesDropdown, setSeriesDropdown] = useState(false);
   const [mobileMoviesOpen, setMobileMoviesOpen] = useState(false);
   const [mobileSeriesOpen, setMobileSeriesOpen] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
   const moviesRef = useRef<HTMLDivElement>(null);
   const seriesRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
 
   const currentLang = LANGUAGES.find((l) => l.code === lang)!;
 
@@ -59,12 +60,13 @@ export default function Navbar() {
 
   useEffect(() => {
     if (appliedUrlSearchRef.current) return;
-    const q = searchParams.get("q");
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
     if (!q || q.trim().length < 2) return;
     appliedUrlSearchRef.current = true;
     setQuery(q);
     setSearchOpen(true);
-  }, [searchParams]);
+  }, [pathname]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -79,7 +81,29 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileMenuOpen(false);
+    setNavHidden(false);
+    lastScrollY.current = 0;
   }, [pathname]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (mobileMenuOpen || searchOpen) {
+        setNavHidden(false);
+        return;
+      }
+      const y = window.scrollY;
+      // Hide while scrolled down; show only near the top
+      if (y > 80) {
+        setNavHidden(true);
+      } else {
+        setNavHidden(false);
+      }
+      lastScrollY.current = y;
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [mobileMenuOpen, searchOpen]);
 
   useEffect(() => {
     if (!mobileMenuOpen) return;
@@ -130,7 +154,11 @@ export default function Navbar() {
     pathname.startsWith("/indian-series");
 
   return (
-    <header className="glass fixed inset-x-0 top-0 z-50">
+    <header
+      className={`glass fixed inset-x-0 top-0 z-50 transition-transform duration-300 ease-out ${
+        navHidden ? "-translate-y-full pointer-events-none" : "translate-y-0"
+      }`}
+    >
       <div className="mx-auto max-w-[1400px] px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-3">
           {/* Logo */}

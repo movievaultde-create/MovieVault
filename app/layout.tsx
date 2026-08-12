@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { Tajawal } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -262,9 +261,7 @@ export default function RootLayout({
           <AuthProvider>
             <WatchlistProvider>
               <VipProvider>
-                <Suspense fallback={null}>
-                  <Navbar />
-                </Suspense>
+                <Navbar />
                 <main>{children}</main>
                 <Footer />
                 <Analytics />
