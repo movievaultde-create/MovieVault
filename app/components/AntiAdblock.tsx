@@ -88,11 +88,16 @@ export default function AntiAdblock() {
       try {
         const found = await detectAdBlock();
         if (cancelled) return;
+        // Never keep the wall up if detection later clears (ads loaded).
         setBlocked(found);
         document.documentElement.style.overflow = found ? "hidden" : "";
         document.body.style.overflow = found ? "hidden" : "";
       } catch {
-        if (!cancelled) setBlocked(false);
+        if (!cancelled) {
+          setBlocked(false);
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+        }
       } finally {
         running = false;
       }
