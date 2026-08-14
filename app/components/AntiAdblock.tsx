@@ -82,37 +82,45 @@ export default function AntiAdblock() {
     let timer = 0;
     let running = false;
 
+    const clearWall = () => {
+      setBlocked(false);
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+
     const run = async () => {
       if (running) return;
       running = true;
       try {
         const found = await detectAdBlock();
         if (cancelled) return;
-        // Never keep the wall up if detection later clears (ads loaded).
-        setBlocked(found);
-        document.documentElement.style.overflow = found ? "hidden" : "";
-        document.body.style.overflow = found ? "hidden" : "";
-      } catch {
-        if (!cancelled) {
-          setBlocked(false);
-          document.documentElement.style.overflow = "";
-          document.body.style.overflow = "";
+        if (found) {
+          setBlocked(true);
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+        } else {
+          clearWall();
         }
+      } catch {
+        if (!cancelled) clearWall();
       } finally {
         running = false;
       }
     };
 
-    void run();
+    // Give Monetag / tablets time to paint ads before the first check.
+    const boot = window.setTimeout(() => {
+      void run();
+    }, 2500);
     timer = window.setInterval(() => {
       void run();
-    }, 4000);
+    }, 6000);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(boot);
       window.clearInterval(timer);
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+      clearWall();
     };
   }, [pathname, searchParams]);
 
