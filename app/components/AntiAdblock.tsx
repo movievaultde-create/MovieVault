@@ -108,13 +108,13 @@ export default function AntiAdblock() {
       }
     };
 
-    // Wait briefly so Monetag can paint; if ads show, we never lock.
+    // Match Watch Clash Anime cadence — detect real extensions quickly on desktop.
     const boot = window.setTimeout(() => {
       void run();
-    }, 1500);
+    }, 600);
     timer = window.setInterval(() => {
       void run();
-    }, 5000);
+    }, 4000);
 
     return () => {
       cancelled = true;
