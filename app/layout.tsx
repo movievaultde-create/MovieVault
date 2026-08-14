@@ -9,7 +9,7 @@ import { WatchlistProvider } from "./context/WatchlistContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AdChromeGuard } from "./components/ads/AdChromeGuard";
-import { InterstitialAdModal } from "./components/ads/InterstitialAdModal";
+import AntiAdblock from "./components/AntiAdblock";
 import { SITE_URL } from "./lib/siteUrl";
 import "./globals.css";
 
@@ -359,6 +359,7 @@ export default function RootLayout({
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="MovieVault" />
+        <link rel="preload" href="/lock-bg.jpg" as="image" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
@@ -376,7 +377,7 @@ export default function RootLayout({
                 <Footer />
                 <AdChromeGuard />
                 <Suspense fallback={null}>
-                  <InterstitialAdModal />
+                  <AntiAdblock />
                 </Suspense>
                 <Analytics />
               </VipProvider>
