@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useLang } from "../context/LanguageContext";
 import { detectAdBlock } from "../lib/detectAdBlock";
 import { isBrowserSearchCrawler } from "../lib/isSearchCrawler";
 
@@ -11,20 +10,12 @@ import { isBrowserSearchCrawler } from "../lib/isSearchCrawler";
 const ORANGE_DEEP = "#ea580c";
 const ORANGE_GLOW = "rgba(249, 115, 22, 0.55)";
 
-function copy(isAr: boolean) {
-  if (isAr) {
-    return {
-      title: "الموقع مقفل",
-      body: "أوقف مانع الإعلانات على هذا الموقع ثم اضغط متابعة.",
-      button: "أوقفته — متابعة",
-    };
-  }
-  return {
-    title: "Site locked",
-    body: "Turn off your ad blocker for this site, then tap Continue.",
-    button: "I turned it off — continue",
-  };
-}
+/** Lock wall copy is always English (UI language elsewhere unchanged). */
+const LOCK_COPY = {
+  title: "Site locked",
+  body: "Turn off your ad blocker for this site, then tap Continue.",
+  button: "I turned it off — continue",
+} as const;
 
 function CenterLockIcon() {
   return (
@@ -47,11 +38,10 @@ function CenterLockIcon() {
 export default function AntiAdblock() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { isAr } = useLang();
   const [blocked, setBlocked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const text = copy(isAr);
+  const text = LOCK_COPY;
 
   function startVideo() {
     const video = videoRef.current;
