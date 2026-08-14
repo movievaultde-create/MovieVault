@@ -10,11 +10,16 @@ import MediaCard from "../../components/MediaCard";
 import WatchHeroCard from "../../components/WatchHeroCard";
 import WatchDetailTabs from "../../components/WatchDetailTabs";
 import WatchStreamTabs from "../../components/WatchStreamTabs";
+import { WatchPlayerAds } from "../../components/ads/WatchPlayerAds";
+import { SiteAdsterraRail } from "../../components/ads/SiteAdsterraRail";
+import { PlayerAdCorner } from "../../components/ads/PlayerCornerAds";
 import { WatchAdLocker } from "../../components/ads/WatchAdLocker";
 import { WatchServerLoadingAd } from "../../components/ads/WatchServerLoadingAd";
-import { WatchPageBottomAds } from "../../components/ads/WatchPageBottomAds";
+import { InPlayerVastGate } from "../../components/ads/VastPreroll";
 import { type WatchServer, resolveDirectMovieUrl } from "../../lib/directStreamMap";
 import { parseWatchParam } from "../../lib/watchUrl";
+import { WatchLangSlug } from "../../components/WatchLangSlug";
+import ErrorLottie from "../../components/ErrorLottie";
 
 interface CastMember {
   name: string;
@@ -82,12 +87,24 @@ function buildMovieServers(id: string, subLang: string): WatchServer[] {
       url: twoEmbed,
     },
     {
+      name: "Vidعربي",
+      label: "Vidعربي",
+      premium: false,
+      recommended: true,
+      playerType: "iframe",
+      url: withLangParams(
+        `https://vidlink.pro/movie/${id}?primaryColor=2563eb&secondaryColor=111111&autoplay=true`,
+        "ar"
+      ),
+      mirrors: [withLangParams(`https://www.2embed.cc/embed/${id}`, "ar")],
+    },
+    {
       name: "Server 1",
       label: "VidLink",
       premium: false,
       playerType: "iframe",
       url: withLangParams(
-        `https://vidlink.pro/movie/${id}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,
+        `https://vidlink.pro/movie/${id}?primaryColor=2563eb&secondaryColor=111111&autoplay=true`,
         subLang
       ),
     },
@@ -215,6 +232,12 @@ export default function WatchPage({
           {t("backToHome")}
         </Link>
 
+        <SiteAdsterraRail embedded />
+
+        {movie && (
+          <WatchLangSlug type="movie" id={movie.id} title={movie.title} />
+        )}
+
         {movie && (
           <WatchHeroCard
             data={{
@@ -235,6 +258,7 @@ export default function WatchPage({
             }}
             onStartWatching={() => {
               document.getElementById("watch-player")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              window.dispatchEvent(new Event("mv-vast-start"));
             }}
           />
         )}
@@ -272,35 +296,39 @@ export default function WatchPage({
                 setActiveServer(i);
                 setActiveMirror(0);
                 setSwitching(false);
-              }, 2000);
+              }, 3500);
             }}
             serversLabel={t("servers")}
             recommendedLabel={t("recommended")}
           />
-          <div className="player-shell">
-            {switching ? (
-              <WatchServerLoadingAd lockKey={`movie-load-${id}-${activeServer}`} />
-            ) : (
-              <WatchAdLocker lockKey={`movie-${id}-${activeServer}`}>
-                <div className="relative aspect-video w-full">
-                  {currentServer.playerType === "direct" && currentServer.directUrl ? (
-                    <VideoPlayer src={currentServer.directUrl} />
-                  ) : (
-                    <iframe
-                      key={`${activeServer}-${activeMirror}-${id}-${subLang}`}
-                      src={currentServerUrl}
-                      onError={handleIframeError}
-                      className="absolute inset-0 h-full w-full border-0"
-                      title="Movie player"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
-                  )}
-                </div>
-              </WatchAdLocker>
-            )}
+          <div className="player-shell" data-mv-player="1">
+            <WatchAdLocker lockKey={`movie-${id}-${activeServer}`}>
+              <InPlayerVastGate
+                sessionKey={`movie-${id}`}
+                prerollKey={`movie-${id}-${activeServer}`}
+                poster={movie?.poster_path ?? undefined}
+              >
+                {switching ? (
+                  <WatchServerLoadingAd lockKey={`movie-load-${id}-${activeServer}`} />
+                ) : currentServer.playerType === "direct" && currentServer.directUrl ? (
+                  <VideoPlayer src={currentServer.directUrl} />
+                ) : (
+                  <iframe
+                    key={`${activeServer}-${activeMirror}-${id}-${subLang}`}
+                    src={currentServerUrl}
+                    onError={handleIframeError}
+                    className="absolute inset-0 h-full w-full border-0"
+                    title="Movie player"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                )}
+              </InPlayerVastGate>
+            </WatchAdLocker>
+            <PlayerAdCorner />
           </div>
+          <WatchPlayerAds />
         </div>
 
         {/* Server busy toast */}
@@ -309,8 +337,6 @@ export default function WatchPage({
             <span className="me-2">⏳</span>{t("serverBusy")}
           </div>
         )}
-
-        <WatchPageBottomAds />
 
         {/* Download */}
         <DownloadSection id={id} t={t} isAr={isAr} />
@@ -461,7 +487,7 @@ function DownloadSection({
           <div className="flex flex-col items-center gap-4 py-2 sm:flex-row sm:justify-between">
             <div className="text-center sm:text-start">
               <p className="text-sm text-[var(--text-muted)]">
-                {t("downloadNote")}
+                {isAr ? "اضغط لتحضير رابط التحميل" : "Tap to prepare the download link"}
               </p>
             </div>
             <button
@@ -613,18 +639,7 @@ function MovieDetails({
   if (error) {
     return (
       <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
-        <svg
-          width="32"
-          height="32"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          viewBox="0 0 24 24"
-          className="mx-auto mb-3 text-[var(--text-dim)]"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8v4M12 16h.01" />
-        </svg>
+        <ErrorLottie size={240} />
         <p className="text-sm text-[var(--text-muted)]">
           {error.includes("not configured") ? t("noApiKey") : t("errorLoading")}
         </p>

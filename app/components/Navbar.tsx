@@ -6,14 +6,16 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLang, LANGUAGES } from "../context/LanguageContext";
 import { watchPath } from "../lib/watchUrl";
+import { SearchDropdownAd } from "./ads/SearchDropdownAd";
 
 interface SearchResult {
   id: number;
   title: string;
-  type: "movie" | "tv";
+  type: "movie" | "tv" | "anime";
   poster: string | null;
   year: string;
   rating: string;
+  href?: string;
 }
 
 export default function Navbar() {
@@ -31,10 +33,10 @@ export default function Navbar() {
 
   const [moviesDropdown, setMoviesDropdown] = useState(false);
   const [seriesDropdown, setSeriesDropdown] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [navHidden, setNavHidden] = useState(false);
   const moviesRef = useRef<HTMLDivElement>(null);
   const seriesRef = useRef<HTMLDivElement>(null);
-  const lastScrollY = useRef(0);
 
   const currentLang = LANGUAGES.find((l) => l.code === lang)!;
 
@@ -79,27 +81,22 @@ export default function Navbar() {
 
   useEffect(() => {
     setNavHidden(false);
-    lastScrollY.current = 0;
+    setMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    const onScroll = () => {
-      if (searchOpen) {
-        setNavHidden(false);
-        return;
-      }
-      const y = window.scrollY;
-      if (y > 80) {
-        setNavHidden(true);
-      } else {
-        setNavHidden(false);
-      }
-      lastScrollY.current = y;
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [searchOpen]);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    // Keep navbar sticky like Watch Clash Anime (no hide-on-scroll).
+    setNavHidden(false);
+  }, [pathname, searchOpen, menuOpen]);
 
   const handleResultClick = () => { setSearchOpen(false); setQuery(""); setResults([]); };
 
@@ -119,13 +116,15 @@ export default function Navbar() {
     pathname === "/movies" ||
     pathname.startsWith("/arab-movies") ||
     pathname.startsWith("/indian-movies") ||
+    pathname.startsWith("/foreign-movies") ||
     pathname.startsWith("/collections");
   const isSeriesActive =
     pathname === "/tv-series" ||
     pathname.startsWith("/arab-series") ||
     pathname.startsWith("/turkish-series") ||
     pathname.startsWith("/korean-series") ||
-    pathname.startsWith("/indian-series");
+    pathname.startsWith("/indian-series") ||
+    pathname.startsWith("/foreign-series");
 
   return (
     <header
@@ -136,22 +135,22 @@ export default function Navbar() {
     >
       <div className="mx-auto max-w-[1400px] px-4 py-2.5 sm:px-6 sm:py-3">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
-          <Link href="/" className="group flex shrink-0 items-center gap-2 sm:gap-3">
+          <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
             <Image
               src="/logo.png"
               alt="MovieVault"
               width={96}
               height={96}
-              className="h-12 w-12 object-contain drop-shadow-[0_4px_12px_rgba(249,115,22,0.35)] sm:h-14 sm:w-14 lg:h-16 lg:w-16"
+              className="h-10 w-10 object-contain drop-shadow-[0_4px_12px_rgba(37,99,235,0.28)] sm:h-12 sm:w-12 lg:h-14 lg:w-14"
               priority
             />
-            <span className="nav-brand-mark text-[1.85rem] sm:text-[2.1rem] lg:text-[2.35rem]">
+            <span className="nav-brand-mark hidden text-[1.7rem] sm:inline sm:text-[1.9rem] lg:text-[2.35rem]">
               <span className="nav-brand-movie">Movie</span>
               <span className="nav-brand-vault">Vault</span>
             </span>
           </Link>
 
-          <nav className="flex min-w-0 flex-1 items-center justify-center gap-0.5 sm:gap-1">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
             <a href="/" className={isHomeActive ? navLinkActive : navLinkInactive}>
               {t("navHome")}
             </a>
@@ -173,6 +172,9 @@ export default function Navbar() {
                     </a>
                     <a href="/arab-movies" onClick={() => setMoviesDropdown(false)} className={dropdownItemClass}>
                       <span className="text-lg">🇸🇦</span> {t("navArabMovies")}
+                    </a>
+                    <a href="/foreign-movies" onClick={() => setMoviesDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">🌍</span> {t("navForeignMovies")}
                     </a>
                     <a href="/indian-movies" onClick={() => setMoviesDropdown(false)} className={dropdownItemClass}>
                       <span className="text-lg">🇮🇳</span> {t("navIndianMovies")}
@@ -204,6 +206,9 @@ export default function Navbar() {
                     <a href="/arab-series" onClick={() => setSeriesDropdown(false)} className={dropdownItemClass}>
                       <span className="text-lg">🇸🇦</span> {t("navArabSeries")}
                     </a>
+                    <a href="/foreign-series" onClick={() => setSeriesDropdown(false)} className={dropdownItemClass}>
+                      <span className="text-lg">🌍</span> {t("navForeignSeries")}
+                    </a>
                     <a href="/turkish-series" onClick={() => setSeriesDropdown(false)} className={dropdownItemClass}>
                       <span className="text-lg">🇹🇷</span> {t("navTurkishSeries")}
                     </a>
@@ -217,6 +222,10 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            <a href="https://watchclashanime.com/" className={navLinkInactive}>
+              {t("navAnime")}
+            </a>
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
@@ -233,7 +242,7 @@ export default function Navbar() {
 
               {searchOpen && (
                 <div
-                  className={`absolute top-14 left-1/2 z-50 w-[calc(100vw-1rem)] -translate-x-1/2 sm:left-auto sm:w-[420px] sm:translate-x-0 ${
+                  className={`absolute top-14 inset-x-2 z-50 sm:inset-x-auto sm:w-[420px] ${
                     isRtl ? "sm:left-0" : "sm:right-0"
                   }`}
                 >
@@ -270,39 +279,81 @@ export default function Navbar() {
                       )}
                       {!searching && results.length > 0 && (
                         <div className="py-2">
-                          {results.map((item) => (
-                            <Link
-                              key={`${item.type}-${item.id}`}
-                              href={watchPath(item.type, item.id, item.title)}
-                              onClick={handleResultClick}
-                              className="flex items-center gap-3.5 px-4 py-3 transition-colors hover:bg-[var(--nav-accent-soft)]"
-                            >
-                              <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-[var(--nav-elevated)]">
-                                {item.poster ? (
-                                  <Image src={item.poster} alt={item.title} fill className="object-cover" sizes="44px" />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-[var(--nav-dim)]">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-base font-bold text-[var(--nav-text)]">
-                                  {isAr ? `${item.title} ${t("subtitled")}` : item.title}
-                                </p>
-                                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--nav-dim)]">
-                                  <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${item.type === "movie" ? "bg-[var(--nav-accent-soft)] text-[var(--nav-accent)]" : "bg-white/10 text-sky-300"}`}>
-                                    {item.type === "movie" ? t("movie") : t("tvShow")}
-                                  </span>
-                                  {item.year && <span>{item.year}</span>}
-                                  {parseFloat(item.rating) > 0 && <span className="text-[var(--nav-accent)]">★ {item.rating}</span>}
+                          {results.map((item) => {
+                            const isAnime = item.type === "anime" || Boolean(item.href);
+                            const href =
+                              item.href ??
+                              watchPath(
+                                item.type === "movie" ? "movie" : "tv",
+                                item.id,
+                                item.title,
+                                lang,
+                              );
+                            const badgeLabel = isAnime
+                              ? t("navAnime")
+                              : item.type === "movie"
+                                ? t("movie")
+                                : t("tvShow");
+                            const badgeClass = isAnime
+                              ? "bg-fuchsia-500/15 text-fuchsia-300"
+                              : item.type === "movie"
+                                ? "bg-[var(--nav-accent-soft)] text-[var(--nav-accent)]"
+                                : "bg-white/10 text-sky-300";
+
+                            const content = (
+                              <>
+                                <div className="relative h-16 w-11 shrink-0 overflow-hidden rounded-lg bg-[var(--nav-elevated)]">
+                                  {item.poster ? (
+                                    <Image src={item.poster} alt={item.title} fill className="object-cover" sizes="44px" />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-[var(--nav-dim)]">
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21" /></svg>
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            </Link>
-                          ))}
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-base font-bold text-[var(--nav-text)]">
+                                    {isAr ? `${item.title} ${t("subtitled")}` : item.title}
+                                  </p>
+                                  <div className="mt-1 flex items-center gap-2 text-xs text-[var(--nav-dim)]">
+                                    <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${badgeClass}`}>
+                                      {badgeLabel}
+                                    </span>
+                                    {item.year && <span>{item.year}</span>}
+                                    {parseFloat(item.rating) > 0 && <span className="text-[var(--nav-accent)]">★ {item.rating}</span>}
+                                  </div>
+                                </div>
+                              </>
+                            );
+
+                            if (isAnime) {
+                              return (
+                                <a
+                                  key={`anime-${item.id}`}
+                                  href={href}
+                                  onClick={handleResultClick}
+                                  className="flex items-center gap-3.5 px-4 py-3 transition-colors hover:bg-[var(--nav-accent-soft)]"
+                                >
+                                  {content}
+                                </a>
+                              );
+                            }
+
+                            return (
+                              <Link
+                                key={`${item.type}-${item.id}`}
+                                href={href}
+                                onClick={handleResultClick}
+                                className="flex items-center gap-3.5 px-4 py-3 transition-colors hover:bg-[var(--nav-accent-soft)]"
+                              >
+                                {content}
+                              </Link>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
+                    <SearchDropdownAd />
                   </div>
                 </div>
               )}
@@ -311,21 +362,23 @@ export default function Navbar() {
             <Link
               href="/watchlist"
               className={pathname === "/watchlist" ? "nav-chip nav-chip-active" : "nav-chip"}
+              aria-label={t("navMyList")}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill={pathname === "/watchlist" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                 <path d="M12 21s-7.5-4.35-10-9A6 6 0 0 1 12 5a6 6 0 0 1 10 7c-2.5 4.65-10 9-10 9z" />
               </svg>
-              <span className="hidden sm:inline">{t("navMyList")}</span>
+              <span className="hidden xl:inline">{t("navMyList")}</span>
             </Link>
 
             <div className="relative" ref={langRef}>
               <button
                 onClick={() => setLangMenuOpen(!langMenuOpen)}
-                className="nav-chip"
+                className="nav-chip px-2.5 sm:px-4"
+                aria-label={currentLang.label}
               >
                 <span className="text-base">{currentLang.flag}</span>
-                <span>{currentLang.code}</span>
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className={`transition-transform ${langMenuOpen ? "rotate-180" : ""}`}>
+                <span className="hidden sm:inline">{currentLang.code}</span>
+                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className={`hidden sm:block transition-transform ${langMenuOpen ? "rotate-180" : ""}`}>
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </button>
@@ -351,8 +404,77 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            <button
+              type="button"
+              className="nav-icon-btn p-2.5 lg:hidden"
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? (isAr ? "إغلاق القائمة" : "Close menu") : (isAr ? "فتح القائمة" : "Open menu")}
+              onClick={() => {
+                setMenuOpen((open) => !open);
+                setMoviesDropdown(false);
+                setSeriesDropdown(false);
+                setLangMenuOpen(false);
+              }}
+            >
+              {menuOpen ? (
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {menuOpen && (
+          <div className="max-h-[min(80vh,640px)] overflow-y-auto border-t border-[var(--nav-border)] pb-4 pt-2 lg:hidden">
+            <nav className="flex flex-col gap-1">
+              <a href="/" className={isHomeActive ? navLinkActive : navLinkInactive} onClick={() => setMenuOpen(false)}>
+                {t("navHome")}
+              </a>
+              <button
+                type="button"
+                onClick={() => { setMoviesDropdown(!moviesDropdown); setSeriesDropdown(false); }}
+                className={`${moviesDropdown || isMoviesActive ? navLinkActive : navLinkInactive} w-full justify-between`}
+              >
+                <span className="flex items-center">{t("navMovies")}{chevronDown}</span>
+              </button>
+              {moviesDropdown && (
+                <div className="ms-3 flex flex-col border-s border-[var(--nav-border)]">
+                  <a href="/movies" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("allMovies")}</a>
+                  <a href="/arab-movies" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navArabMovies")}</a>
+                  <a href="/foreign-movies" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navForeignMovies")}</a>
+                  <a href="/indian-movies" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navIndianMovies")}</a>
+                  <a href="/collections" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navCollections")}</a>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => { setSeriesDropdown(!seriesDropdown); setMoviesDropdown(false); }}
+                className={`${seriesDropdown || isSeriesActive ? navLinkActive : navLinkInactive} w-full justify-between`}
+              >
+                <span className="flex items-center">{t("navSeries")}{chevronDown}</span>
+              </button>
+              {seriesDropdown && (
+                <div className="ms-3 flex flex-col border-s border-[var(--nav-border)]">
+                  <a href="/tv-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("allSeries")}</a>
+                  <a href="/arab-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navArabSeries")}</a>
+                  <a href="/foreign-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navForeignSeries")}</a>
+                  <a href="/turkish-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navTurkishSeries")}</a>
+                  <a href="/korean-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navKoreanSeries")}</a>
+                  <a href="/indian-series" onClick={() => setMenuOpen(false)} className={dropdownItemClass}>{t("navIndianSeries")}</a>
+                </div>
+              )}
+              <a href="https://watchclashanime.com/" className={navLinkInactive} onClick={() => setMenuOpen(false)}>
+                {t("navAnime")}
+              </a>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

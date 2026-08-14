@@ -7,9 +7,9 @@ import { useLang } from "../context/LanguageContext";
 import { detectAdBlock } from "../lib/detectAdBlock";
 import { isBrowserSearchCrawler } from "../lib/isSearchCrawler";
 
-/** MovieVault glassy orange — matches vault/reel copper accent. */
-const ORANGE_DEEP = "#ea580c";
-const ORANGE_GLOW = "rgba(249, 115, 22, 0.55)";
+/** Watch Clash Anime blue lock wall. */
+const ACCENT_DEEP = "#1d4ed8";
+const ACCENT_GLOW = "rgba(37, 99, 235, 0.55)";
 
 function copy(isAr: boolean) {
   if (isAr) {
@@ -220,8 +220,8 @@ export default function AntiAdblock() {
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "9999px",
-            background: `linear-gradient(145deg, rgba(249,115,22,0.92) 0%, ${ORANGE_DEEP} 55%, rgba(194,65,12,0.95) 100%)`,
-            boxShadow: `0 16px 40px ${ORANGE_GLOW}, inset 0 1px 0 rgba(255,255,255,0.35)`,
+            background: `linear-gradient(145deg, rgba(59,130,246,0.95) 0%, ${ACCENT_DEEP} 55%, rgba(30,64,175,0.95) 100%)`,
+            boxShadow: `0 16px 40px ${ACCENT_GLOW}, inset 0 1px 0 rgba(255,255,255,0.35)`,
             border: "1px solid rgba(255,255,255,0.28)",
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
@@ -237,8 +237,8 @@ export default function AntiAdblock() {
           type="button"
           className="mt-6 w-full rounded-xl px-4 py-3 text-sm font-bold text-white hover:opacity-90"
           style={{
-            background: `linear-gradient(135deg, rgba(249,115,22,0.95) 0%, ${ORANGE_DEEP} 100%)`,
-            boxShadow: `0 10px 28px ${ORANGE_GLOW}`,
+            background: `linear-gradient(135deg, rgba(59,130,246,0.95) 0%, ${ACCENT_DEEP} 100%)`,
+            boxShadow: `0 10px 28px ${ACCENT_GLOW}`,
             border: "1px solid rgba(255,255,255,0.22)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
