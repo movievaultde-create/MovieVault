@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLang } from "../context/LanguageContext";
-import { useVip } from "../context/VipContext";
 import { detectAdBlock } from "../lib/detectAdBlock";
 import { isBrowserSearchCrawler } from "../lib/isSearchCrawler";
+
+/** MovieVault glassy orange — matches vault/reel copper accent. */
+const ORANGE_DEEP = "#ea580c";
+const ORANGE_GLOW = "rgba(249, 115, 22, 0.55)";
 
 function copy(isAr: boolean) {
   if (isAr) {
@@ -18,7 +21,7 @@ function copy(isAr: boolean) {
   }
   return {
     title: "Site locked",
-    body: "Turn off the ad blocker on this site, then press continue.",
+    body: "Turn off your ad blocker for this site, then tap Continue.",
     button: "I turned it off — continue",
   };
 }
@@ -34,17 +37,17 @@ function CenterLockIcon() {
         strokeWidth="6"
         strokeLinecap="round"
       />
-      <circle cx="40" cy="52" r="5" fill="#0b1220" />
-      <rect x="38" y="52" width="4" height="10" rx="2" fill="#0b1220" />
+      <circle cx="40" cy="52" r="5" fill="#1a0f08" />
+      <rect x="38" y="52" width="4" height="10" rx="2" fill="#1a0f08" />
     </svg>
   );
 }
 
+/** Full-site wall when an ad blocker is on. Same layout as Watch Clash Anime, MovieVault orange. */
 export default function AntiAdblock() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { isAr } = useLang();
-  const { isVip } = useVip();
   const [blocked, setBlocked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,9 +72,9 @@ export default function AntiAdblock() {
   }, []);
 
   useEffect(() => {
-    if (isVip || isBrowserSearchCrawler()) return;
+    if (isBrowserSearchCrawler()) return;
     if (searchParams.get("embed") === "1") return;
-    if (pathname.startsWith("/admin") || pathname.startsWith("/api") || pathname.startsWith("/vip")) {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
       return;
     }
 
@@ -106,7 +109,7 @@ export default function AntiAdblock() {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [pathname, searchParams, isVip]);
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     if (!blocked) return;
@@ -130,7 +133,7 @@ export default function AntiAdblock() {
 
   return createPortal(
     <div
-      data-site-chrome="1"
+      data-site-chrome
       data-site-ui="1"
       role="alertdialog"
       aria-modal="true"
@@ -162,6 +165,10 @@ export default function AntiAdblock() {
         src="/lock-bg.mp4"
         onLoadedData={startVideo}
         onCanPlay={startVideo}
+        onError={() => {
+          const video = videoRef.current;
+          if (video) video.style.display = "none";
+        }}
         style={{
           position: "absolute",
           inset: 0,
@@ -169,6 +176,7 @@ export default function AntiAdblock() {
           height: "100%",
           objectFit: "cover",
           pointerEvents: "none",
+          backgroundColor: "#05070d",
         }}
       />
       <div
@@ -199,20 +207,29 @@ export default function AntiAdblock() {
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "9999px",
-            background: "#1d4ed8",
-            boxShadow: "0 16px 40px rgba(37,99,235,0.55)",
+            background: `linear-gradient(145deg, rgba(249,115,22,0.92) 0%, ${ORANGE_DEEP} 55%, rgba(194,65,12,0.95) 100%)`,
+            boxShadow: `0 16px 40px ${ORANGE_GLOW}, inset 0 1px 0 rgba(255,255,255,0.35)`,
+            border: "1px solid rgba(255,255,255,0.28)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
           }}
         >
           <CenterLockIcon />
         </div>
-        <h1 id="mv-lock-title" className="text-3xl font-black text-white sm:text-4xl">
+        <h1 id="mv-lock-title" className="text-2xl font-black text-white sm:text-3xl">
           {text.title}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-white/75 sm:text-base">{text.body}</p>
         <button
           type="button"
           className="mt-6 w-full rounded-xl px-4 py-3 text-sm font-bold text-white hover:opacity-90"
-          style={{ background: "#2563eb" }}
+          style={{
+            background: `linear-gradient(135deg, rgba(249,115,22,0.95) 0%, ${ORANGE_DEEP} 100%)`,
+            boxShadow: `0 10px 28px ${ORANGE_GLOW}`,
+            border: "1px solid rgba(255,255,255,0.22)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
           onClick={() => window.location.reload()}
         >
           {text.button}
