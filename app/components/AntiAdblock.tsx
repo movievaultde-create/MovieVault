@@ -108,13 +108,13 @@ export default function AntiAdblock() {
       }
     };
 
-    // Give Monetag / tablets time to paint ads before the first check.
+    // Wait briefly so Monetag can paint; if ads show, we never lock.
     const boot = window.setTimeout(() => {
       void run();
-    }, 2500);
+    }, 1500);
     timer = window.setInterval(() => {
       void run();
-    }, 6000);
+    }, 5000);
 
     return () => {
       cancelled = true;
