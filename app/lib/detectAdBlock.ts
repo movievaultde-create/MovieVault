@@ -1,4 +1,4 @@
-/** Detects ad blockers: bait + first-party scripts, never lock when ads are visible. */
+/** Detects ad blockers: bait + first-party scripts, never lock when real ads paint. */
 
 declare global {
   interface Window {
@@ -10,24 +10,24 @@ declare global {
 const BAIT_CLASS =
   "pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads text-ad-links adsbox adsbygoogle advertisement ad-banner ad-placement sponsored";
 
-/** Monetag / network creatives already on the page → visitor is not blocking ads. */
+/**
+ * True only when a real creative is on the page (iframe/img from an ad network).
+ * A lone "Ad" label on an empty Monetag shell must NOT count — AdBlock leaves that
+ * placeholder and our wall was skipping because of it.
+ */
 function pageAlreadyShowsAds() {
   if (typeof document === "undefined") return false;
-  for (const el of Array.from(document.querySelectorAll("iframe, img, a, script"))) {
-    const src = `${el.getAttribute("src") || ""} ${el.getAttribute("href") || ""} ${el.getAttribute("data-src") || ""}`;
+  for (const el of Array.from(document.querySelectorAll("iframe, img"))) {
+    const src = `${el.getAttribute("src") || ""} ${el.getAttribute("data-src") || ""} ${el.getAttribute("srcset") || ""}`;
     if (
-      /monetag|quge5|exoclick|adsterra|highperformanceformat|profitablegate|doubleclick|googlesyndication|effectivecreativeformat/i.test(
+      !/monetag|quge5|exoclick|adsterra|highperformanceformat|profitablegate|doubleclick|googlesyndication|effectivecreativeformat|adnxs|adservice/i.test(
         src,
       )
     ) {
-      return true;
+      continue;
     }
-  }
-  for (const el of Array.from(document.querySelectorAll("div, span"))) {
-    const text = (el.textContent || "").trim();
-    if (text !== "Ad" && text !== "AD") continue;
     const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.width <= 72 && r.height > 0 && r.height <= 36) return true;
+    if (r.width >= 40 && r.height >= 40) return true;
   }
   return false;
 }
@@ -47,7 +47,7 @@ function mountBait() {
   const node = document.createElement("div");
   node.className = BAIT_CLASS;
   node.setAttribute("aria-hidden", "true");
-  // Off-screen but real 300×250 box — EasyList / AdBlock collapse these by class.
+  node.setAttribute("data-mv-ad-bait", "1");
   node.style.cssText =
     "position:absolute;left:-10000px;top:-10000px;width:300px;height:250px;pointer-events:none;";
   node.innerHTML = "&nbsp;";
@@ -56,6 +56,7 @@ function mountBait() {
   const ins = document.createElement("ins");
   ins.className = "adsbygoogle";
   ins.setAttribute("aria-hidden", "true");
+  ins.setAttribute("data-mv-ad-bait", "1");
   ins.style.cssText =
     "display:block;position:absolute;left:-10000px;top:-10000px;width:300px;height:250px;pointer-events:none;";
   document.body.appendChild(ins);
@@ -86,23 +87,22 @@ function loadFlagScript(src: string, flag: "__MV_AD_OK" | "__MV_ADV_OK") {
 }
 
 /**
- * Lock when an extension collapses ad baits / blocks probe scripts.
- * Never lock if Monetag (or similar) creatives are already on the page —
- * that covers tablet "tracking protection" false positives where ads still load.
+ * Lock when bait is collapsed or both probe scripts fail.
+ * Skip lock only when a real ad creative (iframe/img) is visible.
  */
 export async function detectAdBlock(): Promise<boolean> {
   if (typeof window === "undefined") return false;
   if (pageAlreadyShowsAds()) return false;
 
   const { node, ins } = mountBait();
-  await new Promise((r) => window.setTimeout(r, 200));
+  await new Promise((r) => window.setTimeout(r, 250));
 
   const [adsJs, advertisementJs] = await Promise.all([
     loadFlagScript("/ads.js", "__MV_AD_OK"),
     loadFlagScript("/advertisement.js", "__MV_ADV_OK"),
   ]);
 
-  await new Promise((r) => window.setTimeout(r, 300));
+  await new Promise((r) => window.setTimeout(r, 350));
   const baitBlocked = baitLooksBlocked(node) || baitLooksBlocked(ins);
   node.remove();
   ins.remove();
