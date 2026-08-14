@@ -7,7 +7,7 @@ export default function Footer() {
   const { t } = useLang();
 
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--bg-surface)]">
+    <footer data-site-chrome="1" className="border-t border-[var(--border)] bg-[var(--bg-surface)]">
       <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6">
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
           <div className="flex items-center gap-2">
@@ -31,6 +31,14 @@ export default function Footer() {
             <span className="text-[var(--border)]">|</span>
             <Link href="/impressum" className="transition-colors hover:text-[var(--accent)]">
               Impressum
+            </Link>
+            <span className="text-[var(--border)]">|</span>
+            <Link href="/privacy-policy" className="transition-colors hover:text-[var(--accent)]">
+              Privacy Policy
+            </Link>
+            <span className="text-[var(--border)]">|</span>
+            <Link href="/terms" className="transition-colors hover:text-[var(--accent)]">
+              Terms
             </Link>
             <span className="text-[var(--border)]">|</span>
             <Link href="/datenschutz" className="transition-colors hover:text-[var(--accent)]">
