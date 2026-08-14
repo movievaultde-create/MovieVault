@@ -9,25 +9,18 @@ import FollowNotificationButton from "../../../components/FollowNotificationButt
 import MediaCard from "../../../components/MediaCard";
 import WatchHeroCard from "../../../components/WatchHeroCard";
 import WatchDetailTabs from "../../../components/WatchDetailTabs";
-import TvEpisodeBrowser from "../../../components/TvEpisodeBrowser";
 import WatchStreamTabs from "../../../components/WatchStreamTabs";
-import { WatchPlayerAds } from "../../../components/ads/WatchPlayerAds";
-import { SiteAdsterraRail } from "../../../components/ads/SiteAdsterraRail";
-import { PlayerAdCorner } from "../../../components/ads/PlayerCornerAds";
 import { WatchAdLocker } from "../../../components/ads/WatchAdLocker";
 import { WatchServerLoadingAd } from "../../../components/ads/WatchServerLoadingAd";
-import { InPlayerVastGate } from "../../../components/ads/VastPreroll";
+import { WatchPageBottomAds } from "../../../components/ads/WatchPageBottomAds";
 import { type WatchServer, resolveDirectTvUrl } from "../../../lib/directStreamMap";
-import ErrorLottie from "../../../components/ErrorLottie";
 import { parseWatchParam } from "../../../lib/watchUrl";
-import { WatchLangSlug } from "../../../components/WatchLangSlug";
 
 interface Season {
   season_number: number;
   name: string;
   episode_count: number;
   poster: string | null;
-  year?: string | null;
 }
 
 interface Episode {
@@ -102,24 +95,12 @@ function buildServers(id: string, season: number, episode: number, subLang: stri
       url: twoEmbedTv,
     },
     {
-      name: "Vidعربي",
-      label: "Vidعربي",
-      premium: false,
-      recommended: true,
-      playerType: "iframe",
-      url: withLangParams(
-        `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=2563eb&secondaryColor=111111&autoplay=true`,
-        "ar"
-      ),
-      mirrors: [withLangParams(`https://www.2embed.cc/embedtv/${id}?s=${season}&e=${episode}`, "ar")],
-    },
-    {
       name: "Server 1",
       label: "VidLink",
       premium: false,
       playerType: "iframe",
       url: withLangParams(
-        `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=2563eb&secondaryColor=111111&autoplay=true`,
+        `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=ea580c&secondaryColor=111111&autoplay=true`,
         subLang
       ),
     },
@@ -265,7 +246,7 @@ export default function WatchTVPage({
 
   const playEpisode = (epNum: number) => {
     setSelectedEpisode(epNum);
-    document.getElementById("watch-player")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const sortedEpisodes = useMemo(
@@ -340,18 +321,6 @@ export default function WatchTVPage({
     );
   }
 
-  if (!show) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[var(--bg-base)] px-4 pt-24 text-center">
-        <ErrorLottie />
-        <p className="text-lg text-[var(--text-muted)]">{t("errorLoading")}</p>
-        <Link href="/" className="text-[var(--accent)] hover:underline">
-          {t("backToHome")}
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[var(--bg-base)] pt-24 pb-16">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6">
@@ -367,10 +336,6 @@ export default function WatchTVPage({
           </svg>
           {t("backToHome")}
         </Link>
-
-        <SiteAdsterraRail embedded />
-
-        {show && <WatchLangSlug type="tv" id={show.id} title={show.name} />}
 
         {show && (
           <WatchHeroCard
@@ -390,23 +355,23 @@ export default function WatchTVPage({
                 episodes.length
                   ? `${episodes.length} ${t("episodes")}`
                   : null,
-                show.genres.slice(0, 2).join("، ") || null,
               ]
                 .filter(Boolean)
                 .join(" | "),
             }}
             onStartWatching={() => {
               document.getElementById("watch-player")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              window.dispatchEvent(new Event("mv-vast-start"));
             }}
           />
         )}
 
+        {/* Details tabs: story / episodes / info / cast */}
         {show && (
           <WatchDetailTabs
             defaultTab="details"
             tabs={[
               { id: "details", label: t("detailsTab") },
+              { id: "episodes", label: t("episodes") },
               { id: "info", label: t("infoTab") },
               { id: "cast", label: t("castTab") },
             ]}
@@ -430,6 +395,115 @@ export default function WatchTVPage({
                     </div>
                   )}
                 </div>
+              ),
+              episodes: show.seasons.length > 0 ? (
+                <div>
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-base font-black text-[var(--text-primary)]">{t("episodes")}</h2>
+                    <div className="relative">
+                      <select
+                        value={selectedSeason}
+                        onChange={(e) => {
+                          episodeSelectAfterSeasonFetchRef.current = null;
+                          setSelectedSeason(Number(e.target.value));
+                        }}
+                        className="input-field appearance-none pe-10 text-sm font-medium"
+                      >
+                        {show.seasons.map((s) => (
+                          <option key={s.season_number} value={s.season_number}>
+                            {t("season")} {s.season_number} ({s.episode_count} {t("episodes")})
+                          </option>
+                        ))}
+                      </select>
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)]">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                    {show.seasons.map((s) => (
+                      <button
+                        key={s.season_number}
+                        onClick={() => {
+                          episodeSelectAfterSeasonFetchRef.current = null;
+                          setSelectedSeason(s.season_number);
+                        }}
+                        className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                          selectedSeason === s.season_number
+                            ? "bg-[var(--accent)] text-white shadow-md"
+                            : "border border-[var(--border)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
+                        }`}
+                      >
+                        S{s.season_number}
+                      </button>
+                    ))}
+                  </div>
+
+                  {epLoading ? (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="h-28 w-full rounded-xl skeleton" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {episodes.map((ep) => {
+                        const isActive = selectedEpisode === ep.episode_number;
+                        return (
+                          <button
+                            key={ep.episode_number}
+                            onClick={() => playEpisode(ep.episode_number)}
+                            className={`group flex w-full items-start gap-3 overflow-hidden rounded-xl border p-0 text-start transition-all active:scale-[0.98] ${
+                              isActive
+                                ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]/30"
+                                : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/30 hover:bg-[var(--bg-surface)]"
+                            }`}
+                          >
+                            <div className="relative h-24 w-40 shrink-0 overflow-hidden bg-[var(--bg-elevated)] sm:h-28 sm:w-48">
+                              {ep.still ? (
+                                <Image src={ep.still} alt={ep.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 640px) 160px, 192px" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-[var(--bg-surface)] text-[var(--text-dim)]">
+                                  <span className="text-2xl font-black opacity-20">{ep.episode_number}</span>
+                                </div>
+                              )}
+                              <div className={`absolute inset-0 flex items-center justify-center transition-all ${isActive ? "bg-[var(--accent)]/30" : "bg-black/0 group-hover:bg-black/20"}`}>
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isActive ? "scale-100 bg-[var(--accent)] text-white" : "scale-0 bg-white/90 text-[var(--text-primary)] group-hover:scale-100"}`}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5,3 19,12 5,21" />
+                                  </svg>
+                                </div>
+                              </div>
+                              <span className={`absolute start-1.5 top-1.5 flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold ${isActive ? "bg-[var(--accent)] text-white" : "bg-black/55 text-white/90"}`}>
+                                {ep.episode_number}
+                              </span>
+                            </div>
+
+                            <div className="flex min-w-0 flex-1 flex-col justify-center py-2.5 pe-3">
+                              <p className={`truncate text-sm font-semibold ${isActive ? "text-[var(--accent)]" : "text-[var(--text-primary)]"}`}>
+                                {ep.name}
+                              </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[var(--text-dim)]">
+                                {ep.runtime && <span>{ep.runtime} {t("minuteShort")}</span>}
+                                {ep.vote_average > 0 && (
+                                  <span className="flex items-center gap-0.5 text-[var(--rating)]">★ {ep.vote_average.toFixed(1)}</span>
+                                )}
+                              </div>
+                              {ep.overview && (
+                                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--text-muted)]">
+                                  {ep.overview}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--text-muted)]">{isAr ? "لا توجد حلقات." : "No episodes."}</p>
               ),
               info: (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -489,79 +563,22 @@ export default function WatchTVPage({
           />
         )}
 
+
         {show && (
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)]">
             <span className="font-bold text-[var(--text-primary)]">{show.name}</span>
             <span className="text-[var(--text-dim)]">·</span>
             <span>
-              {t("season")} {selectedSeason} · {t("episode")} {selectedEpisode}
+              {t("episode")} {selectedEpisode}
               {episodes.length > 0 ? ` / ${episodes.length}` : ""}
             </span>
           </div>
         )}
 
-        {/* Player, then seasons/episodes below */}
-        <div id="watch-player" className="scroll-mt-24">
-          <WatchStreamTabs
-            servers={servers}
-            activeServer={activeServer}
-            onSelectServer={(i) => {
-              if (i === activeServer) return;
-              setBusyMsg(false);
-              setSwitching(true);
-              setTimeout(() => {
-                setActiveServer(i);
-                setActiveMirror(0);
-                setSwitching(false);
-              }, 3500);
-            }}
-            serversLabel={t("servers")}
-            recommendedLabel={t("recommended")}
-          />
-          <div className="player-shell" data-mv-player="1">
-            <WatchAdLocker
-              lockKey={`tv-${id}-${selectedSeason}-${selectedEpisode}-${activeServer}`}
-            >
-              <InPlayerVastGate
-                sessionKey={`tv-${id}-${selectedSeason}-${selectedEpisode}`}
-                prerollKey={`tv-${id}-${selectedSeason}-${selectedEpisode}-${activeServer}`}
-                poster={show?.poster_path ?? undefined}
-              >
-                {switching ? (
-                  <WatchServerLoadingAd
-                    lockKey={`tv-load-${id}-${selectedSeason}-${selectedEpisode}-${activeServer}`}
-                  />
-                ) : currentServer.playerType === "direct" && currentServer.directUrl ? (
-                  <VideoPlayer src={currentServer.directUrl} />
-                ) : (
-                  <iframe
-                    key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
-                    src={currentServerUrl}
-                    onError={handleIframeError}
-                    className="absolute inset-0 h-full w-full border-0"
-                    title="TV player"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
-                )}
-              </InPlayerVastGate>
-            </WatchAdLocker>
-            <PlayerAdCorner />
-          </div>
-          <WatchPlayerAds />
-        </div>
-
-        {/* Server busy toast */}
-        {busyMsg && (
-          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
-            <span className="me-2">⏳</span>{t("serverBusy")}
-          </div>
-        )}
-
+        {/* Prev / Next episode — ABOVE player (clashanime style) */}
         {show && show.seasons.length > 0 && (
           <div
-            className="mt-4 mb-4 flex items-stretch gap-2 sm:gap-3"
+            className="mb-4 flex items-stretch gap-2 sm:gap-3"
             dir={isRtl ? "rtl" : "ltr"}
             role="navigation"
             aria-label={t("episodes")}
@@ -589,8 +606,8 @@ export default function WatchTVPage({
               <span className="hidden truncate sm:inline">{t("prevEpisode")}</span>
             </button>
 
-            <div className="flex min-w-[5.5rem] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-center shadow-sm">
-              <span className="text-[10px] font-semibold text-[var(--text-dim)]">{t("episode")}</span>
+            <div className="flex min-w-[5.5rem] flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] px-3 py-2 text-center">
+              <span className="text-[10px] text-[var(--text-dim)]">{t("episode")}</span>
               <span className="text-sm font-black text-[var(--text-primary)]">
                 {selectedEpisode}
                 {episodes.length > 0 ? ` / ${Math.max(...episodes.map((e) => e.episode_number))}` : ""}
@@ -633,20 +650,62 @@ export default function WatchTVPage({
           </div>
         )}
 
-        {show && (
-          <TvEpisodeBrowser
-            seasons={sortedSeasons}
-            episodes={sortedEpisodes}
-            selectedSeason={selectedSeason}
-            selectedEpisode={selectedEpisode}
-            loading={epLoading}
-            onSelectSeason={(season) => {
-              episodeSelectAfterSeasonFetchRef.current = null;
-              setSelectedSeason(season);
+        {/* Stream tabs (EgyDead-style) + Player */}
+        <div id="watch-player" className="scroll-mt-24">
+          <WatchStreamTabs
+            servers={servers}
+            activeServer={activeServer}
+            onSelectServer={(i) => {
+              if (i === activeServer) return;
+              setBusyMsg(false);
+              setSwitching(true);
+              setTimeout(() => {
+                setActiveServer(i);
+                setActiveMirror(0);
+                setSwitching(false);
+              }, 2000);
             }}
-            onSelectEpisode={playEpisode}
+            serversLabel={t("servers")}
+            recommendedLabel={t("recommended")}
           />
+          <div className="player-shell">
+            {switching ? (
+              <WatchServerLoadingAd
+                lockKey={`tv-load-${id}-${selectedSeason}-${selectedEpisode}-${activeServer}`}
+              />
+            ) : (
+              <WatchAdLocker
+                lockKey={`tv-${id}-${selectedSeason}-${selectedEpisode}-${activeServer}`}
+              >
+                <div className="relative aspect-video w-full">
+                  {currentServer.playerType === "direct" && currentServer.directUrl ? (
+                    <VideoPlayer src={currentServer.directUrl} />
+                  ) : (
+                    <iframe
+                      key={`${activeServer}-${activeMirror}-${selectedSeason}-${selectedEpisode}-${subLang}`}
+                      src={currentServerUrl}
+                      onError={handleIframeError}
+                      className="absolute inset-0 h-full w-full border-0"
+                      title="TV player"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  )}
+                </div>
+              </WatchAdLocker>
+            )}
+          </div>
+        </div>
+
+        {/* Server busy toast */}
+        {busyMsg && (
+          <div className="mt-3 animate-fade-in-up rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-4 py-2.5 text-sm text-yellow-700">
+            <span className="me-2">⏳</span>{t("serverBusy")}
+          </div>
         )}
+
+        <WatchPageBottomAds />
 
         <RelatedShowsSection show={show} isAr={isAr} />
       </div>
