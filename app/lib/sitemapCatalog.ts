@@ -287,3 +287,9 @@ export async function getSitemapEntriesForId(id: number): Promise<MetadataRoute.
     "daily"
   );
 }
+
+
+/** Alias used by app/sitemap.ts */
+export async function getWatchSitemapEntries() {
+  return getSitemapEntriesForId(1);
+}
