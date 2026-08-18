@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import WatchlistCtaButton from "./WatchlistCtaButton";
+import { CoverAgeBadge } from "./CoverAgeBadge";
+import { fallbackAgeFromMedia } from "../lib/mal/ageRatingMap";
 import { useLang } from "../context/LanguageContext";
 
 export interface WatchHeroData {
@@ -14,6 +16,10 @@ export interface WatchHeroData {
   meta: string;
   type: "movie" | "tv";
   badge?: string | null;
+  anilistId?: number | null;
+  malId?: number | null;
+  genres?: string[] | null;
+  isAdult?: boolean | null;
 }
 
 export default function WatchHeroCard({
@@ -62,6 +68,14 @@ export default function WatchHeroCard({
                 className="object-cover"
                 priority
                 sizes="192px"
+              />
+            ) : null}
+            {data.anilistId || data.malId ? (
+              <CoverAgeBadge
+                malId={data.malId}
+                anilistId={data.anilistId}
+                fallbackCode={fallbackAgeFromMedia(data)}
+                size="hero"
               />
             ) : null}
           </div>

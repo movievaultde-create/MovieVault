@@ -149,6 +149,10 @@ export async function GET(req: NextRequest) {
           year: r.year,
           type: r.type,
           studio: r.studio ?? undefined,
+          anilistId: r.anilistId,
+          malId: r.malId ?? null,
+          genres: r.genres ?? [],
+          isAdult: Boolean(r.isAdult),
         }));
       return NextResponse.json({ results, page: data.page, total_pages: data.total_pages });
     } catch {

@@ -6,6 +6,8 @@ import Image from "next/image";
 import HeroSection from "./HeroSection";
 import AiRecommendationPanel from "./AiRecommendationPanel";
 import MediaCard from "./MediaCard";
+import { CoverAgeBadge } from "./CoverAgeBadge";
+import { fallbackAgeFromMedia } from "../lib/mal/ageRatingMap";
 import WatchlistButton from "./WatchlistButton";
 import { CoverAdLink } from "./ads/CoverAdLink";
 import { withInGridAds } from "./ads/insertInGridAds";
@@ -27,12 +29,15 @@ interface BrowseItem {
 interface AnimeUpdateItem {
   id: number;
   anilistId: number;
+  malId?: number | null;
   title: string;
   poster: string | null;
   rating: string;
   year: string;
   episodeHint: string | null;
   href: string;
+  genres?: string[];
+  isAdult?: boolean;
 }
 
 interface BrowseData {
@@ -340,9 +345,16 @@ function AnimeUpdatesSection({
                     />
                   ) : null}
 
-                  <span className="absolute start-2 top-2 flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[11px] font-black text-white shadow">
+                  <span className="absolute start-2 top-2 z-[1] flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[11px] font-black text-white shadow">
                     {i + 1}
                   </span>
+
+                  <CoverAgeBadge
+                    malId={item.malId}
+                    anilistId={item.anilistId}
+                    fallbackCode={fallbackAgeFromMedia(item)}
+                    className={item.episodeHint ? "!top-10" : undefined}
+                  />
 
                   {item.episodeHint ? (
                     <span className="absolute end-2 top-2 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-bold text-white">

@@ -14,6 +14,10 @@ interface BrowseItem {
   year: string;
   type: "movie" | "tv";
   studio?: string | null;
+  anilistId?: number | null;
+  malId?: number | null;
+  genres?: string[] | null;
+  isAdult?: boolean | null;
 }
 
 export default function BrowseGrid({

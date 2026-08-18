@@ -16,6 +16,8 @@ export interface AniListMedia {
   averageScore: number | null;
   seasonYear: number | null;
   episodes: number | null;
+  genres?: string[] | null;
+  isAdult?: boolean | null;
   externalLinks: Array<{ url: string | null; site: string | null }> | null;
   studios?: { nodes: Array<{ name: string }> } | null;
 }
@@ -55,6 +57,8 @@ query AniListDiscover($page: Int, $perPage: Int, $format: MediaFormat, $sort: [M
       averageScore
       seasonYear
       episodes
+      genres
+      isAdult
       externalLinks { url site }
       studios(isMain: true) { nodes { name } }
     }
@@ -81,6 +85,9 @@ export interface AniListDiscoverResult {
     type: "movie" | "tv";
     tmdbId: number | null;
     anilistId: number;
+    malId?: number | null;
+    genres?: string[];
+    isAdult?: boolean;
     studio?: string | null;
   }>;
   page: number;
@@ -132,6 +139,9 @@ export async function fetchAniListDiscover(
       type,
       tmdbId,
       anilistId: m.id,
+      malId: m.idMal ?? null,
+      genres: m.genres ?? [],
+      isAdult: Boolean(m.isAdult),
       studio: studio ?? undefined,
     };
   });

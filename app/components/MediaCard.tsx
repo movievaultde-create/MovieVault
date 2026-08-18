@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import WatchlistButton from "./WatchlistButton";
+import { CoverAgeBadge } from "./CoverAgeBadge";
+import { fallbackAgeFromMedia } from "../lib/mal/ageRatingMap";
 
 export interface MediaCardItem {
   id: number;
@@ -12,6 +14,10 @@ export interface MediaCardItem {
   year: string;
   type: "movie" | "tv";
   studio?: string | null;
+  anilistId?: number | null;
+  malId?: number | null;
+  genres?: string[] | null;
+  isAdult?: boolean | null;
 }
 
 export default function MediaCard({
@@ -51,10 +57,19 @@ export default function MediaCard({
           )}
 
           {typeof rank === "number" && (
-            <span className="absolute start-2 top-2 flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[11px] font-black text-white shadow">
+            <span className="absolute start-2 top-2 z-[1] flex h-6 w-6 items-center justify-center rounded-md bg-[var(--accent)] text-[11px] font-black text-white shadow">
               {rank}
             </span>
           )}
+
+          {item.anilistId || item.malId ? (
+            <CoverAgeBadge
+              malId={item.malId}
+              anilistId={item.anilistId}
+              fallbackCode={fallbackAgeFromMedia(item)}
+              className={item.type === "tv" ? "!top-10" : undefined}
+            />
+          ) : null}
 
           {item.type === "tv" && (
             <span className="absolute end-2 top-2 rounded-md bg-[var(--accent-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--accent)]">
